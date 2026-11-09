@@ -12,20 +12,6 @@ DIRS = [(0, -1, "up"), (0, 1, "down"), (-1, 0, "left"), (1, 0, "right")]
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 
 
-def step(d):
-    """走一格；第一次可能只是转身，所以最多按两次。"""
-    for _ in range(2):
-        b = coords()
-        if b is None:
-            return False
-        press(d, 0.06)
-        time.sleep(0.45)
-        a = coords()
-        if a and a != b:
-            return True
-    return False
-
-
 def bfs(vals, w, h, start, goal, blocked):
     q = deque([start])
     prev = {start: None}
@@ -109,37 +95,6 @@ def bfs_turns(vals, w, h, start, goal, blocked, turn_penalty=1.6):
         path.append(d)
         cur = p
     return list(reversed(path))
-
-
-def goto(gx, gy, max_steps=200):
-    blocked = set()
-    for i in range(max_steps):
-        if in_battle():
-            return "battle"
-        p = coords()
-        if p is None:
-            print("读不到坐标")
-            return False
-        cur = (p[0] - 7, p[1] - 7)
-        if cur == (gx, gy):
-            print(f"到达地块 ({gx},{gy})")
-            return True
-        addr, w, h, vals = terrain.load()
-        if not vals:
-            print("读不到地图")
-            return False
-        path = bfs(vals, w, h, cur, (gx, gy), blocked | terrain.npc_tiles())
-        if not path:
-            print(f"从 {cur} 到 ({gx},{gy}) 无路可走，已绕开 {len(blocked)} 格")
-            return False
-        d = path[0]
-        if step(d):
-            continue
-        dx, dy = DELTA[d]
-        blocked.add((cur[0] + dx, cur[1] + dy))
-        print(f"在 {cur} 想往 {d} 走但没走动，标记 {cur[0]+dx},{cur[1]+dy}")
-    print("步数用尽")
-    return False
 
 
 if __name__ == "__main__":

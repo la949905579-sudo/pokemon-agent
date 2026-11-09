@@ -470,3 +470,10 @@ python3 logq.py --grep got=2 --json
 - `prolong` 仍用 `status`（只拖局面，不压血），两者语义分开
 - 实测：AI 注入 no_kill → 1 回合 win，intent_rounds 记录生效
 - 威胁评估仍只写日志，未接入决策（避免无观测数据就改选招/换人）
+
+### 寻路改进（2026-11-10）
+- 对外坐标统一为**地块**（`state.to_tile/to_raw`），raw 只在底层读写用
+- `_blocked` 改 dict+时间戳，TTL 600s；NPC 格不记（会移动）
+- 到达后二次读坐标确认，防瞬态误判
+- 只剩 `pathfind.goto` 一个执行入口；`nav` 只保留 BFS 规划
+- 待办：跨图 A*（map_links + map_coords 目前仍是孤立的）

@@ -14,7 +14,8 @@ from ra import press
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 MAX_RUN = 40              # 不穿草的路径可长段赶路
 MAX_RUN_GRASS = 6         # 要穿草时必须短段
-_blocked = set()
+_blocked = {}          # (x,y) -> 记录时间；带 TTL，NPC/临时障碍不会永久生效
+BLOCK_TTL = 600        # 秒
 
 
 def _grass_set(vals, w, h):
@@ -22,10 +23,26 @@ def _grass_set(vals, w, h):
             if terrain.is_grass(vals, w, x, y)}
 
 
+def _blocked_set(now=None):
+    """当前有效的障碍集合（过期自动忽略）。"""
+    now = time.time() if now is None else now
+    return {p for p, t in _blocked.items() if now - t < BLOCK_TTL}
+
+
+def _note_blocked(p):
+    """记障碍；NPC 会移动，不记（撞上由对话/重规划处理）。"""
+    try:
+        if p in terrain.npc_tiles():
+            return
+    except Exception:
+        pass
+    _blocked[p] = time.time()
+
+
 def _plan(vals, w, h, cur, goal, avoid_grass=False):
     """BFS，先带回黑名单，失败再清空黑名单重试。返回 path 或 None。"""
     # NPC 会移动，不当作永久障碍（撞上会触发对话，由上层处理）
-    blocked = _blocked
+    blocked = _blocked_set()
     if avoid_grass:
         path = nav.bfs_turns(vals, w, h, cur, goal, blocked | _grass_set(vals, w, h))
         if path is not None:
@@ -82,8 +99,13 @@ def goto(gx, gy, max_segs=60, stop_on_battle=True, avoid_grass=True):
             return False
         cur = (s["x"] - 7, s["y"] - 7)
         if cur == (gx, gy):
-            _blocked.clear()
-            return True
+            # 二次确认：防坐标抖动/换图瞬态误判“到达”
+            time.sleep(0.06)
+            s2 = snapshot()
+            if s2.get("x") is not None and (s2["x"] - 7, s2["y"] - 7) == (gx, gy):
+                _blocked.clear()
+                return True
+            continue
         addr, w, h, vals = terrain.load()
         if not vals:
             return False
@@ -113,7 +135,7 @@ def goto(gx, gy, max_segs=60, stop_on_battle=True, avoid_grass=True):
             dx, dy = DELTA[d]
             bad = (cur[0] + dx * (moved + 1), cur[1] + dy * (moved + 1))
             if bad != cur and bad != (gx, gy):
-                _blocked.add(bad)
+                _note_blocked(bad)
     return False
 
 

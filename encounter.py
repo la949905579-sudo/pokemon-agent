@@ -67,8 +67,8 @@ def ensure_grass(max_tries=60):
         if moved:
             continue
         # 否则用 nav 走过去
-        import nav
-        nav.goto(g[0], g[1])
+        import pathfind
+        pathfind.goto(g[0], g[1])
         time.sleep(0.3)
     return False
 

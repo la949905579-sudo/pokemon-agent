@@ -16,6 +16,19 @@ def coords():
         return None
     return struct.unpack_from("<hh", d, 0)
 
+TILE_OFF = 7   # 地块坐标 = 原始坐标 - 7（对外一律用「地块」）
+
+
+def to_tile(raw):
+    """原始坐标 -> 地块坐标。"""
+    return (raw[0] - TILE_OFF, raw[1] - TILE_OFF)
+
+
+def to_raw(tile):
+    """地块坐标 -> 原始坐标。"""
+    return (tile[0] + TILE_OFF, tile[1] + TILE_OFF)
+
+
 PARTY_ADDR = 0x02024284            # 真·队伍数据（FireRed gPlayerParty）
 PARTY_RANGE = (0x24000, 0x28000)
 
