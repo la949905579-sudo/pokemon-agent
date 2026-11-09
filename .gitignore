@@ -1,0 +1,7 @@
+logs/
+map_cache/
+__pycache__/
+*.pyc
+*.png
+*.bak*
+legacy/
