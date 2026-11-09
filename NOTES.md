@@ -452,3 +452,9 @@ python3 logq.py --grep got=2 --json
 - 决策层 `choose_move(cons=...)` 与主循环只认约束，**不再判断 kind**
 - 新增指令 = 注册 + 一个 compile 函数；`test_intent` J 验收“只注册即可生效”
 - 旧接口 `choose_move(intents=...)` 保留，内部自动编译（兼容）
+
+### 跨进程指令（2026-11-10）
+- `intent.use_file_store()`：JSON 文件 + fcntl 锁，默认路径 `logs/intent.json`
+- `api_server` / `farm` / `train` 启动时自动启用；`active()/effective()` 会先刷新
+- 实测：8081 注入 prolong → 另一进程读到 `[('prolong', 3, 'ai')]`
+- 注意：并发写是 last-writer-wins（写少读多场景够用），跨进程 tick 可能覆盖，后续需要再加合并

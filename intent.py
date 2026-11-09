@@ -16,6 +16,9 @@ kind（白名单）：
 冲突：按 priority 排序（guard > flee > preserve > no_kill > only_class > prolong）。
 审计：submit/drop/expire/safety 全部记入 audit()。
 """
+import fcntl
+import json
+import os
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -24,6 +27,70 @@ PRIORITY = {
     "guard": 100, "flee": 80, "preserve": 60,
     "no_kill": 40, "only_class": 30, "prolong": 20,
 }
+
+class MemoryStore:
+    """进程内存储（默认）。"""
+    def load(self):
+        return None, None
+
+    def save(self, intents, audit):
+        pass
+
+
+class FileStore:
+    """跨进程存储：JSON 文件 + 排他锁。"""
+    def __init__(self, path):
+        self.path = path
+        self._lock = path + ".lock"
+
+    def load(self):
+        try:
+            with open(self.path, encoding="utf-8") as f:
+                d = json.load(f)
+            return [Intent.from_dict(x) for x in d.get("intents", [])], d.get("audit", [])
+        except Exception:
+            return [], []
+
+    def save(self, intents, audit):
+        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+        with open(self._lock, "w") as lk:
+            fcntl.flock(lk, fcntl.LOCK_EX)
+            try:
+                tmp = self.path + ".tmp"
+                with open(tmp, "w", encoding="utf-8") as f:
+                    json.dump({"intents": [i.to_dict() for i in intents],
+                               "audit": audit[-500:]}, f, ensure_ascii=False)
+                os.replace(tmp, self.path)
+            finally:
+                fcntl.flock(lk, fcntl.LOCK_UN)
+
+
+DEFAULT_FILE = "/root/workspace/logs/intent.json"
+_store_obj = MemoryStore()
+
+
+def use_file_store(path=DEFAULT_FILE):
+    """切到跨进程文件存储（api_server / farm / train 入口调用）。"""
+    global _store_obj
+    _store_obj = FileStore(path)
+    _refresh()
+
+
+def _is_file():
+    return isinstance(_store_obj, FileStore)
+
+
+def _refresh():
+    intents, audit = _store_obj.load()
+    if intents is not None:
+        _store[:] = intents
+        _audit[:] = audit or []
+
+
+def _persist():
+    if _is_file():
+        _store_obj.save(_store, _audit)
+
 
 _store = []          # List[Intent]
 _audit = []          # List[dict]
@@ -121,6 +188,16 @@ class Intent:
     source: str = "user"
     id: str = ""
 
+    def to_dict(self):
+        return {"id": self.id, "kind": self.kind, "params": self.params,
+                "ttl": self.ttl, "priority": self.priority, "source": self.source}
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(kind=d["kind"], params=d.get("params") or {},
+                   ttl=d.get("ttl"), priority=d.get("priority"),
+                   source=d.get("source") or "api", id=d.get("id") or "")
+
     def __post_init__(self):
         if self.kind not in PRIORITY:
             raise ValueError(f"未知指令: {self.kind}")
@@ -146,6 +223,7 @@ def submit(intent):
     _store[:] = [i for i in _store if i.kind != intent.kind]
     _store.append(intent)
     _log(intent, "submit")
+    _persist()
     return intent.id
 
 
@@ -155,15 +233,19 @@ def clear(intent_id=None):
         for i in list(_store):
             _log(i, "clear")
         _store.clear()
+        _persist()
     else:
         for i in list(_store):
             if i.id == intent_id:
                 _store.remove(i)
                 _log(i, "clear")
+                _persist()
                 break
 
 
 def active():
+    if _is_file():
+        _refresh()
     return list(_store)
 
 
@@ -176,6 +258,7 @@ def tick():
         if i.ttl <= 0:
             _store.remove(i)
             _log(i, "expire")
+            _persist()
 
 
 def _hp_ratio(me):
@@ -190,8 +273,11 @@ def effective(me, foe=None, force=False):
 
     force=False 时复用 0.3s 内的结果，避免同一回合重复计算；force=True 强制重算。
     """
+    if _is_file():
+        _refresh()
     now = time.time()
-    if not force and _cache["t"] and now - _cache["t"] < 0.3 and _cache["me"] == id(me):
+    if not _is_file() and not force and _cache["t"] and now - _cache["t"] < 0.3 \
+            and _cache["me"] == id(me):
         return list(_cache["out"])
     hp = _hp_ratio(me)
     out = []

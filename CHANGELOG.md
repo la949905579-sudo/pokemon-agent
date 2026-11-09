@@ -3,6 +3,14 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-6（2026-11-10）
+### 新增
+- 跨进程指令存储 `FileStore`（`logs/intent.json` + 排他锁）
+- `api_server` / `farm` / `train` 入口自动启用文件 store
+
+### 验证
+- API 注入 `prolong` → 另一个进程 `active()` 能读到并编译成约束
+
 ## v2026.11.10-5（2026-11-10）
 ### 变更
 - 指令改为**注册制编译**：`kind -> compile -> Constraints`

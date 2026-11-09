@@ -15,6 +15,9 @@ from probe import Recorder
 
 
 def farm(battles=3, seconds=360, verbose=True):
+    import intent
+    intent.use_file_store()
+
     rec = Recorder()
     print("rounds ->", rec.path, flush=True)
     n = 0

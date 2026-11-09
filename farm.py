@@ -28,6 +28,9 @@ def low_hp(ratio=0.3):
 
 
 def farm(battles=10, target_lv=None, seconds=1800, verbose=True):
+    import intent
+    intent.use_file_store()
+
     rec = Recorder()
     start = levels()
     n = 0

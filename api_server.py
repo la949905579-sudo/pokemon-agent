@@ -340,6 +340,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    intent.use_file_store()      # 跨进程：api 与 farm/train 共享指令
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print(f"external api on http://127.0.0.1:{PORT}", flush=True)
     srv.serve_forever()
