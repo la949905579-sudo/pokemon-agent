@@ -194,65 +194,61 @@ def travel(gx, gy, max_battles=30, verbose=True, avoid_grass=True):
     return "too_many_battles"
 
 
-def travel_map(dst_map, dst_x, dst_y, max_steps=12, verbose=True):
-    """跨地图寻路：每步重新规划（处理复用房间）。返回 ok / no_route / fail。"""
-    import map_links
-    for step in range(max_steps):
-        cur_map = terrain.load()[0]
-        if not cur_map:
-            return "fail"
-        if cur_map == dst_map:
-            return "ok" if goto(dst_x, dst_y) is True else "fail"
+# ---------------- 固定跨图路线（实测验证过的） ----------------
 
-        route = map_links.route_maps(cur_map, dst_map)
-        if not route or len(route) < 2:
-            return "no_route"
-        nxt = route[1]
-
-        ln = None
-        for l in map_links.links_from(cur_map):
-            targets = l.get("targets")
-            if targets:
-                if any(t["to_map"] == nxt for t in targets):
-                    ln = l
-                    break
-            elif l.get("to_map") == nxt:
-                ln = l
-                break
-        if not ln:
-            return "no_route"
-
-        ex, ey = ln["exit"]
-        if verbose:
-            print(f"  跨图{step}: {hex(cur_map)} 出口({ex},{ey}) -> {hex(nxt)}", flush=True)
-        r = goto(ex, ey, avoid_grass=False)
+def route_5_to_6(verbose=True):
+    """5 号道路 -> 房间 -> 通道 -> 房间 -> 6 号道路（固定路线）。"""
+    if verbose:
+        print("  路线: 5号道路 -> 通道 -> 6号道路", flush=True)
+    steps = [
+        ("5号道路门", (31, 32), "up", 0x82e833c),
+        ("房间进通道", (7, 4), "left", 0x83192f0),
+        ("通道底部", (3, 60), "left", 0x831989c),
+        ("房间出6号", (6, 8), "down", 0x83192f0),
+    ]
+    for name, (gx, gy), d, expect_map in steps:
+        cur = terrain.load()[0]
+        if cur != expect_map:
+            if verbose:
+                print(f"    跳过 {name}（当前 {hex(cur)}）", flush=True)
+            continue
+        r = goto(gx, gy, avoid_grass=False)
+        if r not in (True, "battle", "dialog"):
+            return False
         if r == "battle":
             import auto_battle
             auto_battle.battle_loop()
-        elif r is not True and r != "dialog":
-            return "fail"
+        action.walk(d, 1)
+        time.sleep(1.0)
+        if verbose:
+            print(f"    {name}: {hex(terrain.load()[0])}", flush=True)
+    return terrain.load()[0] == 0x82e9260
 
-        # 门需要「踩入」触发：先走开一格，再走回出口格
-        moved = False
-        s = snapshot()
-        start = (s["x"] - 7, s["y"] - 7) if s["x"] is not None else (ex, ey)
-        for d in ("down", "up", "left", "right"):
-            action.walk(d, 1)
-            time.sleep(0.5)
-            s2 = snapshot()
-            now = (s2["x"] - 7, s2["y"] - 7) if s2["x"] is not None else start
-            if now == start:
-                continue          # 没走开（被挡），换方向
-            if terrain.load()[0] != cur_map:
-                moved = True
-                break
-            # 走回出口格（踩入）
-            opp = {"up": "down", "down": "up", "left": "right", "right": "left"}[d]
-            action.walk(opp, 2)
-            time.sleep(0.9)
-            if terrain.load()[0] != cur_map:
-                moved = True
-                break
-        if not moved:
-            return "fail"
-    return "fail"
+
+def route_6_to_5(verbose=True):
+    """6 号道路 -> 房间 -> 通道 -> 房间 -> 5 号道路（固定路线）。"""
+    if verbose:
+        print("  路线: 6号道路 -> 通道 -> 5号道路", flush=True)
+    steps = [
+        ("6号道路门", (19, 14), "up", 0x82e9260),
+        ("房间进通道", (7, 4), "left", 0x83192f0),
+        ("通道顶部", (4, 3), "right", 0x831989c),
+        ("房间出5号", (6, 8), "down", 0x83192f0),
+    ]
+    for name, (gx, gy), d, expect_map in steps:
+        cur = terrain.load()[0]
+        if cur != expect_map:
+            if verbose:
+                print(f"    跳过 {name}（当前 {hex(cur)}）", flush=True)
+            continue
+        r = goto(gx, gy, avoid_grass=False)
+        if r not in (True, "battle", "dialog"):
+            return False
+        if r == "battle":
+            import auto_battle
+            auto_battle.battle_loop()
+        action.walk(d, 1)
+        time.sleep(1.0)
+        if verbose:
+            print(f"    {name}: {hex(terrain.load()[0])}", flush=True)
+    return terrain.load()[0] == 0x82e833c
