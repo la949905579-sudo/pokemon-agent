@@ -4,6 +4,10 @@ sys.path.insert(0, "/root/workspace")
 from unittest.mock import patch
 import auto_battle
 import switch
+from unittest.mock import patch as _patch
+
+# 这些用例只测内存里的 order 逻辑，不读实机战斗状态
+_patch.object(switch, "in_battle", lambda: False).start()
 
 
 def set_order(o):
@@ -21,8 +25,9 @@ def test_cursor_mapping():
 
 def test_order_init_from_party():
     """没有记录时按队伍顺序初始化：第一只健康放左边。"""
-    with patch.object(switch, "_order", None), \
-         patch.object(switch, "my_mon",
+    with _patch.object(switch, "_order", None), \
+         _patch.object(switch, "_init_active", lambda: 1), \
+         _patch.object(switch, "my_mon",
                       lambda i: {"hp": 0 if i == 0 else 20, "species": i}):
         o = switch.party_order()
     assert o == [1, 0, 2, 3, 4, 5], o

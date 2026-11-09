@@ -44,6 +44,7 @@ def move_to(target):
 
 
 _order = None   # 战斗内部队伍顺序（纯内存，不落盘）
+_field = {"t": 0.0, "sp": None, "slot": None}   # 场上 species 缓存
 _switch_blocked = False   # 换人被拒（束缚等），本场不再尝试
 
 
@@ -60,6 +61,7 @@ def reset_party_order():
     """新战斗开始时调用：清掉上一场的顺序和换人被拒标记。"""
     global _order, _switch_blocked
     _order = None
+    _field.update({"t": 0.0, "sp": None, "slot": None})
     _switch_blocked = False
 
 
@@ -84,32 +86,98 @@ def _init_active():
     return None
 
 
-def party_order():
-    """战斗内部队伍顺序：order[0] = 界面左边的当前出场，order[1..5] = 右侧 5 只。
-
-    实测机制：战斗开始时按队伍顺序派第一只健康的并放到左边；
-    战斗中换人 = 把左边那只与右侧选中的**交换位置**（界面顺序立刻变，
-    但真实队伍数组 0x02024284 不变）；战斗结束重置。
-
-    内存里没有找到可直接读的「顺序数组」（战斗队伍数据是加密的），
-    所以在进程内跟踪：换人时由 _pick_and_switch 交换 order[0] 与选中位置。
-    新进程（或新战斗）会按队伍顺序重新初始化。
-    """
+def _raw_order():
+    """纯内存的界面顺序（不校验内存），首次访问按队伍初始化。"""
     global _order
     if _order is None:
         active = _init_active()
+        if active is None:
+            active = next((i for i in range(6)
+                           if (my_mon(i) or {}).get("hp", 0) > 0), 0)
         _order = [active] + [i for i in range(6) if i != active]
     return _order
 
 
+def _set_active(slot):
+    order = _raw_order()
+    if order[0] != slot:
+        order.remove(slot)
+        order.insert(0, slot)
+
+
+def _read_field_species(ttl=0.6):
+    """场内 species（0x02023BE4+0），带短缓存；读不到返回 None。"""
+    global _field
+    now = time.time()
+    if ttl > 0 and now - _field["t"] < ttl:
+        return _field["sp"]
+    from addresses import MY_BATTLE
+    d = rd(MY_BATTLE, 2)
+    sp = struct.unpack("<H", d)[0] if len(d) == 2 and any(d) else None
+    if sp != _field["sp"]:
+        _field["slot"] = None
+    _field["sp"] = sp
+    _field["t"] = now
+    return sp
+
+
+def _slot_for_species(sp):
+    """species -> 队伍槽位；同种多只时取界面顺序里最靠前的那只。"""
+    if _field.get("sp") == sp and _field.get("slot") is not None:
+        return _field["slot"]
+    slot = None
+    for i in _raw_order():
+        m = my_mon(i)
+        if m and m.get("species") == sp:
+            slot = i
+            break
+    _field["slot"] = slot
+    return slot
+
+
+def invalidate_field():
+    """换人/开战后调用：让下一次 active_slot 强制重读内存。"""
+    _field["t"] = 0.0
+
+
+def party_order():
+    """界面顺序：order[0] = 当前出场，order[1..5] = 右侧 5 只。
+
+    不再纯靠进程内跟踪：每次调用都用场上 species 校正 order[0]（0.6s 缓存），
+    濒死换人、强制换人等任何漏更新的路径都会被这里修正。
+    右侧顺序仍靠进程内维护（战斗队伍数组是加密的，读不到明文）。
+    """
+    active_slot()
+    return _raw_order()
+
+
 def active_slot():
-    """当前场上（界面左边）的槽位。"""
-    return party_order()[0]
+    """当前场上槽位：以内存 species 为唯一依据，order 只做兜底。"""
+    if not in_battle():
+        return _raw_order()[0]
+    sp = _read_field_species()
+    if sp:
+        slot = _slot_for_species(sp)
+        if slot is not None:
+            _set_active(slot)
+            return slot
+    return _raw_order()[0]
+
+
+def ensure_active():
+    """强制重读场上 species 并校正 order[0]（换人后调用）。"""
+    sp = _read_field_species(ttl=0)
+    if not sp:
+        return None
+    slot = _slot_for_species(sp)
+    if slot is not None:
+        _set_active(slot)
+    return slot
 
 
 def _cursor_for_slot(slot):
-    """队伍槽位 -> 菜单光标。直接查战斗内部顺序：order 下标就是光标号。"""
-    order = party_order()
+    """队伍槽位 -> 菜单光标（order 下标）。"""
+    order = _raw_order()
     return order.index(slot) if slot in order else None
 
 
@@ -186,9 +254,10 @@ def _pick_and_switch(target, verbose, label):
             time.sleep(0.6)
     if ok:
         # 换人 = 左边那只与选中的交换位置（战斗内部顺序），战斗结束才重置
-        o = party_order()
+        o = _raw_order()
         if 0 <= pos < len(o):
             o[0], o[pos] = o[pos], o[0]
+        invalidate_field()
     log.info("switch", label, target=target, pos=pos, ok=ok)
     if verbose:
         print(f"  {label} {'-> #' + str(target) if ok else '失败'}", flush=True)

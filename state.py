@@ -284,8 +284,10 @@ def trapped():
     if not d or len(d) < 2:
         return False
     v = struct.unpack("<H", d)[0]
-    # bit8 = 束缚（Wrap 类）；bit2/3 = 黑眼神/蜘蛛网等「被困」标记
-    return bool(v & (0x100 | 0x0C))
+    # 只有 bit8 是实测可靠的束缚（Wrap 类，258 = 0x102）。
+    # bit2/3 曾被当成「被困」，但实测 +0x22=1037（含 0x0D）时换人正常，
+    # 是误判；真被拒时由 switch 的失败兜底（_switch_blocked）处理。
+    return bool(v & 0x100)
 
 
 def status_flags(slot=0):

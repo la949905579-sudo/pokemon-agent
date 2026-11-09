@@ -104,6 +104,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
                 # 还在界面：可能打开了「放出/概况/取消」，选放出
                 action.choose_option(0)
                 action.wait_until(lambda: info.scene() != info.PARTY_OPTION, 2.0)
+            switch.ensure_active()   # 濒死换人不走 _pick_and_switch，这里校正出场槽位
             continue
 
         if sc == info.PARTY:
@@ -127,6 +128,8 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
             continue
 
         if sc in (info.BATTLE_MAIN, info.BATTLE_MOVES):
+            # 槽位自检：换人流程后 order 可能过期，按场上 species 校正
+            switch.ensure_active()
             # 记录我方异常状态（睡眠/麻痹不影响出招流程，游戏会自己处理）
             st = state.status_flags(0)
             if st and (st.get("sleep") or st.get("freeze") or st.get("paralysis")):
@@ -236,6 +239,21 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
             if not m or not e:
                 return "nodata"
             idx, why = decision.choose_move(m, e["types"])
+            # 没有可用攻击招（全是变化招 / PP 耗尽）：优先换一只能打的
+            if not decision.has_attack_move(m):
+                cands = [mm for mm in (my_mon(i) for i in range(6))
+                         if mm and mm.get("hp", 0) > 0 and mm["slot"] != slot
+                         and decision.has_attack_move(mm)]
+                tgt_n = decision.choose_switch(cands, e) if cands else None
+                if tgt_n is not None and allow_switch and not _active_switch_failed \
+                        and not switch.switch_blocked() and not state.trapped():
+                    if sc == info.BATTLE_MOVES:
+                        action.close_menu()
+                    if verbose:
+                        print(f"  无可用攻击招: 槽{slot} -> 槽{tgt_n}", flush=True)
+                    if switch.switch_from_main(tgt_n, verbose, "无攻击招换人"):
+                        continue
+                    _active_switch_failed = True
             log.info("battle", "round", r=r,
                      me=f"Lv{m.get('lv',0)} {m.get('hp',0)}/{m.get('mhp','?')}",
                      foe=f"Lv{e.get('lv',0)} {e.get('hp',0)}/{e.get('mhp','?')}",

@@ -74,6 +74,15 @@ def choose_move(mon, enemy_types=None):
     return best[1], f"{best[2]}（{best[3]} 威力{best[4]}{ht} 克制x{best[5]:g}）"
 
 
+def has_attack_move(mon):
+    """这只还有没有可用的攻击招（PP>0 且威力>0）。"""
+    for mid, pp in zip(mon.get("moves") or [], mon.get("pp") or []):
+        info = MOVES.get(mid)
+        if info and info[2] > 0 and pp > 0:
+            return True
+    return False
+
+
 def _takes_damage_from(mon_types, enemy_types):
     """敌方属性打我方属性的倍率（>1 表示被克制）。"""
     dmg = 1.0

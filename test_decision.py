@@ -67,5 +67,15 @@ test_choose_move_prefers_effective()
 test_choose_move_skips_no_pp()
 test_choose_switch_prefers_killer()
 test_choose_switch_skips_fainted()
+def test_has_attack_move():
+    assert not decision.has_attack_move(
+        {"moves": [104, 45, 39, 86], "pp": [6, 40, 30, 20]})   # 皮卡丘：全是变化招
+    assert decision.has_attack_move({"moves": [84, 116], "pp": [10, 5]})
+    assert not decision.has_attack_move({"moves": [31], "pp": [0]})  # PP 耗尽
+    assert not decision.has_attack_move({"moves": [0, 0], "pp": [0, 0]})
+    print("F 无攻击招判定 ok")
+
+
 test_should_switch()
+test_has_attack_move()
 print("全部通过")
