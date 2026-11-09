@@ -53,7 +53,7 @@ print("B 战斗中不学 ok")
 
 # C: 黑名单把路堵死 -> 清空重试
 pathfind._blocked.clear()
-pathfind._blocked[(11, 10)] = time.time()
+pathfind._blocked[(11, 10)] = time.time() + 60
 got = {"first_blocked": None}
 
 
@@ -79,7 +79,7 @@ assert not pathfind._blocked
 print("D 到达清空 ok")
 
 # E: 障碍过期后不再生效
-pathfind._blocked[(1, 1)] = time.time() - pathfind.BLOCK_TTL - 1
+pathfind._blocked[(1, 1)] = time.time() - 1
 assert (1, 1) not in pathfind._blocked_set()
 print("E 障碍 TTL 过期 ok")
 
@@ -88,5 +88,11 @@ with patch.object(pathfind.terrain, "npc_tiles", lambda: {(5, 5)}):
     pathfind._note_blocked((5, 5))
 assert (5, 5) not in pathfind._blocked
 print("F NPC 不记墙 ok")
+
+# G: 连续撞 NPC 时允许强制记短期障碍
+with patch.object(pathfind.terrain, "npc_tiles", lambda: {(6, 6)}):
+    pathfind._note_blocked((6, 6), ttl=60, force=True)
+assert (6, 6) in pathfind._blocked_set()
+print("G NPC 强制短期记墙 ok")
 
 print("全部通过")

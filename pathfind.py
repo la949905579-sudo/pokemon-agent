@@ -14,8 +14,8 @@ from ra import press
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 MAX_RUN = 40              # 不穿草的路径可长段赶路
 MAX_RUN_GRASS = 6         # 要穿草时必须短段
-_blocked = {}          # (x,y) -> 记录时间；带 TTL，NPC/临时障碍不会永久生效
-BLOCK_TTL = 600        # 秒
+_blocked = {}          # (x,y) -> 过期时刻；带 TTL，NPC/临时障碍不会永久生效
+BLOCK_TTL = 600        # 秒（NPC 挡路用更短的 60s）
 
 
 def _grass_set(vals, w, h):
@@ -26,17 +26,18 @@ def _grass_set(vals, w, h):
 def _blocked_set(now=None):
     """当前有效的障碍集合（过期自动忽略）。"""
     now = time.time() if now is None else now
-    return {p for p, t in _blocked.items() if now - t < BLOCK_TTL}
+    return {p for p, t in _blocked.items() if t > now}
 
 
-def _note_blocked(p):
-    """记障碍；NPC 会移动，不记（撞上由对话/重规划处理）。"""
-    try:
-        if p in terrain.npc_tiles():
-            return
-    except Exception:
-        pass
-    _blocked[p] = time.time()
+def _note_blocked(p, ttl=BLOCK_TTL, force=False):
+    """记障碍；NPC 默认不记，但连续撞上时 force=True 记短期（60s）。"""
+    if not force:
+        try:
+            if p in terrain.npc_tiles():
+                return
+        except Exception:
+            pass
+    _blocked[p] = time.time() + ttl
 
 
 def _plan(vals, w, h, cur, goal, avoid_grass=False):
@@ -129,6 +130,12 @@ def goto(gx, gy, max_segs=60, stop_on_battle=True, avoid_grass=True):
         stuck = stuck + 1 if now == last_pos else 0
         last_pos = now
         if stuck >= 3:
+            # 连续撞同一格（多为 NPC 挡路）：临时记 60s，换路重试
+            if path:
+                dx, dy = DELTA[path[0]]
+                _note_blocked((cur[0] + dx, cur[1] + dy), ttl=60, force=True)
+                stuck = 0
+                continue
             return False
 
         if moved < n:
