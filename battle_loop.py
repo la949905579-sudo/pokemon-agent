@@ -321,6 +321,13 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
         action.tap_b()
         time.sleep(0.6)
 
+    # 轮次用完仍卡着：退回主菜单，必要时逃跑，避免卡死在子菜单
+    try:
+        action.close_menu()
+        if in_battle() is not False:
+            action.run_away()
+    except Exception:
+        pass
     return "timeout"
 
 

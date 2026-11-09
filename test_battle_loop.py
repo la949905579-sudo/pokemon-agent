@@ -44,6 +44,7 @@ def run(scenes, my_mon=None, trapped=False, switch_ok=True, on_round=None, hp_ze
         st.enter_context(patch.object(action, "move_party_cursor", lambda *a, **k: calls.append(("move_party_cursor",) + a)))
         st.enter_context(patch.object(action, "use_move", lambda *a, **k: (calls.append(("use_move",) + a) or True)))
         st.enter_context(patch.object(action, "wait_until", lambda p, t=4.0, s=0.25: True))
+        st.enter_context(patch.object(action, "run_away", lambda: calls.append(("run_away",))))
         st.enter_context(patch.object(switch, "_pick_and_switch", rec("pick_switch")))
         st.enter_context(patch.object(switch, "switch_from_main", rec("switch_from_main")))
         st.enter_context(patch.object(switch, "active_slot", lambda: 0))
@@ -115,5 +116,11 @@ got = []
 r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], on_round=got.append)
 assert got and got[0]["idx"] == 0 and got[0]["pp_before"], got
 print("I on_round 回调 ok", got[0]["moves"])
+
+# ---- J：轮次用完 -> 退菜单/逃跑兜底 ----
+r, calls = run([info.ANIM] * 8)
+assert r == "timeout", r
+assert ("close_menu",) in calls and ("run_away",) in calls, calls
+print("J timeout 兜底恢复 ok", r)
 
 print("全部通过")
