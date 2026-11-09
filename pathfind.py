@@ -8,7 +8,7 @@ import sys, time
 import log
 sys.path.insert(0, "/root/workspace")
 import terrain, nav, action, decision, info
-from state import coords, player_facing, in_battle, snapshot
+from state import coords, player_facing, in_battle, snapshot, in_dialog
 from ra import press
 
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
@@ -244,6 +244,35 @@ def _travel_impl(gx, gy, max_battles=30, verbose=True, avoid_grass=True):
 
 # ---------------- 固定跨图路线（实测验证过的） ----------------
 
+def _route_step(name, gx, gy, d, expect_map, verbose=True):
+    """固定路线单步：走到出口 -> 处理对话/战斗 -> 朝外走一格。"""
+    if terrain.load()[0] != expect_map:
+        if verbose:
+            print(f"    跳过 {name}（当前 {hex(terrain.load()[0])}）", flush=True)
+        return True
+    for _ in range(4):
+        r = goto(gx, gy, avoid_grass=False)
+        if r == "battle":
+            import auto_battle
+            auto_battle.battle_loop()
+            continue
+        if r == "dialog":
+            for _ in range(6):
+                if not in_dialog():
+                    break
+                action.tap_b()
+                time.sleep(0.6)
+            continue
+        if r is True:
+            action.walk(d, 1)
+            time.sleep(1.0)
+            if verbose:
+                print(f"    {name}: {hex(terrain.load()[0])}", flush=True)
+            return True
+        return False
+    return False
+
+
 def route_5_to_6(verbose=True):
     """5 号道路 -> 房间 -> 通道 -> 房间 -> 6 号道路（固定路线）。"""
     if verbose:
@@ -254,22 +283,8 @@ def route_5_to_6(verbose=True):
         ("通道底部", (3, 60), "left", 0x831989c),
         ("房间出6号", (6, 8), "down", 0x83192f0),
     ]
-    for name, (gx, gy), d, expect_map in steps:
-        cur = terrain.load()[0]
-        if cur != expect_map:
-            if verbose:
-                print(f"    跳过 {name}（当前 {hex(cur)}）", flush=True)
-            continue
-        r = goto(gx, gy, avoid_grass=False)
-        if r not in (True, "battle", "dialog"):
-            return False
-        if r == "battle":
-            import auto_battle
-            auto_battle.battle_loop()
-        action.walk(d, 1)
-        time.sleep(1.0)
-        if verbose:
-            print(f"    {name}: {hex(terrain.load()[0])}", flush=True)
+    for name, (gx, gy), d, expect in steps:
+        _route_step(name, gx, gy, d, expect, verbose)
     return terrain.load()[0] == 0x82e9260
 
 
@@ -283,20 +298,6 @@ def route_6_to_5(verbose=True):
         ("通道顶部", (4, 3), "right", 0x831989c),
         ("房间出5号", (6, 8), "down", 0x83192f0),
     ]
-    for name, (gx, gy), d, expect_map in steps:
-        cur = terrain.load()[0]
-        if cur != expect_map:
-            if verbose:
-                print(f"    跳过 {name}（当前 {hex(cur)}）", flush=True)
-            continue
-        r = goto(gx, gy, avoid_grass=False)
-        if r not in (True, "battle", "dialog"):
-            return False
-        if r == "battle":
-            import auto_battle
-            auto_battle.battle_loop()
-        action.walk(d, 1)
-        time.sleep(1.0)
-        if verbose:
-            print(f"    {name}: {hex(terrain.load()[0])}", flush=True)
+    for name, (gx, gy), d, expect in steps:
+        _route_step(name, gx, gy, d, expect, verbose)
     return terrain.load()[0] == 0x82e833c

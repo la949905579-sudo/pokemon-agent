@@ -26,6 +26,10 @@ FIXED = {
     (0x82e833c, 0x82e9260): "route_5_to_6",
 }
 
+R6, R5 = 0x82e9260, 0x82e833c
+# 通道北侧：5号道路、华蓝市、华蓝道馆
+NORTH = {R5, 0x82df30c, 0x82d5cbc}
+
 
 def _edges(map_addr):
     out = []
@@ -116,6 +120,24 @@ def travel_map(dst_map, dst_x, dst_y, verbose=True):
         return "fail"
     if cur == dst_map:
         return pathfind.travel(dst_x, dst_y)
+    # 跨通道：先跑到 6号/5号，再用实测固定路线
+    if dst_map != cur:
+        if cur == R6 and dst_map in NORTH:
+            if not pathfind.route_6_to_5():
+                return "fail"
+            return travel_map(dst_map, dst_x, dst_y, verbose)
+        if cur in NORTH and dst_map == R6:
+            if not pathfind.route_5_to_6():
+                return "fail"
+            return travel_map(dst_map, dst_x, dst_y, verbose)
+        if cur == 0x82e0614 and dst_map in (R5,) | (NORTH - {R5}):
+            r = travel_map(R6, 19, 37, verbose)
+            if r != "ok":
+                return r
+            if not pathfind.route_6_to_5():
+                return "fail"
+            return travel_map(dst_map, dst_x, dst_y, verbose)
+
     # 直达的复用房间段：优先用实测固定路线
     fixed = FIXED.get((cur, dst_map))
     if fixed:
