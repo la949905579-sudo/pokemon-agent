@@ -477,3 +477,10 @@ python3 logq.py --grep got=2 --json
 - 到达后二次读坐标确认，防瞬态误判
 - 只剩 `pathfind.goto` 一个执行入口；`nav` 只保留 BFS 规划
 - 待办：跨图 A*（map_links + map_coords 目前仍是孤立的）
+
+### 跨图 A*（2026-11-10）
+- `map_route.plan(src,dst)`：连接表 + 全局坐标曼哈顿启发；复用房间边 cost+3
+- `map_route.travel_map(dst,x,y)`：逐段 `pathfind.travel(出口)` → 朝外一步 → 校验换图
+- 实测：6号 → 枯叶市 单段成功
+- 限制：车站/通道是“复用房间”，同一出口按来源通向不同地图；连接表边不完整，多段路线需手动分段（先到 6号/5号，再调固定路线）
+- 后续：补全通道边（带“来源”条件）后，A* 才能真正覆盖全图
