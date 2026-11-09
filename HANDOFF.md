@@ -112,6 +112,21 @@
 ## 七、快速命令
 
 ```bash
+# 自动练级（场数 / 目标等级 / 秒上限）
+python3 farm.py 10 20 1800
+
+# 单场观测（on_round -> logs/rounds-*.jsonl）
+python3 train.py 1 180
+
+# 数据自检
+python3 run_tests.py moves
+
+# 定向抓敌方出招（需先遇敌）
+python3 probe_enemy.py 3
+```
+
+
+```bash
 cd /root/workspace
 
 # 状态
