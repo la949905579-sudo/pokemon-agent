@@ -10,7 +10,7 @@ import info
 from ra import press
 from bdata import my_mon, enemy_info, MOVES
 
-MOVES_CURSOR = 0x02023FFC
+from addresses import MOVE_CURSOR
 
 
 def advance_b(timeout=20):
@@ -28,7 +28,7 @@ def advance_b(timeout=20):
 
 def move_to(target):
     for _ in range(8):
-        d = rd(MOVES_CURSOR, 1)
+        d = rd(MOVE_CURSOR, 1)
         if not d:
             return False
         cur = d[0]

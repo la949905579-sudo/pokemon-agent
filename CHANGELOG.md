@@ -3,6 +3,15 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-2（2026-11-10）
+### 变更
+- 学招逻辑 `learn_moves_guard` 从 `action.py` 迁出到 `learn.py`（执行层只留按键/光标）
+- 常量统一：`MOVE_CURSOR / PARTY_CURSOR / MAIN_CURSOR` 只从 `addresses.py` 引用
+- 解除 `action ↔ switch` 循环依赖（action 不再引用 switch/learn，依赖变单向）
+
+### 修复
+- `learn.py` 缺失 `snapshot` 导入（迁移后实机验证发现）
+
 ## v2026.11.10-1（2026-11-10）
 ### 新增
 - 指令层 `intent`：`prolong` / `no_kill` / `flee` / `only_class`，含生命周期、优先级、安全护栏、审计

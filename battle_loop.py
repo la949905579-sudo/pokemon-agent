@@ -1,7 +1,7 @@
 """战斗主循环：看 info -> 经 decision -> 交 action。"""
 import struct, sys, time
 sys.path.insert(0, "/root/workspace")
-import info, action, decision, intent
+import info, action, decision, intent, learn
 from bdata import my_mon, enemy_info
 import switch
 import switch as _sw
@@ -83,10 +83,10 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                     print(f"  升级! {levelups}", flush=True)
                 # 升级后学招提示更多：加强检测（多轮 + 稍等）
                 time.sleep(0.8)
-                handled = action.learn_moves_guard(max_rounds=20)
+                handled = learn.learn_moves_guard(max_rounds=20)
                 log.info("battle", "learn_handled", count=handled)
                 return "win_levelup"
-            action.learn_moves_guard()
+            learn.learn_moves_guard()
             return "win"
         sc = info.scene()
         e_now = enemy_info()

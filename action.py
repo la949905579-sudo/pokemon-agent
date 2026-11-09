@@ -8,10 +8,8 @@ import sys, time
 sys.path.insert(0, "/root/workspace")
 from ra import press, send
 from state import rd, snapshot
+from addresses import PARTY_CURSOR, MAIN_CURSOR, MOVE_CURSOR
 import log
-
-PARTY_CURSOR = 0x0203B0A9
-MAIN_CURSOR = 0x02023FF8
 
 
 def tap_a():
@@ -61,76 +59,6 @@ def move_main_cursor(target):
             press("down" if tr > cr else "up", 0.08)
         time.sleep(0.28)
     return False
-
-
-def learn_moves_guard(max_rounds=10):
-    """战斗后处理升级学招/提示：遇到「是/否」选「是」，遇到普通对话按 A 推进。
-
-    返回处理的提示次数。
-    """
-    from state import menu_kind
-    handled = 0
-    for _ in range(max_rounds):
-        s = snapshot()
-        if s["battle"]:
-            break
-        # 「忘记哪个招式？」界面：按优先级选择替换目标
-        #   1) 变化技（0 威力）
-        #   2) 一般属性技能（全攻击时）
-        #   3) 威力最低的（全本属性时）
-        if s["dialog"] and menu_kind() == "moves":
-            # 学招事件：写事件文件（供上层/通知读取）
-            try:
-                import time as _t
-                with open("/root/workspace/logs/learn_event.txt", "a", encoding="utf-8") as f:
-                    f.write(f"{_t.strftime('%H:%M:%S')} 检测到学招界面（忘记哪个招式）\n")
-            except Exception:
-                pass
-            from bdata import my_mon, MOVES
-            from switch import active_slot
-            slot = active_slot()
-            m = my_mon(slot if slot is not None else 0)
-            target = None
-            reason = ""
-            if m:
-                moves = m.get("moves", [])
-                info = [MOVES.get(mid, ("未知", "一般", 0)) for mid in moves]
-                # 1) 变化技
-                for i, (_, _, pw) in enumerate(info):
-                    if pw <= 0:
-                        target, reason = i, "替换变化技"
-                        break
-                # 2) 一般属性技能
-                if target is None:
-                    for i, (_, typ, pw) in enumerate(info):
-                        if typ == "一般":
-                            target, reason = i, "替换一般属性技"
-                            break
-                # 3) 威力最低
-                if target is None and info:
-                    target = min(range(len(info)), key=lambda i: info[i][2])
-                    reason = f"替换威力最低({info[target][2]})"
-            if target is not None:
-                log.info("action", "forget_move_replace", slot=target, reason=reason)
-                move_move_cursor(target)
-                tap_a()
-            else:
-                log.info("action", "forget_move_cancel", reason="无合适替换")
-                tap_b()
-            time.sleep(0.7)
-            handled += 1
-            continue
-        if s["choice"]:
-            choose_option(0)        # 「要学习吗？」选「是」
-            time.sleep(0.6)
-            handled += 1
-            continue
-        if s["dialog"]:
-            advance_dialog()
-            time.sleep(0.5)
-            continue
-        break
-    return handled
 
 
 def wait_until(pred, timeout=4.0, step=0.25):
@@ -186,7 +114,7 @@ def close_menu(max_tries=3):
 
 
 # ---------------- 战斗动作 ----------------
-MOVE_CURSOR = 0x02023FFC      # 招式菜单 2x2：0 左上 1 右上 2 左下 3 右下
+# 招式菜单 2x2：0 左上 1 右上 2 左下 3 右下
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 
 
