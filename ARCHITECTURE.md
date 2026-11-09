@@ -147,6 +147,15 @@ turn/光标 ──► info.scene()
 | `0x02036DFC` | gMapHeader 指针（换图立即变） |
 | `0x02023D4C` / `0x02023DC4` | 最近行动招式 / 我方本回合招式 |
 
+## 五半、指令接口（HTTP :8081）
+
+```
+POST /api/intent        {kind, params, ttl, source} -> {id}
+GET  /api/intent        -> {active: [...], audit: [...]}
+POST /api/intent/clear  -> 清空
+```
+kind 白名单：prolong / no_kill / flee / only_class；ttl=None 表示本场有效。
+
 ## 六、测试与验证
 
 - `python3 run_tests.py`：20 个文件全离线（mock 内存/按键）

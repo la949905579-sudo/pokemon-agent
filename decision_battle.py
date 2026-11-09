@@ -109,6 +109,15 @@ def _foe_low(enemy, it):
     return (enemy or {}).get("hp", 0) / mhp <= it.params.get("hp_floor", 0.2)
 
 
+def has_status_move(mon):
+    """有没有可用的变化招（PP>0 且威力 0）。"""
+    for mid, pp in zip(mon.get("moves") or [], mon.get("pp") or []):
+        info = MOVES.get(mid)
+        if info and info[2] == 0 and pp > 0:
+            return True
+    return False
+
+
 def has_attack_move(mon):
     """这只还有没有可用的攻击招（PP>0 且威力>0）。"""
     for mid, pp in zip(mon.get("moves") or [], mon.get("pp") or []):

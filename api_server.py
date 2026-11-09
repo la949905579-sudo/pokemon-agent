@@ -15,7 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 sys.path.insert(0, "/root/workspace")
-import state, info, bdata, terrain
+import state, info, bdata, terrain, intent
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8081
 _lock = threading.Lock()
@@ -280,6 +280,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"ok": True, "actions": sorted(ACTIONS),
                              "tasks": sorted(TASKS)})
             return
+        if path == "/api/intent":
+            self._send(200, {"ok": True,
+                             "active": [i.__dict__ for i in intent.active()],
+                             "audit": intent.audit()[-50:]})
+            return
         self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):
@@ -289,6 +294,25 @@ class Handler(BaseHTTPRequestHandler):
             req = json.loads(self.rfile.read(n).decode() or "{}")
         except Exception:
             req = {}
+        if path == "/api/intent":
+            try:
+                it = intent.Intent(
+                    kind=req.get("kind") or "",
+                    params=req.get("params") or {},
+                    ttl=req.get("ttl"),
+                    source=req.get("source") or "api",
+                    priority=req.get("priority"),
+                )
+                iid = intent.submit(it)
+                self._send(200, {"ok": True, "id": iid,
+                                 "active": [i.__dict__ for i in intent.active()]})
+            except ValueError as e:
+                self._send(400, {"ok": False, "error": str(e)})
+            return
+        if path == "/api/intent/clear":
+            intent.clear()
+            self._send(200, {"ok": True, "active": []})
+            return
         name = req.get("name")
         args = req.get("args") or {}
 

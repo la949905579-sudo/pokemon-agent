@@ -14,6 +14,7 @@ _flee_blocked = False   # 本场逃跑失败过（训练家战），不再尝试
 _active_switch_failed = False  # 本场主动换人失败过，不再尝试
 _opening_checked = False       # 开场换人只判断一次
 _zero_hp_pushes = 0          # 敌方 0 血推进次数（防死循环）
+_no_kill_switches = 0        # no_kill 指令触发换人的次数（每场上限 2）
 from state import in_battle
 import state
 
@@ -62,6 +63,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
         _active_switch_failed = False
         _opening_checked = False
         _zero_hp_pushes = 0
+        _no_kill_switches = 0
 
     for r in range(max_rounds):
         if in_battle() is False:
@@ -276,6 +278,22 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             if not m or not e:
                 return "nodata"
             intents = intent.effective(m, e)
+            # no_kill：敌方低血且当前没有变化招时，换一只有变化招的队友（每场上限 2 次）
+            nk = next((i for i in intents if i.kind == "no_kill"), None)
+            if nk and e and e.get("mhp") \
+                    and e.get("hp", 0) / e["mhp"] <= nk.params.get("hp_floor", 0.2) \
+                    and not decision.has_status_move(m) and _no_kill_switches < 2 \
+                    and not switch.switch_blocked():
+                cands = [mm for mm in (my_mon(i) for i in range(6))
+                         if mm and mm.get("hp", 0) > 0 and mm["slot"] != slot
+                         and decision.has_status_move(mm)]
+                tgt_nk = decision.choose_switch(cands, e) if cands else None
+                if tgt_nk is not None:
+                    if sc == info.BATTLE_MOVES:
+                        action.close_menu()
+                    if switch.switch_from_main(tgt_nk, verbose, "不击杀换人"):
+                        _no_kill_switches += 1
+                        continue
             idx, why = decision.choose_move(m, e["types"], intents=intents, enemy=e)
             # 没有可用攻击招（全是变化招 / PP 耗尽）：优先换一只能打的
             if not decision.has_attack_move(m):

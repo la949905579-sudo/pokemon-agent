@@ -408,3 +408,9 @@ do_switch()          # 按克制/等级策略换人
 ### 测试
 - `test_intent.py`：A-I（生命周期/替换/低血降级/自动脱战/优先级/决策接入）
 - `test_battle_loop.py` K/L：flee 指令触发逃跑、prolong 指令选变化招
+
+### 指令层 HTTP 与 no_kill 增强（2026-11-10）
+- `POST /api/intent`（body: kind/params/ttl/source）→ 返回 id；`GET /api/intent` 查 active+audit；`POST /api/intent/clear` 清空
+- `no_kill`：敌方 HP 低于阈值且当前没有变化招 → 换一只有变化招的队友拖回合（每场上限 2 次）
+- `probe.summary` 增加 `intent_rounds`：每回合带了哪些指令
+- 测试：`test_battle_loop` M/N（无变化招换人 / 有变化招原地拖）

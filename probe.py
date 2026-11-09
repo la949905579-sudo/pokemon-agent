@@ -41,8 +41,13 @@ class Recorder:
                 ok += 1
             else:
                 bad += 1
+        kinds = {}
+        for r in self.rows:
+            for k in r.get("intents") or []:
+                kinds[k] = kinds.get(k, 0) + 1
         return {
             "rounds": len(self.rows), "match": ok, "mismatch": bad,
             "no_pp": nop,
             "slot_mismatch": sum(1 for r in self.rows if r.get("slot_ok") is False),
+            "intent_rounds": kinds,
         }

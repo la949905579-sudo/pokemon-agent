@@ -14,7 +14,7 @@ def mon(slot=0, moves=(98, 0, 0, 0), pp=(10, 0, 0, 0), hp=31, species=25, lv=12)
             "types": ("电",), "moves": list(moves), "pp": list(pp)}
 
 
-def run(scenes, my_mon=None, trapped=False, switch_ok=True, on_round=None, hp_zero=False):
+def run(scenes, my_mon=None, trapped=False, switch_ok=True, on_round=None, hp_zero=False, enemy_hp=None):
     """按给定场景序列跑 battle_loop，返回 (result, 调用记录)。"""
     seq = iter(scenes)
     calls = []
@@ -26,7 +26,8 @@ def run(scenes, my_mon=None, trapped=False, switch_ok=True, on_round=None, hp_ze
         return f
 
     my_mon = my_mon or (lambda i: mon(i) if i == 0 else None)
-    enemy = {"lv": 10, "hp": 0 if hp_zero else 20, "mhp": 20, "types": ("草",)}
+    hp = 0 if hp_zero else (20 if enemy_hp is None else enemy_hp)
+    enemy = {"lv": 10, "hp": hp, "mhp": 20, "types": ("草",)}
 
     from contextlib import ExitStack
     with ExitStack() as st:
@@ -142,5 +143,30 @@ um = [c for c in calls if c[0] == "use_move"]
 assert um and um[0][1] == 0, calls
 intent_mod.reset()
 print("L prolong 指令选变化招 ok", um)
+
+# ---- M：no_kill 低血 + 当前只有攻击招 -> 换有变化招的队友 ----
+intent_mod.reset()
+intent_mod.submit(intent_mod.Intent("no_kill", {"hp_floor": 0.5}))
+def nk_team(i):
+    if i == 0:
+        return mon(0, moves=(98, 0, 0, 0), pp=(10, 0, 0, 0))
+    if i == 1:
+        return mon(1, moves=(104, 0, 0, 0), pp=(10, 0, 0, 0))
+    return None
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], my_mon=nk_team, enemy_hp=5)
+assert any(c[0] == "switch_from_main" for c in calls), calls
+intent_mod.reset()
+print("M no_kill 无变化招 -> 换人 ok")
+
+# ---- N：no_kill 低血但自己有变化招 -> 不换人，直接拖 ----
+intent_mod.reset()
+intent_mod.submit(intent_mod.Intent("no_kill", {"hp_floor": 0.5}))
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], enemy_hp=5,
+               my_mon=lambda i: mon(i, moves=(104, 0, 0, 0), pp=(10, 0, 0, 0))
+               if i == 0 else None)
+assert not any(c[0] == "switch_from_main" for c in calls), calls
+assert any(c[0] == "use_move" for c in calls), calls
+intent_mod.reset()
+print("N no_kill 有变化招 -> 原地拖 ok")
 
 print("全部通过")

@@ -8,6 +8,7 @@ sys.path.insert(0, "/root/workspace")
 
 from decision_battle import (          # noqa: F401
     move_effect, best_damage_effect, choose_move, has_attack_move,
+    has_status_move,
     choose_switch, choose_lead, should_switch, should_flee, score_switch,
     should_switch_opening, threat_score,
     set_move_strategy, set_switch_strategy, set_lead_strategy,
