@@ -19,6 +19,7 @@ C_WALL = (40, 44, 52)
 C_WALK = (248, 248, 250)
 C_GRASS = (120, 200, 120)
 C_HEDGE = (90, 160, 90)     # 绿化带（灌木丛）
+C_STUMP = (210, 170, 60)    # 小树苗（需居合斩）
 C_NPC = (240, 150, 60)
 C_PLAYER = (230, 60, 60)
 C_PATH = (80, 140, 240)
@@ -32,6 +33,7 @@ FENCE_IDS = {231, 244, 245, 246, 247}
 TREE_IDS = {20, 21, 22, 28, 29, 30, 31, 32}
 DOOR_IDS = {61, 710, 717, 718, 719}
 HEDGE_IDS = {318}
+STUMP_IDS = {317}
 BUILD_IDS = {68, 69, 70, 76, 77, 78, 84, 85, 86, 103,
              400, 401, 402, 408, 409, 410, 219, 220, 221, 227, 228, 229}
 
@@ -87,6 +89,8 @@ def draw(goal=None, out="map_now.png", show_grid=True):
                     color = C_TREE
                 elif metatile in HEDGE_IDS:
                     color = C_HEDGE
+                elif metatile in STUMP_IDS:
+                    color = C_STUMP
                 elif metatile in BUILD_IDS:
                     color = C_BUILD
                 else:
@@ -132,7 +136,7 @@ def draw(goal=None, out="map_now.png", show_grid=True):
 
     # 图例
     lx, ly = PAD, H - 42
-    items = [("可走", C_WALK), ("墙", C_WALL), ("栅栏", C_FENCE), ("树", C_TREE), ("绿化带", C_HEDGE), ("建筑", C_BUILD), ("门", C_DOOR), ("草", C_GRASS), ("NPC", C_NPC),
+    items = [("可走", C_WALK), ("墙", C_WALL), ("栅栏", C_FENCE), ("树", C_TREE), ("绿化带", C_HEDGE), ("小树苗", C_STUMP), ("建筑", C_BUILD), ("门", C_DOOR), ("草", C_GRASS), ("NPC", C_NPC),
              ("玩家", C_PLAYER), ("路径", C_PATH), ("目标", C_GOAL)]
     for i, (name, col) in enumerate(items):
         bx = lx + i * 80

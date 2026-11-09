@@ -17,6 +17,7 @@ def run(scenes, extra=None):
 
     with patch.object(info, "scene", lambda: next(seq, info.MAP)), \
          patch.object(bl, "in_battle", lambda: True), \
+         patch.object(bl.state, "status_flags", lambda slot=0: {"sleep": 0, "freeze": False}), \
          patch.object(action, "choose_option", rec("choose_option")), \
          patch.object(action, "tap_a", lambda: calls.append(("a",))), \
          patch.object(action, "tap_b", lambda: calls.append(("b",))), \

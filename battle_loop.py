@@ -13,12 +13,13 @@ from watchdog import _watchdog, wait_round_end
 _flee_blocked = False   # 本场逃跑失败过（训练家战），不再尝试
 _active_switch_failed = False  # 本场主动换人失败过，不再尝试
 _opening_checked = False       # 开场换人只判断一次
+_zero_hp_pushes = 0          # 敌方 0 血推进次数（防死循环）
 from state import in_battle
 import state
 
-def battle_loop(max_rounds=12, verbose=True):
+def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
     """薄协调层：看 info 的场景，用 decision 决定，交给 action 执行。"""
-    global _flee_blocked, _active_switch_failed, _opening_checked
+    global _flee_blocked, _active_switch_failed, _opening_checked, _zero_hp_pushes
     lv_before = {i: (my_mon(i) or {}).get("lv") for i in range(6)}
     if info.scene() == info.BATTLE_INTRO:
         # 刚进战斗：游戏会按队伍顺序派第一只健康的，重置内部顺序
@@ -26,6 +27,7 @@ def battle_loop(max_rounds=12, verbose=True):
         _flee_blocked = False
         _active_switch_failed = False
         _opening_checked = False
+        _zero_hp_pushes = 0
 
     for r in range(max_rounds):
         if in_battle() is False:
@@ -83,9 +85,25 @@ def battle_loop(max_rounds=12, verbose=True):
             continue
 
         if sc == info.PARTY_OPTION:
-            # 放出/概况/取消 -> 选「放出」
-            action.choose_option(0)
-            action.wait_until(lambda: info.scene() != info.PARTY_OPTION, 2.0)
+            # 濒死/强制换人：界面顺序 = 队伍原始槽位（0-5），不是 party_order
+            party = [my_mon(i) for i in range(6)]
+            e = enemy_info()
+            active_now = switch.active_slot()
+            healthy = [m for m in party
+                       if m and m.get("hp", 0) > 0 and m.get("slot") != active_now]
+            if not healthy:
+                return "fainted"
+            target = max(healthy, key=lambda m: decision.score_switch(m, e))["slot"]
+            if verbose:
+                print(f"  濒死换人: 选槽位 {target}", flush=True)
+            action.move_party_cursor(target)
+            action.tap_a()
+            time.sleep(0.8)
+            action.wait_until(lambda: info.scene() != info.PARTY_OPTION, 3.0)
+            if info.scene() == info.PARTY_OPTION:
+                # 还在界面：可能打开了「放出/概况/取消」，选放出
+                action.choose_option(0)
+                action.wait_until(lambda: info.scene() != info.PARTY_OPTION, 2.0)
             continue
 
         if sc == info.PARTY:
@@ -109,6 +127,26 @@ def battle_loop(max_rounds=12, verbose=True):
             continue
 
         if sc in (info.BATTLE_MAIN, info.BATTLE_MOVES):
+            # 记录我方异常状态（睡眠/麻痹不影响出招流程，游戏会自己处理）
+            st = state.status_flags(0)
+            if st and (st.get("sleep") or st.get("freeze") or st.get("paralysis")):
+                log.info("battle", "status", sleep=st.get("sleep"),
+                         freeze=st.get("freeze"), paralysis=st.get("paralysis"))
+
+            # 敌方 HP 为 0：可能在换下一只/结算动画中，按 A 推进
+            e_check = enemy_info()
+            if e_check and e_check.get("hp") == 0:
+                _zero_hp_pushes += 1
+                if _zero_hp_pushes > 8:
+                    log.error("battle", "enemy_zero_stuck")
+                    return "stuck"
+                if verbose:
+                    print(f"  敌方倒下，推进结算({_zero_hp_pushes})", flush=True)
+                action.tap_a()
+                time.sleep(0.8)
+                continue
+            _zero_hp_pushes = 0
+
             # 首发固定为队首（游戏机制），不做开场换人；
             # 队首不利时由下面的「主动换人」在第一回合处理。
 
@@ -124,7 +162,7 @@ def battle_loop(max_rounds=12, verbose=True):
                     _active_switch_failed = True
 
             # 开场换人：队首评分低于最佳候选 -> 第一回合直接换（不浪费一回合出招）
-            if not _opening_checked and not switch.switch_blocked() and not state.trapped() and not _active_switch_failed:
+            if allow_switch and not _opening_checked and not switch.switch_blocked() and not state.trapped() and not _active_switch_failed:
                 _opening_checked = True
                 active0 = switch.active_slot()
                 party_a = [my_mon(i) for i in range(6)]
@@ -143,9 +181,10 @@ def battle_loop(max_rounds=12, verbose=True):
             # 血量极低（<15%）时是紧急情况，即使之前换人失败过也要再试
             slot_now = switch.active_slot()
             m_now = my_mon(slot_now) if slot_now is not None else None
+            # 血量低于 50% 视为「紧急」，即使之前换人失败过也再试
             urgent_low = bool(m_now and m_now.get("mhp")
-                              and m_now.get("hp", 0) / m_now["mhp"] < 0.15)
-            if not switch.switch_blocked() and not state.trapped() \
+                              and m_now.get("hp", 0) / m_now["mhp"] < 0.5)
+            if allow_switch and not switch.switch_blocked() and not state.trapped() \
                     and (not _active_switch_failed or urgent_low):
                 active = switch.active_slot()
                 party_now = [my_mon(i) for i in range(6)]

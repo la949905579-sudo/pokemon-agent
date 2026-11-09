@@ -161,6 +161,10 @@ def menu_kind():
             return "party"
         return "submenu"
     if st == 4:
+        # 濒死/强制换人时游戏也是 turn=4，但会弹出队伍列表（有光标）
+        b = rd(PARTY_CURSOR, 1)
+        if b is not None and b[0] <= 5:
+            return "party"
         return "anim"
     if st == 0:
         return "start"
@@ -280,7 +284,8 @@ def trapped():
     if not d or len(d) < 2:
         return False
     v = struct.unpack("<H", d)[0]
-    return bool(v & 0x100)
+    # bit8 = 束缚（Wrap 类）；bit2/3 = 黑眼神/蜘蛛网等「被困」标记
+    return bool(v & (0x100 | 0x0C))
 
 
 def status_flags(slot=0):

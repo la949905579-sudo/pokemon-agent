@@ -64,6 +64,10 @@ def scene():
     if t == 0:
         return BATTLE_INTRO
     if t == 4:
+        # 濒死/强制换人时游戏也会给 turn=4，但此时有队伍光标（换人界面）
+        from state import party_cursor
+        if party_cursor() is not None and menu_kind() == "party":
+            return PARTY_OPTION
         return ANIM
     if t == 1:
         if s.get("choice"):

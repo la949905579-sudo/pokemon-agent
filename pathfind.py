@@ -24,7 +24,8 @@ def _grass_set(vals, w, h):
 
 def _plan(vals, w, h, cur, goal, avoid_grass=False):
     """BFS，先带回黑名单，失败再清空黑名单重试。返回 path 或 None。"""
-    blocked = _blocked | terrain.npc_tiles()
+    # NPC 会移动，不当作永久障碍（撞上会触发对话，由上层处理）
+    blocked = _blocked
     if avoid_grass:
         path = nav.bfs_turns(vals, w, h, cur, goal, blocked | _grass_set(vals, w, h))
         if path is not None:
@@ -32,7 +33,7 @@ def _plan(vals, w, h, cur, goal, avoid_grass=False):
     path = nav.bfs_turns(vals, w, h, cur, goal, blocked)
     if path is None and _blocked:
         _blocked.clear()
-        path = nav.bfs_turns(vals, w, h, cur, goal, terrain.npc_tiles())
+        path = nav.bfs_turns(vals, w, h, cur, goal, set())
     return path
 
 
