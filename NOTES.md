@@ -491,3 +491,13 @@ python3 logq.py --grep got=2 --json
   - 6号入口 -> 草地：17s（NPC 在 (13,33)/(13,32) 挡路，绕行）
 - 遇敌不计入；一场战斗约 +100s（8 回合）
 - 修复：连续撞同一格 3 次 -> 临时记 60s 障碍（NPC 可绕），不再直接放弃
+
+### 队伍数组顺序的真相（2026-11-10 截图 + 实机）
+- **战斗主菜单**（未开队伍菜单）：`0x02024284` = 原始队伍顺序，active 可能在任意槽
+- **队伍菜单打开**（party_option）：数组 = 界面顺序，active 固定在 slot0，右侧按界面顺序
+- 所以换人光标必须按 **species 身份**定位：打开菜单前解析 species，菜单内再按 species 找光标
+- 结论：
+  - `active_slot()` 用 species 驱动（`0x02023BE4`）
+  - `party_order()` 由 active 推导，仅用于主菜单
+  - 换人成功判据 = 场上 species 变成目标（`turn==4` 也会出现在菜单里）
+- 组件：`switch._cursor_for_species` / `_wait_species` / `_wait_array_stable`

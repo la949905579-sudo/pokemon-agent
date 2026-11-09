@@ -43,7 +43,6 @@ def move_to(target):
     return False
 
 
-_order = None   # 战斗内部队伍顺序（纯内存，不落盘）
 _field = {"t": 0.0, "sp": None, "slot": None}   # 场上 species 缓存
 _switch_blocked = False   # 换人被拒（束缚等），本场不再尝试
 
@@ -59,8 +58,7 @@ def reset_switch_blocked():
 
 def reset_party_order():
     """新战斗开始时调用：清掉上一场的顺序和换人被拒标记。"""
-    global _order, _switch_blocked
-    _order = None
+    global _switch_blocked
     _field.update({"t": 0.0, "sp": None, "slot": None})
     _switch_blocked = False
 
@@ -86,25 +84,6 @@ def _init_active():
     return None
 
 
-def _raw_order():
-    """纯内存的界面顺序（不校验内存），首次访问按队伍初始化。"""
-    global _order
-    if _order is None:
-        active = _init_active()
-        if active is None:
-            active = next((i for i in range(6)
-                           if (my_mon(i) or {}).get("hp", 0) > 0), 0)
-        _order = [active] + [i for i in range(6) if i != active]
-    return _order
-
-
-def _set_active(slot):
-    order = _raw_order()
-    if order[0] != slot:
-        order.remove(slot)
-        order.insert(0, slot)
-
-
 def _read_field_species(ttl=0.6):
     """场内 species（0x02023BE4+0），带短缓存；读不到返回 None。"""
     global _field
@@ -122,11 +101,11 @@ def _read_field_species(ttl=0.6):
 
 
 def _slot_for_species(sp):
-    """species -> 队伍槽位；同种多只时取界面顺序里最靠前的那只。"""
+    """species -> 数组下标（= 界面光标号）。"""
     if _field.get("sp") == sp and _field.get("slot") is not None:
         return _field["slot"]
     slot = None
-    for i in _raw_order():
+    for i in range(6):
         m = my_mon(i)
         if m and m.get("species") == sp:
             slot = i
@@ -136,49 +115,56 @@ def _slot_for_species(sp):
 
 
 def invalidate_field():
-    """换人/开战后调用：让下一次 active_slot 强制重读内存。"""
+    """换人/开战后调用：让下一次读取强制重读内存。"""
     _field["t"] = 0.0
 
 
 def party_order():
-    """界面顺序：order[0] = 当前出场，order[1..5] = 右侧 5 只。
+    """界面光标顺序：0 = 当前出场，1..5 = 其余按数组原始顺序。
 
-    不再纯靠进程内跟踪：每次调用都用场上 species 校正 order[0]（0.6s 缓存），
-    濒死换人、强制换人等任何漏更新的路径都会被这里修正。
-    右侧顺序仍靠进程内维护（战斗队伍数组是加密的，读不到明文）。
+    由 active（species 驱动）每次推导，不维护第二份状态。
     """
-    active_slot()
-    return _raw_order()
+    a = active_slot()
+    if a is None:
+        a = 0
+    return [a] + [i for i in range(6) if i != a]
 
 
 def active_slot():
-    """当前场上槽位：以内存 species 为唯一依据，order 只做兜底。"""
+    """当前场上槽位 = 数组里 species 匹配的下标。"""
     if not in_battle():
-        return _raw_order()[0]
+        return _init_active()
     sp = _read_field_species()
     if sp:
         slot = _slot_for_species(sp)
         if slot is not None:
-            _set_active(slot)
             return slot
-    return _raw_order()[0]
+    return 0
 
 
 def ensure_active():
-    """强制重读场上 species 并校正 order[0]（换人后调用）。"""
+    """强制重读场上 species 并返回其数组下标。"""
     sp = _read_field_species(ttl=0)
     if not sp:
         return None
-    slot = _slot_for_species(sp)
-    if slot is not None:
-        _set_active(slot)
-    return slot
+    return _slot_for_species(sp)
 
 
 def _cursor_for_slot(slot):
-    """队伍槽位 -> 菜单光标（order 下标）。"""
-    order = _raw_order()
+    """队伍槽位 -> 界面光标号（0=出场，其余按数组顺序）。"""
+    order = party_order()
     return order.index(slot) if slot in order else None
+
+
+def _cursor_for_species(sp):
+    """按 species 在“当前数组”里找光标号（菜单内数组=界面顺序）。"""
+    if sp is None:
+        return None
+    for i in range(6):
+        m = my_mon(i)
+        if m and m.get("species") == sp:
+            return i
+    return None
 
 
 def _field_slot_any():
@@ -234,12 +220,42 @@ _move_party_cursor = action.move_party_cursor
 _move_main_cursor = action.move_main_cursor
 
 
-def _pick_and_switch(target, verbose, label):
+def _wait_species(sp, timeout=3.0):
+    """等场上 species 变成目标（换人成功的真实判据）。"""
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        if _read_field_species(ttl=0) == sp:
+            return True
+        time.sleep(0.15)
+    return False
+
+
+def _wait_array_stable(timeout=3.0):
+    """换人后等数组完成槽位交换（连续两次一致）。"""
+    prev = None
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        cur = tuple((my_mon(i) or {}).get("species") for i in range(6))
+        if cur == prev and any(cur):
+            return cur
+        prev = cur
+        time.sleep(0.2)
+    return prev
+
+
+def _pick_and_switch(target, verbose, label, expect=None):
     """决策出目标槽位 -> 交给 action 执行换人 -> 成功后更新战斗内部顺序。"""
-    pos = _cursor_for_slot(target)      # 必须在点选前算好（点选后顺序还没换）
+    # 目标身份用 species（菜单打开前后数组顺序会变）
+    if expect is None:
+        expect = (my_mon(target) or {}).get("species")
+    pos = _cursor_for_species(expect)
     if pos is None:
         return False
     ok = action.pick_and_switch(pos)
+    if ok:
+        # 真实判据：场上 species 必须变成目标（turn==4 也可能只是菜单）
+        if expect and not _wait_species(expect):
+            ok = False
     if not ok:
         # 换人被拒（束缚类招式等）：标记本场不再尝试，并关掉残留对话
         global _switch_blocked
@@ -252,16 +268,12 @@ def _pick_and_switch(target, verbose, label):
                 break
             action.tap_a()
             time.sleep(0.6)
-    order_before = list(_raw_order()) if ok else None
     if ok:
-        # 换人 = 左边那只与选中的交换位置（战斗内部顺序），战斗结束才重置
-        o = _raw_order()
-        if 0 <= pos < len(o):
-            o[0], o[pos] = o[pos], o[0]
         invalidate_field()
+        _wait_array_stable()
     log.info("switch", label, target=target, pos=pos, ok=ok,
-             order_before=order_before,
-             order_after=list(_raw_order()) if ok else None)
+             array_after=[(i, (my_mon(i) or {}).get("species"))
+                          for i in range(6)] if ok else None)
     if verbose:
         print(f"  {label} {'-> #' + str(target) if ok else '失败'}", flush=True)
     return ok
@@ -269,6 +281,7 @@ def _pick_and_switch(target, verbose, label):
 
 def switch_from_main(target, verbose=True, label="换首发"):
     """战斗主菜单 -> 打开宝可梦 -> 选中 target 槽位换上场。"""
+    expect = (my_mon(target) or {}).get("species")   # 打开菜单前解析身份
     if not action.open_party_menu():
         log.error("switch", "open_menu_fail", target=target)
         return False
@@ -279,7 +292,7 @@ def switch_from_main(target, verbose=True, label="换首发"):
             print("  换首发: 没进队伍菜单", flush=True)
         return False
     # 实测：选项界面方向键仍能移动队伍光标，直接选目标即可（按 B 反而会退出整个菜单）
-    return _pick_and_switch(target, verbose, label)
+    return _pick_and_switch(target, verbose, label, expect=expect)
 
 
 def handle_force_switch(verbose=True):

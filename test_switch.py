@@ -22,8 +22,7 @@ def test_move_party_cursor_stepwise():
         elif name == "up":
             pos["c"] -= 1
 
-    with patch.object(auto_battle, "_order", [0, 1, 2, 3, 4, 5]), \
-         patch.object(action, "rd", fake_rd), \
+    with patch.object(action, "rd", fake_rd), \
          patch.object(action, "press", fake_press):
         ok = auto_battle._move_party_cursor(1)
     assert ok and pos["c"] == 1, (ok, pos)
@@ -46,8 +45,7 @@ def test_move_party_cursor_overshoot():
         elif name == "up":
             pos["c"] -= 1
 
-    with patch.object(auto_battle, "_order", [0, 1, 2, 3, 4, 5]), \
-         patch.object(action, "rd", fake_rd), \
+    with patch.object(action, "rd", fake_rd), \
          patch.object(action, "press", fake_press):
         ok = auto_battle._move_party_cursor(1)
     assert ok and pos["c"] == 1, (ok, pos, pressed)
@@ -116,98 +114,86 @@ test_menu_kind_party()
 
 
 
-def test_ensure_active_resync():
-    """濒死换人后 order[0] 指错：按场上 species 把真实槽位挪到最前。"""
-    import struct
+import struct
+
+
+def _patched(species, sp):
+    def fake_rd(addr, n):
+        return struct.pack("<H", sp)
+
+    def fake_my_mon(slot):
+        return {"slot": slot, "species": species[slot]}
+
+    return fake_rd, fake_my_mon
+
+
+def test_ensure_active_from_field():
     species = {0: 25, 1: 15, 2: 22, 3: 8}
-
-    def fake_rd(addr, n):
-        return struct.pack("<H", 22)   # 场上是大嘴雀 species 22
-
-    def fake_my_mon(slot):
-        return {"slot": slot, "species": species[slot]}
-
-    with patch.object(auto_battle, "_order", [1, 2, 3, 0]), \
+    fake_rd, fake_my_mon = _patched(species, 22)
+    with patch.object(auto_battle, "_field", {"t": 0.0, "sp": None, "slot": None}), \
          patch.object(auto_battle, "rd", fake_rd), \
          patch.object(auto_battle, "my_mon", fake_my_mon):
         real = auto_battle.ensure_active()
-        head = auto_battle.active_slot()
-    assert real == 2 and head == 2, (real, head)
-    print("F ensure_active 校正 ok", real, head)
+    assert real == 2, real
+    print("F ensure_active 用 species 校正 ok", real)
 
 
-def test_ensure_active_keeps_when_ok():
-    """场上 species 与 order[0] 一致时不动顺序。"""
-    import struct
-    species = {0: 25, 1: 15, 2: 22}
-
-    def fake_rd(addr, n):
-        return struct.pack("<H", 22)
-
-    def fake_my_mon(slot):
-        return {"slot": slot, "species": species[slot]}
-
-    with patch.object(auto_battle, "_order", [2, 1, 0]), \
+def test_ensure_active_keeps():
+    species = {0: 22, 1: 15}
+    fake_rd, fake_my_mon = _patched(species, 22)
+    with patch.object(auto_battle, "_field", {"t": 0.0, "sp": None, "slot": None}), \
          patch.object(auto_battle, "rd", fake_rd), \
          patch.object(auto_battle, "my_mon", fake_my_mon):
         real = auto_battle.ensure_active()
-        order = list(auto_battle.party_order())
-    assert real == 2 and order == [2, 1, 0], (real, order)
-    print("G ensure_active 一致不改 ok")
+    assert real == 0, real
+    print("G ensure_active 同 species 返回首下标 ok")
 
 
 def test_ensure_active_no_mem():
-    """读不到内存时返回 None，不改顺序。"""
-    with patch.object(auto_battle, "_order", [1, 2]), \
+    with patch.object(auto_battle, "_field", {"t": 0.0, "sp": None, "slot": None}), \
          patch.object(auto_battle, "rd", lambda a, n: b""):
         assert auto_battle.ensure_active() is None
     print("H ensure_active 无内存安全 ok")
 
 
-test_ensure_active_resync()
-test_ensure_active_keeps_when_ok()
-test_ensure_active_no_mem()
-
-
-def test_active_slot_from_species_cached():
-    """场上 species 是唯一依据；0.6s 内重复调用不重复读 UDP。"""
-    import struct
+def test_active_slot_cached():
     species = {0: 25, 1: 15, 2: 22, 3: 8}
     calls = {"n": 0}
 
     def fake_rd(addr, n):
         calls["n"] += 1
-        return struct.pack("<H", 8)   # 卡咪龟
+        return struct.pack("<H", 8)
 
     def fake_my_mon(slot):
         return {"slot": slot, "species": species[slot]}
 
-    with patch.object(auto_battle, "_order", [1, 2, 3]), \
-         patch.object(auto_battle, "in_battle", lambda: True), \
+    with patch.object(auto_battle, "in_battle", lambda: True), \
          patch.object(auto_battle, "_field", {"t": 0.0, "sp": None, "slot": None}), \
          patch.object(auto_battle, "rd", fake_rd), \
          patch.object(auto_battle, "my_mon", fake_my_mon):
         s1 = auto_battle.active_slot()
-        s2 = auto_battle.party_order()[0]
+        s2 = auto_battle.active_slot()
         n_after = calls["n"]
         auto_battle.invalidate_field()
         s3 = auto_battle.active_slot()
     assert s1 == 3 and s2 == 3 and s3 == 3, (s1, s2, s3)
-    assert n_after == 1, n_after          # 第二次命中缓存
-    assert calls["n"] == 2, calls         # invalidate 后强制重读
+    assert n_after == 1, n_after
+    assert calls["n"] == 2, calls
     print("I active_slot 物种驱动+缓存 ok")
 
 
 def test_active_slot_fallback_no_mem():
-    """战斗外读不到 species 时退回 order[0]，不抛异常。"""
-    with patch.object(auto_battle, "_order", [4, 0, 1]), \
+    with patch.object(auto_battle, "in_battle", lambda: True), \
          patch.object(auto_battle, "_field", {"t": 0.0, "sp": None, "slot": None}), \
          patch.object(auto_battle, "rd", lambda a, n: b""):
-        assert auto_battle.active_slot() == 4
+        assert auto_battle.active_slot() == 0
         auto_battle.invalidate_field()
     print("J active_slot 无内存兜底 ok")
 
 
-test_active_slot_from_species_cached()
+test_ensure_active_from_field()
+test_ensure_active_keeps()
+test_ensure_active_no_mem()
+test_active_slot_cached()
 test_active_slot_fallback_no_mem()
 print("全部通过")

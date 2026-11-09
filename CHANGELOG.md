@@ -3,6 +3,18 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-13（2026-11-10）
+### 变更
+- 出场槽位：species 驱动；`party_order()` 由 active 推导（不再维护第二份状态）
+- 换人目标改为 **species 身份**定位（菜单打开前后数组顺序会变）
+- 换人成功判据改为「场上 species 变成目标」，不再只看 `turn==4`
+
+### 修复
+- 换人光标错位：队伍菜单内数组 = 界面顺序，主菜单数组 = 原始顺序，两套下标不能混用
+
+### 验证
+- 实机：active=喇叭芽时换大针蜂，`pos=4`、`ok=True`、`field species=15`
+
 ## v2026.11.10-12（2026-11-10）
 ### 新增（阶段 A：观测埋点，不改行为）
 - `battle/start`、`battle/end` 日志：场次统计不再靠推断
