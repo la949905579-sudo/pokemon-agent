@@ -3,6 +3,14 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-7（2026-11-10）
+### 新增
+- `ai_agent.py`：最小 AI 闭环（观察 `/api/state` → 注入指令 → 触发 `/api/task farm` → 回读）
+- `/api/intent` 返回 `last_battle`（rounds / match / intent_rounds）
+
+### 验证
+- AI 注入 `prolong` → 战斗 2 回合，`intent_rounds={'prolong': 2}`，回读 `win`
+
 ## v2026.11.10-6（2026-11-10）
 ### 新增
 - 跨进程指令存储 `FileStore`（`logs/intent.json` + 排他锁）

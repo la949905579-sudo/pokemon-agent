@@ -15,10 +15,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 sys.path.insert(0, "/root/workspace")
-import state, info, bdata, terrain, intent
+import state, info, bdata, terrain, intent, probe
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8081
 _lock = threading.Lock()
+_battle = {"last": None}     # 最近一场的观测汇总（给 AI 回读）
 
 
 # ---------------- 状态 ----------------
@@ -142,10 +143,21 @@ def act_travel(args):
     return {"ok": r in ("ok", "warped"), "result": str(r)}
 
 
-def act_fight(args):
+def _run_battle(**kw):
+    """带观测地打一场，结果存 _battle["last"] 供 AI 回读。"""
     import auto_battle
-    res = auto_battle.battle_loop(max_rounds=int(args.get("rounds", 12)))
-    return {"ok": True, "result": res}
+    rec = probe.Recorder()
+    try:
+        r = auto_battle.battle_loop(on_round=rec, **kw)
+    finally:
+        rec.close()
+    _battle["last"] = {"result": str(r), **rec.summary()}
+    return r
+
+
+def act_fight(args):
+    res = _run_battle(max_rounds=int(args.get("rounds", 12)))
+    return {"ok": True, "result": str(res)}
 
 
 def act_switch(args):
@@ -203,15 +215,15 @@ def task_goto_center(args):
 
 def task_farm(args):
     """练级：遇敌 N 场。"""
-    import encounter, auto_battle
+    import encounter
     n = int(args.get("battles", 3))
     done = 0
     for _ in range(n):
         if not encounter.find_encounter(max_steps=30):
             break
-        auto_battle.battle_loop()
+        _run_battle()
         done += 1
-    return {"ok": True, "battles": done}
+    return {"ok": True, "battles": done, "last": _battle["last"]}
 
 
 TASKS = {
@@ -283,7 +295,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/intent":
             self._send(200, {"ok": True,
                              "active": [i.__dict__ for i in intent.active()],
-                             "audit": intent.audit()[-50:]})
+                             "audit": intent.audit()[-50:],
+                             "last_battle": _battle["last"]})
             return
         self._send(404, {"ok": False, "error": "not found"})
 

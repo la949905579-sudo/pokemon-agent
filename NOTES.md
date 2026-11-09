@@ -458,3 +458,9 @@ python3 logq.py --grep got=2 --json
 - `api_server` / `farm` / `train` 启动时自动启用；`active()/effective()` 会先刷新
 - 实测：8081 注入 prolong → 另一进程读到 `[('prolong', 3, 'ai')]`
 - 注意：并发写是 last-writer-wins（写少读多场景够用），跨进程 tick 可能覆盖，后续需要再加合并
+
+### AI 闭环（2026-11-10 实测）
+- 链路：`ai_agent.py` → `GET /api/state` → `POST /api/intent` → `POST /api/task farm` → `GET /api/intent`
+- `api_server` 的 `_run_battle()` 挂 `probe.Recorder`，结果写 `_battle["last"]`
+- 实测：注入 prolong（ttl=5），战斗 2 回合 `intent_rounds={'prolong': 2}`，`match=2`，回读 `win`
+- 注意：`/api/act fight` 只在已遇敌时有意义；遇敌+打用 `/api/task farm`
