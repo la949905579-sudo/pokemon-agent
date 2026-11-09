@@ -1,4 +1,4 @@
-"""离线测试：battle_loop 的场景分派（不碰游戏）。"""
+"""离线测试：battle_loop 场景分派与关键分支（不碰游戏）。"""
 import sys
 sys.path.insert(0, "/root/workspace")
 from unittest.mock import patch
@@ -9,47 +9,111 @@ import info
 import action
 
 
-def run(scenes, extra=None):
-    """按给定场景序列跑 battle_loop，返回 action 调用记录。"""
+def mon(slot=0, moves=(98, 0, 0, 0), pp=(10, 0, 0, 0), hp=31, species=25, lv=12):
+    return {"slot": slot, "lv": lv, "hp": hp, "mhp": 31, "species": species,
+            "types": ("电",), "moves": list(moves), "pp": list(pp)}
+
+
+def run(scenes, my_mon=None, trapped=False, switch_ok=True, on_round=None, hp_zero=False):
+    """按给定场景序列跑 battle_loop，返回 (result, 调用记录)。"""
     seq = iter(scenes)
     calls = []
-    rec = lambda name: (lambda *a, **k: calls.append((name,) + a))
 
-    with patch.object(info, "scene", lambda: next(seq, info.MAP)), \
-         patch.object(bl, "in_battle", lambda: True), \
-         patch.object(bl.state, "status_flags", lambda slot=0: {"sleep": 0, "freeze": False}), \
-         patch.object(action, "choose_option", rec("choose_option")), \
-         patch.object(action, "tap_a", lambda: calls.append(("a",))), \
-         patch.object(action, "tap_b", lambda: calls.append(("b",))), \
-         patch.object(action, "advance_dialog", rec("advance_dialog")), \
-         patch.object(action, "open_move_menu", lambda: (calls.append(("open_move",)) or True)), \
-         patch.object(action, "use_move", rec("use_move")), \
-         patch.object(action, "wait_until", lambda p, t=4.0, s=0.25: True), \
-         patch.object(switch, "_pick_and_switch", rec("pick_switch")), \
-         patch.object(switch, "active_slot", lambda: 0), \
-         patch.object(bl, "my_mon", lambda i: {"slot": 0, "lv": 12, "hp": 31, "mhp": 31,
-                                                        "species": 25, "types": ("电",),
-                                                        "moves": [98, 0, 0, 0], "pp": [10, 0, 0, 0]}), \
-         patch.object(bl, "enemy_info", lambda: {"lv": 10, "hp": 20, "types": ("草",)}), \
-         patch.object(bl.decision, "choose_switch", lambda p, e: 2):
-        r = auto_battle.battle_loop(max_rounds=len(scenes) + 1, verbose=False)
+    def rec(name):
+        def f(*a, **k):
+            calls.append((name,) + a)
+            return switch_ok
+        return f
+
+    my_mon = my_mon or (lambda i: mon(i) if i == 0 else None)
+    enemy = {"lv": 10, "hp": 0 if hp_zero else 20, "mhp": 20, "types": ("草",)}
+
+    from contextlib import ExitStack
+    with ExitStack() as st:
+        st.enter_context(patch.object(info, "scene", lambda: next(seq, info.MAP)))
+        st.enter_context(patch.object(bl, "in_battle", lambda: True))
+        st.enter_context(patch.object(bl.state, "status_flags", lambda slot=0: {}))
+        st.enter_context(patch.object(bl.state, "trapped", lambda: trapped))
+        st.enter_context(patch.object(bl.state, "rd", lambda a, n: b"\x00" * n))
+        st.enter_context(patch.object(action, "choose_option", lambda *a, **k: calls.append(("choose_option",) + a)))
+        st.enter_context(patch.object(action, "tap_a", lambda: calls.append(("a",))))
+        st.enter_context(patch.object(action, "tap_b", lambda: calls.append(("b",))))
+        st.enter_context(patch.object(action, "advance_dialog", lambda *a, **k: calls.append(("advance_dialog",))))
+        st.enter_context(patch.object(action, "open_move_menu", lambda: (calls.append(("open_move",)) or True)))
+        st.enter_context(patch.object(action, "close_menu", lambda *a, **k: calls.append(("close_menu",))))
+        st.enter_context(patch.object(action, "move_party_cursor", lambda *a, **k: calls.append(("move_party_cursor",) + a)))
+        st.enter_context(patch.object(action, "use_move", lambda *a, **k: (calls.append(("use_move",) + a) or True)))
+        st.enter_context(patch.object(action, "wait_until", lambda p, t=4.0, s=0.25: True))
+        st.enter_context(patch.object(switch, "_pick_and_switch", rec("pick_switch")))
+        st.enter_context(patch.object(switch, "switch_from_main", rec("switch_from_main")))
+        st.enter_context(patch.object(switch, "active_slot", lambda: 0))
+        st.enter_context(patch.object(switch, "ensure_active", lambda: calls.append(("ensure_active",))))
+        st.enter_context(patch.object(switch, "switch_blocked", lambda: False))
+        st.enter_context(patch.object(bl, "my_mon", my_mon))
+        st.enter_context(patch.object(bl, "enemy_info", lambda: dict(enemy)))
+        st.enter_context(patch.object(bl, "wait_round_end", lambda *a, **k: "ready"))
+        st.enter_context(patch.object(bl.decision, "choose_switch", lambda p, e, **k: (p[0]["slot"] if p else None)))
+        st.enter_context(patch.object(bl.decision, "should_switch_opening", lambda *a, **k: None))
+        st.enter_context(patch.object(bl.decision, "should_switch", lambda *a, **k: None))
+        st.enter_context(patch.object(bl.decision, "should_flee", lambda *a, **k: False))
+        r = auto_battle.battle_loop(max_rounds=len(scenes) + 1, verbose=False,
+                                    on_round=on_round)
     return r, calls
 
 
+# ---- A/B/C/D：场景分派 ----
 r, calls = run([info.BATTLE_INTRO, info.CHOICE, info.MAP])
 assert ("choose_option", 0) in calls, calls
-print("A choice 场景走「选是」ok", calls)
+print("A choice 场景走「选是」ok")
 
 r, calls = run([info.BATTLE_INTRO, info.PARTY, info.MAP])
 assert any(c[0] == "pick_switch" for c in calls), calls
-print("B party 场景走换人 ok", calls)
+print("B party 场景走换人 ok")
 
 r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.ANIM, info.MAP])
-assert ("open_move",) in calls, calls
-assert any(c[0] == "use_move" for c in calls), calls
-print("C 主菜单走「打开招式+出招」ok", calls)
+assert ("open_move",) in calls and any(c[0] == "use_move" for c in calls), calls
+print("C 主菜单走「打开招式+出招」ok")
 
 r, calls = run([info.BATTLE_INTRO, info.BATTLE_INTRO, info.MAP])
 assert any(c[0] == "advance_dialog" for c in calls), calls
-print("D 开场走推进对话 ok", calls)
+print("D 开场走推进对话 ok")
+
+# ---- E：无攻击招 -> 换人，不硬出招 ----
+charizard = lambda i: mon(i, moves=(104, 45, 39, 86), pp=(10, 10, 10, 10)) if i == 0 \
+    else (mon(i, moves=(98, 0, 0, 0), pp=(10, 0, 0, 0)) if i == 1 else None)
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], my_mon=charizard)
+assert any(c[0] == "switch_from_main" for c in calls), calls
+assert not any(c[0] == "use_move" for c in calls), calls
+print("E 无攻击招 -> 换人 ok")
+
+# ---- F：束缚(bit8) -> 不换人 ----
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], my_mon=charizard,
+               trapped=True)
+assert not any(c[0] == "switch_from_main" for c in calls), calls
+print("F 束缚时不换人 ok")
+
+# ---- G：濒死换人后 ensure_active ----
+def faint_team(i):
+    if i == 0:
+        return mon(0, hp=0)
+    if i == 1:
+        return mon(1, hp=20)
+    return None
+
+r, calls = run([info.BATTLE_INTRO, info.PARTY_OPTION, info.MAP], my_mon=faint_team)
+assert ("ensure_active",) in calls, calls
+print("G 濒死换人后校正槽位 ok")
+
+# ---- H：敌方 0 血推进有上限 ----
+r, calls = run([info.BATTLE_MAIN] * 12, hp_zero=True)
+assert r == "stuck", r
+assert sum(1 for c in calls if c[0] == "a") >= 8, calls
+print("H 敌方 0 血推进上限 ok", r)
+
+# ---- I：on_round 回调收到本回合观测 ----
+got = []
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP], on_round=got.append)
+assert got and got[0]["idx"] == 0 and got[0]["pp_before"], got
+print("I on_round 回调 ok", got[0]["moves"])
+
 print("全部通过")

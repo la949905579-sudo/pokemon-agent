@@ -1,5 +1,5 @@
 """战斗主循环：看 info -> 经 decision -> 交 action。"""
-import sys, time
+import struct, sys, time
 sys.path.insert(0, "/root/workspace")
 import info, action, decision
 from bdata import my_mon, enemy_info
@@ -17,7 +17,34 @@ _zero_hp_pushes = 0          # 敌方 0 血推进次数（防死循环）
 from state import in_battle
 import state
 
-def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
+def _u16(addr):
+    d = state.rd(addr, 2)
+    return struct.unpack("<H", d)[0] if len(d) == 2 else None
+
+
+def _emit_round(cb, r, slot, m, idx, why, e, fired, res):
+    """本回合观测交给回调（回调异常不影响战斗）。"""
+    try:
+        from addresses import MY_BATTLE, EN_BATTLE, MOVE_LAST
+        cur = my_mon(slot) or {}
+        raw_en = state.rd(EN_BATTLE + 0x0C, 8)
+        rec = {
+            "r": r, "slot": slot, "species": m.get("species"), "lv": m.get("lv"),
+            "hp": m.get("hp"), "moves": list(m.get("moves") or []),
+            "pp_before": list(m.get("pp") or []), "pp_after": cur.get("pp"),
+            "idx": idx, "why": why, "fired": fired, "result": res,
+            "foe": {k: (e or {}).get(k) for k in ("species", "lv", "hp", "mhp")},
+            "field_species": _u16(MY_BATTLE),
+            "d4c": _u16(MOVE_LAST),
+            "foe_moves": list(struct.unpack("<4H", raw_en)) if len(raw_en) == 8 else [],
+        }
+        rec["slot_ok"] = rec["field_species"] == rec["species"]
+        cb(rec)
+    except Exception as ex:
+        log.error("battle", "on_round_fail", err=str(ex))
+
+
+def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
     """薄协调层：看 info 的场景，用 decision 决定，交给 action 执行。"""
     global _flee_blocked, _active_switch_failed, _opening_checked, _zero_hp_pushes
     lv_before = {i: (my_mon(i) or {}).get("lv") for i in range(6)}
@@ -278,6 +305,8 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True):
                 res = wait_round_end()
                 if verbose and res == "timeout":
                     print("  闭环: 等回合完成超时", flush=True)
+                if on_round:
+                    _emit_round(on_round, r, slot, m, idx, why, e, fired, res)
             continue
 
         # 其它子菜单：先退出来
