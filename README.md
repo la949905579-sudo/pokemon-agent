@@ -11,7 +11,7 @@
 ```bash
 cd /root/workspace
 
-# 跑全部测试（18 个）
+# 跑全部测试（19 个）
 python3 run_tests.py
 
 # 读当前游戏状态
@@ -115,8 +115,11 @@ python3 state_server.py 8080
 |---|---|
 | `state_server.py` | 下屏网页服务（8080） |
 | `api_server.py` | 外部 API（8081） |
-| `mapdraw.py` / `map_graph.py` | 地图可视化 |
+| `mapdraw.py` | 单地图可视化（碰撞/树/栅栏/门/路径）|
+| `map_links.py` / `map_links_vis.py` | 地图连接记录 + 连接图 |
+| `map_coords.py` | 全局地图坐标系（多地图统一坐标）|
 | `track_route.py` | 记录用户手动操作的坐标轨迹 |
+| `log.py` | 全模块日志（控制台 + 文件）|
 | `run_tests.py` | 一键测试入口 |
 
 ---
