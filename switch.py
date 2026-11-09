@@ -252,13 +252,16 @@ def _pick_and_switch(target, verbose, label):
                 break
             action.tap_a()
             time.sleep(0.6)
+    order_before = list(_raw_order()) if ok else None
     if ok:
         # 换人 = 左边那只与选中的交换位置（战斗内部顺序），战斗结束才重置
         o = _raw_order()
         if 0 <= pos < len(o):
             o[0], o[pos] = o[pos], o[0]
         invalidate_field()
-    log.info("switch", label, target=target, pos=pos, ok=ok)
+    log.info("switch", label, target=target, pos=pos, ok=ok,
+             order_before=order_before,
+             order_after=list(_raw_order()) if ok else None)
     if verbose:
         print(f"  {label} {'-> #' + str(target) if ok else '失败'}", flush=True)
     return ok

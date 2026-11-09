@@ -29,13 +29,7 @@ def learn_moves_guard(max_rounds=10):
         #   2) 一般属性技能（全攻击时）
         #   3) 威力最低的（全本属性时）
         if s["dialog"] and menu_kind() == "moves":
-            # 学招事件：写事件文件（供上层/通知读取）
-            try:
-                import time as _t
-                with open("/root/workspace/logs/learn_event.txt", "a", encoding="utf-8") as f:
-                    f.write(f"{_t.strftime('%H:%M:%S')} 检测到学招界面（忘记哪个招式）\n")
-            except Exception:
-                pass
+            log.info("learn", "forget_event", reason="检测到学招界面")
             from bdata import my_mon, MOVES
             from switch import active_slot
             slot = active_slot()

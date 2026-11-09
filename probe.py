@@ -3,6 +3,8 @@ import json
 import os
 import time
 
+import log
+
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 
 
@@ -19,6 +21,9 @@ class Recorder:
         self.rows.append(rec)
         self.f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         self.f.flush()
+        log.info("probe", "round", r=rec.get("r"), slot=rec.get("slot"),
+                 idx=rec.get("idx"), pp_after=rec.get("pp_after"),
+                 slot_ok=rec.get("slot_ok"))
 
     def close(self):
         try:

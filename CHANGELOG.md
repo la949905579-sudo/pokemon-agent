@@ -3,6 +3,15 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-4（2026-11-10）
+### 新增
+- 统一日志：`logs/run-YYYYMMDD.jsonl`（JSONL 单流）+ `logq.py` 查询
+- 回合观测带 `party` 全队快照；换人日志带 `order_before/after`
+
+### 变更
+- 学招事件不再写 `learn_event.txt`，进统一日志
+- `probe/round` 摘要进主日志（完整数据仍在 `rounds-*.jsonl`）
+
 ## v2026.11.10-3（2026-11-10）
 ### 修复
 - `learn.py` 迁移后缺失 `snapshot` / `advance_dialog` 等依赖（实机两次暴露）

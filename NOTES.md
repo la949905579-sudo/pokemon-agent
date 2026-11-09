@@ -421,3 +421,27 @@ do_switch()          # 按克制/等级策略换人
 - 战斗中数组顺序稳定（before/encounter/round/after 完全一致）
 - 03:42 曾观察到一次槽位顺序变化，未复现，标记“待观察”（疑似濒死换人/战后学招界面瞬态）
 - 教训：迁移模块后必须跑实机；`learn.py` 迁出时漏了 `snapshot`、`advance_dialog`，已补 `test_learn.py`
+
+## 统一日志（2026-11-10）
+
+### 标准
+- 文件：`logs/run-YYYYMMDD.jsonl`（每行一个事件），控制台仍输出 `[HH:MM:SS] mod event k=v`
+- 字段：`ts / session / level / mod / event / data`
+- `mod` 用模块名，`event` 用动词，错误以 `ERROR:` 开头；嵌套只用于 party/foe 这类快照
+- 保留 7 天，按天滚动；`session` 区分同日多次运行
+
+### 查询
+```
+python3 logq.py --mod switch
+python3 logq.py --event 换人 --limit 20
+python3 logq.py --grep got=2 --json
+```
+
+### 新增的状态记录
+- `on_round` 的回合数据带 `party`（6 只的 slot/species/lv/hp）
+- 换人日志带 `order_before` / `order_after`（界面顺序）
+- 学招事件改为 `learn/forget_event`，不再写独立 txt
+- `probe/round` 摘要进主日志；完整回合数据仍在 `logs/rounds-*.jsonl`（按场）
+
+### 用途
+类似“03:42 槽位瞬态”这种问题，事后可查 `party` 相邻两行 + `switch order_before/after` + `state` 变化，不再只靠手动读一次。

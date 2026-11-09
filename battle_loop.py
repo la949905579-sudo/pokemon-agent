@@ -45,6 +45,9 @@ def _emit_round(cb, r, slot, m, idx, why, e, fired, res):
             "d4c": _u16(MOVE_LAST),
             "foe_moves": list(struct.unpack("<4H", raw_en)) if len(raw_en) == 8 else [],
             "intents": [i.kind for i in intent.active()],
+            "party": [{"slot": i, "species": mm.get("species"), "lv": mm.get("lv"),
+                       "hp": mm.get("hp")}
+                      for i, mm in ((i, my_mon(i)) for i in range(6)) if mm],
         }
         rec["slot_ok"] = rec["field_species"] == rec["species"]
         cb(rec)
