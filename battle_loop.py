@@ -17,6 +17,12 @@ _zero_hp_pushes = 0          # 敌方 0 血推进次数（防死循环）
 from state import in_battle
 import state
 
+def _enemy_moves():
+    from addresses import EN_BATTLE
+    d = state.rd(EN_BATTLE + 0x0C, 8)
+    return list(struct.unpack("<4H", d)) if len(d) == 8 else []
+
+
 def _u16(addr):
     d = state.rd(addr, 2)
     return struct.unpack("<H", d)[0] if len(d) == 2 else None
@@ -281,10 +287,12 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                     if switch.switch_from_main(tgt_n, verbose, "无攻击招换人"):
                         continue
                     _active_switch_failed = True
+            foe_mv = _enemy_moves()
+            threat = decision.threat_score(foe_mv, m.get("types"))
             log.info("battle", "round", r=r,
                      me=f"Lv{m.get('lv',0)} {m.get('hp',0)}/{m.get('mhp','?')}",
                      foe=f"Lv{e.get('lv',0)} {e.get('hp',0)}/{e.get('mhp','?')}",
-                     idx=idx, why=why)
+                     idx=idx, why=why, threat=threat, foe_moves=foe_mv)
             if verbose:
                 print(f"回合{r}: 我方#{slot} Lv{m['lv']} {m['hp']}/{m['mhp']} "
                       f"vs 敌方Lv{e['lv']} {e['hp']}/{e['mhp']} -> {why}", flush=True)

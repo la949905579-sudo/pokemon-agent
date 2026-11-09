@@ -76,6 +76,14 @@ def test_has_attack_move():
     print("F 无攻击招判定 ok")
 
 
+def test_threat_score():
+    assert decision.threat_score([33, 28, 16, 98], ("虫", "毒")) == 80   # 起风×2
+    assert decision.threat_score([], ("水",)) == 0
+    assert decision.threat_score([0, 0], ("水",)) == 0
+    print("G 敌方威胁评估 ok")
+
+
 test_should_switch()
 test_has_attack_move()
+test_threat_score()
 print("全部通过")

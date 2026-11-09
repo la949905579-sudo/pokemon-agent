@@ -83,6 +83,20 @@ def has_attack_move(mon):
     return False
 
 
+def threat_score(enemy_moves, my_types):
+    """敌方招式表里对我方最痛的：威力 × 克制倍率（只用于观测/评估）。"""
+    best = 0.0
+    for mid in enemy_moves or ():
+        info = MOVES.get(mid)
+        if not info or info[2] <= 0:
+            continue
+        eff = 1.0
+        for mt in (my_types or ()):
+            eff *= TYPE_CHART.get((info[1], mt), 1.0)
+        best = max(best, info[2] * eff)
+    return best
+
+
 def _takes_damage_from(mon_types, enemy_types):
     """敌方属性打我方属性的倍率（>1 表示被克制）。"""
     dmg = 1.0
