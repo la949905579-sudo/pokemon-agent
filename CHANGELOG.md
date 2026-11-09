@@ -3,6 +3,14 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-3（2026-11-10）
+### 修复
+- `learn.py` 迁移后缺失 `snapshot` / `advance_dialog` 等依赖（实机两次暴露）
+- 补 `test_learn.py` 四个分支测试
+
+### 验证
+- 实测普通换人**不改**真实队伍数组 `0x02024284`；`active_slot()` species 驱动正常
+
 ## v2026.11.10-2（2026-11-10）
 ### 变更
 - 学招逻辑 `learn_moves_guard` 从 `action.py` 迁出到 `learn.py`（执行层只留按键/光标）

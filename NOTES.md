@@ -414,3 +414,10 @@ do_switch()          # 按克制/等级策略换人
 - `no_kill`：敌方 HP 低于阈值且当前没有变化招 → 换一只有变化招的队友拖回合（每场上限 2 次）
 - `probe.summary` 增加 `intent_rounds`：每回合带了哪些指令
 - 测试：`test_battle_loop` M/N（无变化招换人 / 有变化招原地拖）
+
+### 队伍数组与换人（实测 2026-11-10）
+- 普通换人（`switch_from_main`）**不改真实队伍数组** `0x02024284`，只改界面顺序（进程内 order）
+- `active_slot()` 的 species 驱动工作正常（实测 active 1 → 3）
+- 战斗中数组顺序稳定（before/encounter/round/after 完全一致）
+- 03:42 曾观察到一次槽位顺序变化，未复现，标记“待观察”（疑似濒死换人/战后学招界面瞬态）
+- 教训：迁移模块后必须跑实机；`learn.py` 迁出时漏了 `snapshot`、`advance_dialog`，已补 `test_learn.py`

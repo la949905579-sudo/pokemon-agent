@@ -62,21 +62,21 @@ def learn_moves_guard(max_rounds=10):
                     reason = f"替换威力最低({info[target][2]})"
             if target is not None:
                 log.info("action", "forget_move_replace", slot=target, reason=reason)
-                move_move_cursor(target)
-                tap_a()
+                action.move_move_cursor(target)
+                action.tap_a()
             else:
                 log.info("action", "forget_move_cancel", reason="无合适替换")
-                tap_b()
+                action.tap_b()
             time.sleep(0.7)
             handled += 1
             continue
         if s["choice"]:
-            choose_option(0)        # 「要学习吗？」选「是」
+            action.choose_option(0)        # 「要学习吗？」选「是」
             time.sleep(0.6)
             handled += 1
             continue
         if s["dialog"]:
-            advance_dialog()
+            action.advance_dialog()
             time.sleep(0.5)
             continue
         break
