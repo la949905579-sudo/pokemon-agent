@@ -123,4 +123,24 @@ assert r == "timeout", r
 assert ("close_menu",) in calls and ("run_away",) in calls, calls
 print("J timeout 兜底恢复 ok", r)
 
+# ---- K：flee 指令直接触发逃跑 ----
+import intent as intent_mod
+intent_mod.reset()
+intent_mod.submit(intent_mod.Intent("flee", {"hp_floor": 0.0}))
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP])
+assert any(c[0] == "run_away" for c in calls), calls
+intent_mod.reset()
+print("K flee 指令触发逃跑 ok")
+
+# ---- L：prolong 指令选变化招 ----
+intent_mod.reset()
+intent_mod.submit(intent_mod.Intent("prolong", {"hp_floor": 0.0}))
+r, calls = run([info.BATTLE_INTRO, info.BATTLE_MAIN, info.MAP],
+               my_mon=lambda i: mon(i, moves=(104, 45, 39, 86), pp=(10, 10, 10, 10))
+               if i == 0 else None)
+um = [c for c in calls if c[0] == "use_move"]
+assert um and um[0][1] == 0, calls
+intent_mod.reset()
+print("L prolong 指令选变化招 ok", um)
+
 print("全部通过")

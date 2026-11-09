@@ -50,28 +50,63 @@ def best_damage_effect(mon, enemy_types):
     return best if best > 0 else 1.0
 
 
-def choose_move(mon, enemy_types=None):
-    """返回 (招式序号 0-3, 说明)。优先克制，其次威力；PP=0 跳过。"""
+def choose_move(mon, enemy_types=None, intents=None, enemy=None):
+    """返回 (招式序号 0-3, 说明)。
+
+    intents 来自 intent.effective()：
+      prolong / no_kill -> 优先变化招，其次最低威力
+      only_class        -> 只保留指定属性/威力类别的招
+    其它情况走默认策略（威力 × 克制 × 段数）。
+    """
     if _move_strategy is not None:
         return _move_strategy(mon, enemy_types)
-    best = None
+    ints = {i.kind: i for i in (intents or [])}
+    only = ints["only_class"].params if "only_class" in ints else None
+    status_mode = "prolong" in ints
+    if "no_kill" in ints and _foe_low(enemy, ints["no_kill"]):
+        status_mode = True
+
+    cands = []
     for i, (mid, pp) in enumerate(zip(mon["moves"], mon["pp"])):
         info = MOVES.get(mid)
         if not info or pp <= 0:
             continue
         name, typ, power = info
-        if power <= 0:
-            continue
+        if only:
+            if only.get("type") and typ != only["type"]:
+                continue
+            if only.get("power") is not None and power != only["power"]:
+                continue
         eff = move_effect(mid, enemy_types) if enemy_types else 1.0
-        hits = MULTI_HIT.get(mid, 1.0)
-        score = power * hits * eff
-        if best is None or score > best[0]:
-            best = (score, i, name, typ, power, eff, hits)
-    if best is None:
+        cands.append({"i": i, "name": name, "typ": typ, "power": power,
+                      "eff": eff, "hits": MULTI_HIT.get(mid, 1.0)})
+
+    if status_mode:
+        status = [c for c in cands if c["power"] == 0]
+        if status:
+            c = min(status, key=lambda x: x["i"])
+            return c["i"], f"指令(拖回合/不击杀)：{c['name']}（变化招）"
+        if cands:
+            c = min(cands, key=lambda x: x["power"] * x["hits"])
+            return c["i"], f"指令(拖回合/不击杀)：{c['name']}（最低威力）"
+
+    atk = [c for c in cands if c["power"] > 0]
+    if not atk:
+        if only and cands:                       # 指令限定为变化招等
+            c = min(cands, key=lambda x: x["i"])
+            return c["i"], f"指令(only_class)：{c['name']}（变化招）"
         return 0, "没有可用攻击招式，默认第一招"
-    hits = best[6]
-    ht = f" ×{hits:g}段" if hits > 1 else ""
-    return best[1], f"{best[2]}（{best[3]} 威力{best[4]}{ht} 克制x{best[5]:g}）"
+    best = max(atk, key=lambda c: c["power"] * c["hits"] * c["eff"])
+    ht = f" ×{best['hits']:g}段" if best["hits"] > 1 else ""
+    return best["i"], f"{best['name']}（{best['typ']} 威力{best['power']}{ht} 克制x{best['eff']:g}）"
+
+
+def _foe_low(enemy, it):
+    """敌方血量 <= 阈值（no_kill 用）。"""
+    mhp = (enemy or {}).get("mhp") or 0
+    if not mhp:
+        return False
+    return (enemy or {}).get("hp", 0) / mhp <= it.params.get("hp_floor", 0.2)
 
 
 def has_attack_move(mon):

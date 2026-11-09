@@ -1,7 +1,7 @@
 """战斗主循环：看 info -> 经 decision -> 交 action。"""
 import struct, sys, time
 sys.path.insert(0, "/root/workspace")
-import info, action, decision
+import info, action, decision, intent
 from bdata import my_mon, enemy_info
 import switch
 import switch as _sw
@@ -43,6 +43,7 @@ def _emit_round(cb, r, slot, m, idx, why, e, fired, res):
             "field_species": _u16(MY_BATTLE),
             "d4c": _u16(MOVE_LAST),
             "foe_moves": list(struct.unpack("<4H", raw_en)) if len(raw_en) == 8 else [],
+            "intents": [i.kind for i in intent.active()],
         }
         rec["slot_ok"] = rec["field_species"] == rec["species"]
         cb(rec)
@@ -64,6 +65,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
 
     for r in range(max_rounds):
         if in_battle() is False:
+            intent.clear()
             watchdog._wd["last"] = None
             watchdog._wd["count"] = 0
             # 战斗结束：先看等级有没有变化（判断是否升级）
@@ -242,10 +244,12 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 slot_f = switch.active_slot()
                 m_f = my_mon(slot_f) if slot_f is not None else None
                 e_f = enemy_info()
-                if m_f and e_f and decision.should_flee(
+                ints_f = intent.effective(m_f, e_f) if m_f else []
+                want_flee = any(i.kind == "flee" for i in ints_f)
+                if m_f and e_f and (want_flee or decision.should_flee(
                         m_f, e_f, [my_mon(i) for i in range(6)],
                         enemy_species=e_f.get("species"),
-                        trapped=switch.switch_blocked() or state.trapped()):
+                        trapped=switch.switch_blocked() or state.trapped())):
                     if sc == info.BATTLE_MOVES:
                         action.close_menu()
                     if verbose:
@@ -271,7 +275,8 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             e = enemy_info()
             if not m or not e:
                 return "nodata"
-            idx, why = decision.choose_move(m, e["types"])
+            intents = intent.effective(m, e)
+            idx, why = decision.choose_move(m, e["types"], intents=intents, enemy=e)
             # 没有可用攻击招（全是变化招 / PP 耗尽）：优先换一只能打的
             if not decision.has_attack_move(m):
                 cands = [mm for mm in (my_mon(i) for i in range(6))
@@ -313,6 +318,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 res = wait_round_end()
                 if verbose and res == "timeout":
                     print("  闭环: 等回合完成超时", flush=True)
+                intent.tick()
                 if on_round:
                     _emit_round(on_round, r, slot, m, idx, why, e, fired, res)
             continue

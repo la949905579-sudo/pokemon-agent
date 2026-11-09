@@ -388,3 +388,23 @@ do_switch()          # 按克制/等级策略换人
 
 ### 超时兜底
 - `battle_loop` 轮次用完仍卡着：`close_menu()`，还在战斗就 `run_away()`，避免卡死子菜单
+
+## 指令层 intent（2026-11-10 实测）
+
+### 设计
+- 目标语义，不下具体招：`prolong` / `no_kill` / `flee` / `only_class`（白名单）
+- 生命周期：`ttl=None` 本场有效；否则每回合 -1，归零自动移除（audit 记 expire）
+- 优先级：guard(100) > flee(80) > preserve(60) > no_kill(40) > only_class(30) > prolong(20)
+- 安全护栏（不可被覆盖）：自身 HP < hp_floor(默认 25%) → prolong/no_kill 自动失效；HP < 15% → 强制追加 guard flee
+- 审计：submit / clear / expire / dropped_low_hp / safety_flee 全记录
+- 注入时机：`battle_loop` 每回合 `intent.effective(me, foe)`；回合结束 `intent.tick()`
+
+### 实测（大嘴雀 vs 波波 Lv16）
+- 注入 `prolong`（ttl=3，hp_floor=0）后：回合 2、3 选「瞪眼（变化招）」拖回合
+- ttl 到期（第 4 回合）：自动恢复默认策略「啄」（攻击招）
+- audit：`submit` → `expire` 完整
+- 注意：`hp_floor` 默认 25% 会让低血时 prolong 失效（这是护栏，不是 bug）
+
+### 测试
+- `test_intent.py`：A-I（生命周期/替换/低血降级/自动脱战/优先级/决策接入）
+- `test_battle_loop.py` K/L：flee 指令触发逃跑、prolong 指令选变化招
