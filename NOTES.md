@@ -464,3 +464,9 @@ python3 logq.py --grep got=2 --json
 - `api_server` 的 `_run_battle()` 挂 `probe.Recorder`，结果写 `_battle["last"]`
 - 实测：注入 prolong（ttl=5），战斗 2 回合 `intent_rounds={'prolong': 2}`，`match=2`，回读 `win`
 - 注意：`/api/act fight` 只在已遇敌时有意义；遇敌+打用 `/api/task farm`
+
+### no_kill 压血（2026-11-10）
+- `move_mode=chip`：低伤招（`power*hits*eff <= 敌方HP*0.8`）优先压血；没有安全招退回变化招
+- `prolong` 仍用 `status`（只拖局面，不压血），两者语义分开
+- 实测：AI 注入 no_kill → 1 回合 win，intent_rounds 记录生效
+- 威胁评估仍只写日志，未接入决策（避免无观测数据就改选招/换人）

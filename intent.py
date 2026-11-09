@@ -156,7 +156,7 @@ def _c_no_kill(it, ctx):
     foe = (ctx or {}).get("foe") or {}
     mhp = foe.get("mhp") or 0
     if mhp and foe.get("hp", 0) / mhp <= it.params.get("hp_floor", 0.2):
-        return {"move_mode": "status", "switch_if_no_status": True}
+        return {"move_mode": "chip", "switch_if_no_status": True}
     return {}
 
 

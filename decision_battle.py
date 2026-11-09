@@ -64,6 +64,7 @@ def choose_move(mon, enemy_types=None, intents=None, cons=None, enemy=None):
         import intent
         cons = intent.compile_all(intents, {"me": mon, "foe": enemy})
     status_mode = bool(cons and cons.move_mode == "status")
+    chip_mode = bool(cons and cons.move_mode == "chip")
     allowed = cons.allowed_types if cons else None
 
     cands = []
@@ -78,7 +79,16 @@ def choose_move(mon, enemy_types=None, intents=None, cons=None, enemy=None):
         cands.append({"i": i, "name": name, "typ": typ, "power": power,
                       "eff": eff, "hits": MULTI_HIT.get(mid, 1.0)})
 
-    if status_mode:
+    if chip_mode:
+        # 压血：只用预估不会击杀的低伤招；没有就退回变化招
+        foe_hp = (enemy or {}).get("hp") or 0
+        safe = [c for c in cands if c["power"] > 0
+                and c["power"] * c["hits"] * c["eff"] <= foe_hp * 0.8]
+        if safe:
+            c = min(safe, key=lambda x: x["power"] * x["hits"] * x["eff"])
+            return c["i"], f"指令(压血)：{c['name']}（低伤 {int(c['power'] * c['hits'] * c['eff'])}）"
+
+    if status_mode or chip_mode:
         status = [c for c in cands if c["power"] == 0]
         if status:
             c = min(status, key=lambda x: x["i"])

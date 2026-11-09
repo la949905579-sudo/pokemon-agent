@@ -104,7 +104,29 @@ def test_register_new_kind():
     print("J 新指令只需注册 ok", why)
 
 
+def test_no_kill_chip_safe():
+    """压血：敌方还厚时用低伤攻击招，而不是直接上变化招。"""
+    cons = intent.compile_all([intent.Intent("no_kill", {"hp_floor": 0.9})],
+                              {"foe": {"hp": 30, "mhp": 40}})
+    idx, why = decision.choose_move(MON, ("一般",), cons=cons,
+                                    enemy={"hp": 30, "mhp": 40})
+    assert idx == 2 and "压血" in why, (idx, why)
+    print("K no_kill 压血用低伤招 ok", why)
+
+
+def test_no_kill_chip_unsafe():
+    """压血：再打就可能击杀时退回变化招。"""
+    cons = intent.compile_all([intent.Intent("no_kill", {"hp_floor": 0.9})],
+                              {"foe": {"hp": 5, "mhp": 40}})
+    idx, why = decision.choose_move(MON, ("一般",), cons=cons,
+                                    enemy={"hp": 5, "mhp": 40})
+    assert idx == 1 and "变化招" in why, (idx, why)
+    print("L no_kill 临界血退回变化招 ok", why)
+
+
 test_only_class()
 test_register_new_kind()
+test_no_kill_chip_safe()
+test_no_kill_chip_unsafe()
 intent.reset()
 print("全部通过")
