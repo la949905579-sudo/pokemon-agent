@@ -189,6 +189,13 @@ python3 run_tests.py battle   # 只跑含 battle 的
 
 ---
 
+## 版本与变更
+
+- **版本规则**：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`
+- **收口流程**：每批“实机验证通过” → CHANGELOG 记一条 → 打 tag
+- **commit 前缀**：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`
+- **生成草稿**：`python3 changelog.py [since]`（按前缀归类到 CHANGELOG）
+
 ## 注意事项
 
 1. **游戏必须在前台或分屏**：后台会暂停，读不到内存
