@@ -89,6 +89,24 @@ def walk_segment(d, n):
 
 
 def goto(gx, gy, max_segs=60, stop_on_battle=True, avoid_grass=True):
+    """走到 (gx,gy)（带计时日志）。"""
+    t0 = time.time()
+    r = _goto_impl(gx, gy, max_segs, stop_on_battle, avoid_grass)
+    log.info("pathfind", "goto", goal=(gx, gy), result=str(r),
+             ms=int((time.time() - t0) * 1000))
+    return r
+
+
+def travel(gx, gy, max_battles=30, verbose=True, avoid_grass=True):
+    """同图 + 遇敌自动打（带计时日志）。"""
+    t0 = time.time()
+    r = _travel_impl(gx, gy, max_battles, verbose, avoid_grass)
+    log.info("pathfind", "travel", goal=(gx, gy), result=str(r),
+             ms=int((time.time() - t0) * 1000))
+    return r
+
+
+def _goto_impl(gx, gy, max_segs=60, stop_on_battle=True, avoid_grass=True):
     """走到 (gx,gy)。返回 True=到达 / "battle"=中途遇敌 / "dialog"=对话 / False=失败。"""
     last_pos = None
     stuck = 0
@@ -179,7 +197,7 @@ def _record_link(base_map, exit_xy, verbose=True):
         log.error("pathfind", "map_link_fail", err=str(e))
 
 
-def travel(gx, gy, max_battles=30, verbose=True, avoid_grass=True):
+def _travel_impl(gx, gy, max_battles=30, verbose=True, avoid_grass=True):
     """寻路 + 遇敌自动打 + 打完继续。返回 ok / warped / fail / battle_stuck / too_many_battles。"""
     base_hdr = terrain._map_hdr()
     base_map = terrain.load()[0]

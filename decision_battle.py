@@ -134,6 +134,50 @@ def has_attack_move(mon):
     return False
 
 
+def _best_damage(mon, enemy_types):
+    """我方对敌的最大单回合伤害（威力×段数×克制）。"""
+    best = 0.0
+    for mid in mon.get("moves") or []:
+        info = MOVES.get(mid)
+        if not info or info[2] <= 0:
+            continue
+        best = max(best, info[2] * MULTI_HIT.get(mid, 1.0)
+                   * move_effect(mid, enemy_types))
+    return best
+
+
+def score_switch_v2(mon, enemy, enemy_moves=None):
+    """换人评分 v2：以「预计击杀回合差」为主（只用于影子观测）。
+
+    foe_turns - my_turns 越大越该上；敌方有招式表时按实际招式算威胁。
+    """
+    import math
+    et = (enemy or {}).get("types", ())
+    my_out = _best_damage(mon, et)
+    foe_hp = (enemy or {}).get("hp") or 1
+    my_turns = math.ceil(foe_hp / max(my_out, 1.0))
+
+    foe_out = 0.0
+    if enemy_moves:
+        for mid in enemy_moves:
+            info = MOVES.get(mid)
+            if not info or info[2] <= 0:
+                continue
+            eff = 1.0
+            for mt in (mon.get("types") or ()):
+                eff *= TYPE_CHART.get((info[1], mt), 1.0)
+            foe_out = max(foe_out, info[2] * eff)
+    if not foe_out:
+        dmg = 1.0
+        for et2 in et:
+            for mt in (mon.get("types") or ()):
+                dmg *= TYPE_CHART.get((et2, mt), 1.0)
+        foe_out = 20.0 * dmg
+    foe_turns = math.ceil((mon.get("hp") or 1) / max(foe_out, 1.0))
+    lv = (mon.get("lv") or 0) - ((enemy or {}).get("lv") or 0)
+    return (foe_turns - my_turns) * 10 + lv * 0.5
+
+
 def threat_score(enemy_moves, my_types):
     """敌方招式表里对我方最痛的：威力 × 克制倍率（只用于观测/评估）。"""
     best = 0.0

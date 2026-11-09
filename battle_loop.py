@@ -55,9 +55,21 @@ def _emit_round(cb, r, slot, m, idx, why, e, fired, res):
         log.error("battle", "on_round_fail", err=str(ex))
 
 
+def _end(result, **kw):
+    """统一记录战斗结束事件。"""
+    try:
+        log.info("battle", "end", result=result, **kw)
+    except Exception:
+        pass
+    return result
+
+
 def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
     """薄协调层：看 info 的场景，用 decision 决定，交给 action 执行。"""
     global _flee_blocked, _active_switch_failed, _opening_checked, _zero_hp_pushes
+    log.info("battle", "start", max_rounds=max_rounds,
+             active=switch.active_slot() if in_battle() else None,
+             foe=(enemy_info() or {}).get("species") if in_battle() else None)
     lv_before = {i: (my_mon(i) or {}).get("lv") for i in range(6)}
     if info.scene() == info.BATTLE_INTRO:
         # 刚进战斗：游戏会按队伍顺序派第一只健康的，重置内部顺序
@@ -88,9 +100,9 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 time.sleep(0.8)
                 handled = learn.learn_moves_guard(max_rounds=20)
                 log.info("battle", "learn_handled", count=handled)
-                return "win_levelup"
+                return _end("win_levelup")
             learn.learn_moves_guard()
-            return "win"
+            return _end("win")
         sc = info.scene()
         e_now = enemy_info()
         slot_now = switch.active_slot()
@@ -132,7 +144,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             healthy = [m for m in party
                        if m and m.get("hp", 0) > 0 and m.get("slot") != active_now]
             if not healthy:
-                return "fainted"
+                return _end("fainted")
             target = max(healthy, key=lambda m: decision.score_switch(m, e))["slot"]
             if verbose:
                 print(f"  濒死换人: 选槽位 {target}", flush=True)
@@ -159,7 +171,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             e = enemy_info()
             target = decision.choose_switch(party, e)
             if target is None:
-                return "fainted"
+                return _end("fainted")
             if not switch._pick_and_switch(target, verbose, "换人"):
                 # 换人被拒：不返回 stuck，退出菜单继续打
                 action.tap_b()
@@ -182,7 +194,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 _zero_hp_pushes += 1
                 if _zero_hp_pushes > 8:
                     log.error("battle", "enemy_zero_stuck")
-                    return "stuck"
+                    return _end("stuck")
                 if verbose:
                     print(f"  敌方倒下，推进结算({_zero_hp_pushes})", flush=True)
                 action.tap_a()
@@ -210,6 +222,14 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 active0 = switch.active_slot()
                 party_a = [my_mon(i) for i in range(6)]
                 e_a = enemy_info()
+                # 影子观测：v2 评分只在日志里对比，不改变实际换人
+                try:
+                    mv = _enemy_moves()
+                    log.info("battle", "score_shadow", active=active0,
+                             v2=[(m2["slot"], round(decision.score_switch_v2(m2, e_a, mv), 1))
+                                 for m2 in party_a if m2])
+                except Exception:
+                    pass
                 tgt0 = decision.should_switch_opening(party_a, e_a, active0)
                 if tgt0 is not None:
                     if sc == info.BATTLE_MOVES:
@@ -280,7 +300,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             m = my_mon(slot) if slot is not None else None
             e = enemy_info()
             if not m or not e:
-                return "nodata"
+                return _end("nodata")
             intents = intent.effective(m, e)
             cons = intent.compile_all(intents, {"me": m, "foe": e})
             # 约束要求「别击杀但没变化招」：换一只有变化招的队友（每场上限 2 次）
@@ -354,7 +374,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             action.run_away()
     except Exception:
         pass
-    return "timeout"
+    return _end("timeout")
 
 
 if __name__ == "__main__":

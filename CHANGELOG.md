@@ -3,6 +3,15 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-12（2026-11-10）
+### 新增（阶段 A：观测埋点，不改行为）
+- `battle/start`、`battle/end` 日志：场次统计不再靠推断
+- 换人评分 v2 影子观测：`score_shadow` 只写日志（回合差 + 敌方实际招式）
+- `pathfind/goto`、`pathfind/travel` 计时日志（ms）
+
+### 验证
+- 实机：`geto 1 格 1379ms`、`score_shadow active=1 v2=[...]` 均正常
+
 ## v2026.11.10-11（2026-11-10）
 ### 修复
 - NPC 挡路导致寻路失败：连续撞同一格 3 次时，临时记 60s 障碍并绕行（原来直接放弃）
