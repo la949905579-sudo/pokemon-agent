@@ -85,5 +85,31 @@ def test_threat_score():
 
 test_should_switch()
 test_has_attack_move()
+def test_level_suppression():
+    party = [
+        {"slot": 1, "lv": 29, "hp": 60, "mhp": 81, "types": ("虫", "毒"),
+         "moves": [31, 116, 40, 41], "pp": [20, 30, 35, 20]},
+        {"slot": 3, "lv": 26, "hp": 70, "mhp": 70, "types": ("水",),
+         "moves": [55, 39, 145, 44], "pp": [25, 30, 30, 25]},
+    ]
+    low = {"lv": 15, "hp": 41, "mhp": 41, "types": ("一般", "飞行"),
+           "moves": [33, 28, 16, 98]}
+    assert decision.should_switch_opening(party, low, 1) is None
+    print("H 等级压制不换 ok")
+
+
+def test_v2_prefers_faster_kill():
+    bee = {"slot": 1, "lv": 29, "hp": 60, "mhp": 81, "types": ("虫", "毒"),
+           "moves": [31, 116, 40, 41], "pp": [20, 30, 35, 20]}
+    turtle = {"slot": 3, "lv": 26, "hp": 70, "mhp": 70, "types": ("水",),
+              "moves": [55, 39, 145, 44], "pp": [25, 30, 30, 25]}
+    foe = {"lv": 15, "hp": 41, "mhp": 41, "types": ("一般", "飞行"),
+           "moves": [33, 28, 16, 98]}
+    assert decision.score_switch(turtle, foe) > decision.score_switch(bee, foe)
+    print("I v2 优先击杀更快者 ok")
+
+
+test_level_suppression()
+test_v2_prefers_faster_kill()
 test_threat_score()
 print("全部通过")

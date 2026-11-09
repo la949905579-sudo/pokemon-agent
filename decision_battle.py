@@ -202,14 +202,15 @@ def _takes_damage_from(mon_types, enemy_types):
 
 
 def score_switch(mon, enemy):
-    """换人目标评分（越高越好）。
+    """换人评分：v2（预计击杀回合差 + 敌方实际招式）。
 
-    评分构成：
-      - 攻击：对敌人最好的克制倍率（eff 0~4）x 10
-      - 防御：敌人打我方的倍率（takes 0~4）x -8
-      - 等级：比敌方高加分，低扣分
-      - 血量：健康度加分
+    分数越大越该上；没有敌方招式表时退回属性倍率近似。
     """
+    return score_switch_v2(mon, enemy, (enemy or {}).get("moves"))
+
+
+def _score_switch_legacy(mon, enemy):
+    """旧评分（保留对照，不再使用）。"""
     enemy_types = (enemy or {}).get("types", ())
     enemy_lv = (enemy or {}).get("lv", 0)
     eff = best_damage_effect(mon, enemy_types)
@@ -296,6 +297,11 @@ def should_switch_opening(party, enemy, active, margin=1.0):
     m = next((x for x in party if x and x.get("slot") == active), None)
     if not m:
         return None
+    # 等级压制：明显能秒杀时不换，省一回合
+    my_lv = m.get("lv") or 0
+    foe_lv = (enemy or {}).get("lv") or 0
+    if my_lv and foe_lv and foe_lv <= my_lv - 8:
+        return None
     target = choose_switch(party, enemy, exclude_slot=active)
     if target is None or target == active:
         return None
@@ -354,6 +360,11 @@ def should_switch(party, enemy, active, hp_threshold=0.45, score_margin=3.0):
         return None
     m = next((x for x in party if x and x.get("slot") == active), None)
     if not m:
+        return None
+    # 等级压制：明显能秒杀时不换，省一回合
+    my_lv = m.get("lv") or 0
+    foe_lv = (enemy or {}).get("lv") or 0
+    if my_lv and foe_lv and foe_lv <= my_lv - 8:
         return None
     target = choose_switch(party, enemy, exclude_slot=active)
     if target is None or target == active:

@@ -103,7 +103,10 @@ def enemy_info():
     sp = rd(ENEMY_SPECIES, 2)
     species = struct.unpack("<H", sp)[0] if sp and len(sp) == 2 else None
     types = SPECIES_TYPES.get(species, ())
-    return {"lv": lv, "hp": hp, "mhp": mhp, "species": species, "types": types}
+    raw = rd(ENEMY_SPECIES + 0x0C, 8)
+    moves = list(struct.unpack("<4H", raw)) if len(raw) == 8 else []
+    return {"lv": lv, "hp": hp, "mhp": mhp, "species": species, "types": types,
+            "moves": moves}
 
 
 # 特性禁止逃跑的物种（磁力/沙穴）：小磁怪、三合一磁怪、地鼠、三地鼠

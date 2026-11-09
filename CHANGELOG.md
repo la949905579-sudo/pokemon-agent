@@ -3,6 +3,17 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-14（2026-11-10）
+### 变更
+- 换人评分切换 **v2**：预计击杀回合差 + 敌方实际招式（`enemy_info` 新增 `moves`）
+- 开场换人加**等级压制**：敌方比我方低 8 级以上不换
+
+### 修复
+- `enemy_info` 读敌方招式的地址错误（`ENEMY_BASE` → `ENEMY_SPECIES + 0x0C`）
+
+### 验证
+- 实机 2 场：无开场换人（敌 Lv15 vs 我 Lv29），3 回合 3 一致，0 槽位不同步
+
 ## v2026.11.10-13（2026-11-10）
 ### 变更
 - 出场槽位：species 驱动；`party_order()` 由 active 推导（不再维护第二份状态）
