@@ -445,3 +445,10 @@ python3 logq.py --grep got=2 --json
 
 ### 用途
 类似“03:42 槽位瞬态”这种问题，事后可查 `party` 相邻两行 + `switch order_before/after` + `state` 变化，不再只靠手动读一次。
+
+### 指令注册制（2026-11-10）
+- `intent.register_kind(kind, priority, compile_fn)`：把指令编译成统一约束
+- 约束：`move_mode(status/lowest) / allowed_types / force_flee / switch_if_no_status`
+- 决策层 `choose_move(cons=...)` 与主循环只认约束，**不再判断 kind**
+- 新增指令 = 注册 + 一个 compile 函数；`test_intent` J 验收“只注册即可生效”
+- 旧接口 `choose_move(intents=...)` 保留，内部自动编译（兼容）

@@ -92,6 +92,19 @@ test_priority_order()
 test_choose_move_prolong()
 test_choose_move_no_kill_low()
 test_choose_move_no_kill_high()
+def test_register_new_kind():
+    """扩展性验收：新指令只注册 compile，不改决策/主循环。"""
+    intent.register_kind("custom_status", 50, lambda it, ctx: {"move_mode": "status"})
+    cons = intent.compile_all([intent.Intent("custom_status")], {})
+    idx, why = decision.choose_move(MON, ("一般",), cons=cons)
+    assert idx == 1 and "变化招" in why, (idx, why)
+    intent.PRIORITY.pop("custom_status", None)
+    intent._KINDS.pop("custom_status", None)
+    intent._registered.discard("custom_status")
+    print("J 新指令只需注册 ok", why)
+
+
 test_only_class()
+test_register_new_kind()
 intent.reset()
 print("全部通过")

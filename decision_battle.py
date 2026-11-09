@@ -50,7 +50,7 @@ def best_damage_effect(mon, enemy_types):
     return best if best > 0 else 1.0
 
 
-def choose_move(mon, enemy_types=None, intents=None, enemy=None):
+def choose_move(mon, enemy_types=None, intents=None, cons=None, enemy=None):
     """返回 (招式序号 0-3, 说明)。
 
     intents 来自 intent.effective()：
@@ -60,11 +60,11 @@ def choose_move(mon, enemy_types=None, intents=None, enemy=None):
     """
     if _move_strategy is not None:
         return _move_strategy(mon, enemy_types)
-    ints = {i.kind: i for i in (intents or [])}
-    only = ints["only_class"].params if "only_class" in ints else None
-    status_mode = "prolong" in ints
-    if "no_kill" in ints and _foe_low(enemy, ints["no_kill"]):
-        status_mode = True
+    if cons is None and intents:
+        import intent
+        cons = intent.compile_all(intents, {"me": mon, "foe": enemy})
+    status_mode = bool(cons and cons.move_mode == "status")
+    allowed = cons.allowed_types if cons else None
 
     cands = []
     for i, (mid, pp) in enumerate(zip(mon["moves"], mon["pp"])):
@@ -72,11 +72,8 @@ def choose_move(mon, enemy_types=None, intents=None, enemy=None):
         if not info or pp <= 0:
             continue
         name, typ, power = info
-        if only:
-            if only.get("type") and typ != only["type"]:
-                continue
-            if only.get("power") is not None and power != only["power"]:
-                continue
+        if allowed and typ not in allowed:
+            continue
         eff = move_effect(mid, enemy_types) if enemy_types else 1.0
         cands.append({"i": i, "name": name, "typ": typ, "power": power,
                       "eff": eff, "hits": MULTI_HIT.get(mid, 1.0)})
@@ -92,7 +89,7 @@ def choose_move(mon, enemy_types=None, intents=None, enemy=None):
 
     atk = [c for c in cands if c["power"] > 0]
     if not atk:
-        if only and cands:                       # 指令限定为变化招等
+        if allowed and cands:                     # 指令限定为变化招等
             c = min(cands, key=lambda x: x["i"])
             return c["i"], f"指令(only_class)：{c['name']}（变化招）"
         return 0, "没有可用攻击招式，默认第一招"

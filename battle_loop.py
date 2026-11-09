@@ -250,7 +250,8 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                 m_f = my_mon(slot_f) if slot_f is not None else None
                 e_f = enemy_info()
                 ints_f = intent.effective(m_f, e_f) if m_f else []
-                want_flee = any(i.kind == "flee" for i in ints_f)
+                cons_f = intent.compile_all(ints_f, {"me": m_f, "foe": e_f})
+                want_flee = cons_f.force_flee
                 if m_f and e_f and (want_flee or decision.should_flee(
                         m_f, e_f, [my_mon(i) for i in range(6)],
                         enemy_species=e_f.get("species"),
@@ -281,12 +282,10 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
             if not m or not e:
                 return "nodata"
             intents = intent.effective(m, e)
-            # no_kill：敌方低血且当前没有变化招时，换一只有变化招的队友（每场上限 2 次）
-            nk = next((i for i in intents if i.kind == "no_kill"), None)
-            if nk and e and e.get("mhp") \
-                    and e.get("hp", 0) / e["mhp"] <= nk.params.get("hp_floor", 0.2) \
-                    and not decision.has_status_move(m) and _no_kill_switches < 2 \
-                    and not switch.switch_blocked():
+            cons = intent.compile_all(intents, {"me": m, "foe": e})
+            # 约束要求「别击杀但没变化招」：换一只有变化招的队友（每场上限 2 次）
+            if cons.switch_if_no_status and not decision.has_status_move(m) \
+                    and _no_kill_switches < 2 and not switch.switch_blocked():
                 cands = [mm for mm in (my_mon(i) for i in range(6))
                          if mm and mm.get("hp", 0) > 0 and mm["slot"] != slot
                          and decision.has_status_move(mm)]
@@ -297,7 +296,7 @@ def battle_loop(max_rounds=12, verbose=True, allow_switch=True, on_round=None):
                     if switch.switch_from_main(tgt_nk, verbose, "不击杀换人"):
                         _no_kill_switches += 1
                         continue
-            idx, why = decision.choose_move(m, e["types"], intents=intents, enemy=e)
+            idx, why = decision.choose_move(m, e["types"], cons=cons, enemy=e)
             # 没有可用攻击招（全是变化招 / PP 耗尽）：优先换一只能打的
             if not decision.has_attack_move(m):
                 cands = [mm for mm in (my_mon(i) for i in range(6))

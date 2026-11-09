@@ -3,6 +3,12 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.10-5（2026-11-10）
+### 变更
+- 指令改为**注册制编译**：`kind -> compile -> Constraints`
+- 决策层与主循环只消费约束，不再判断 `kind`
+- 新增指令 = `register_kind` + 一个 compile 函数（`test_intent` J 验收）
+
 ## v2026.11.10-4（2026-11-10）
 ### 新增
 - 统一日志：`logs/run-YYYYMMDD.jsonl`（JSONL 单流）+ `logq.py` 查询

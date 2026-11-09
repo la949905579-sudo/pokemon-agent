@@ -28,6 +28,88 @@ PRIORITY = {
 _store = []          # List[Intent]
 _audit = []          # List[dict]
 _seen = set()        # 去重 (intent_id, event)
+_KINDS = {}          # kind -> compile(it, ctx) -> dict
+_registered = set()  # 已注册的 kind（可热加）
+
+
+@dataclass
+class Constraints:
+    """编译后的统一约束：决策层只认这个，不认 kind。"""
+    move_mode: str = None          # None | "status" | "lowest"
+    allowed_types: list = None
+    force_flee: bool = False
+    switch_if_no_status: bool = False
+    extra: dict = field(default_factory=dict)
+
+    def apply(self, part):
+        """合并一条指令的产物；高优先级先到，move_mode/allowed_types 先到先得。"""
+        if not part:
+            return
+        if self.move_mode is None and part.get("move_mode"):
+            self.move_mode = part["move_mode"]
+        if self.allowed_types is None and part.get("allowed_types"):
+            self.allowed_types = list(part["allowed_types"])
+        if part.get("force_flee"):
+            self.force_flee = True
+        if part.get("switch_if_no_status"):
+            self.switch_if_no_status = True
+        if part.get("extra"):
+            self.extra.update(part["extra"])
+
+
+def register_kind(kind, priority, compile_fn):
+    """注册一个新指令：只改这里（+ 一个 compile 函数），不动决策/主循环。"""
+    PRIORITY[kind] = priority
+    _KINDS[kind] = compile_fn
+    _registered.add(kind)
+
+
+def compile_all(intents, ctx=None):
+    """按优先级把指令编译成一组约束。"""
+    cons = Constraints()
+    ctx = ctx or {}
+    for it in sorted(intents or [], key=lambda i: -i.priority):
+        fn = _KINDS.get(it.kind)
+        if not fn:
+            continue
+        try:
+            cons.apply(fn(it, ctx))
+        except Exception:
+            pass
+    return cons
+
+
+# ---------------- 内置指令的 compile ----------------
+
+def _c_prolong(it, ctx):
+    return {"move_mode": "status"}
+
+
+def _c_no_kill(it, ctx):
+    foe = (ctx or {}).get("foe") or {}
+    mhp = foe.get("mhp") or 0
+    if mhp and foe.get("hp", 0) / mhp <= it.params.get("hp_floor", 0.2):
+        return {"move_mode": "status", "switch_if_no_status": True}
+    return {}
+
+
+def _c_flee(it, ctx):
+    return {"force_flee": True}
+
+
+def _c_only_class(it, ctx):
+    out = {}
+    if it.params.get("type"):
+        out["allowed_types"] = [it.params["type"]]
+    if it.params.get("power") == 0:
+        out["move_mode"] = "status"
+    return out
+
+
+register_kind("prolong", 20, _c_prolong)
+register_kind("no_kill", 40, _c_no_kill)
+register_kind("flee", 80, _c_flee)
+register_kind("only_class", 30, _c_only_class)
 
 
 @dataclass
