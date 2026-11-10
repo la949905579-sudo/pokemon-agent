@@ -204,7 +204,7 @@ fun AppScreen(activity: MainActivity) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(onClick = {
-                        if (romReady) { picker.launch(arrayOf("*/*")) }
+                        picker.launch(arrayOf("*/*"))
                     }) { Text("载入 ROM") }
                     Button(onClick = {
                         if (romReady) { running = !running; EmuCore.pause() }
@@ -212,6 +212,8 @@ fun AppScreen(activity: MainActivity) {
                     Button(onClick = {
                         val m = EmuCore.KEY_START
                         keys = m; EmuCore.setKeys(m)
+                        android.os.Handler(android.os.Looper.getMainLooper())
+                            .postDelayed({ keys = 0; EmuCore.setKeys(0) }, 120)
                     }) { Text("Start") }
                 }
                 Text("P1 接自动化面板", color = Color(0xFF777777), fontSize = 11.sp)
