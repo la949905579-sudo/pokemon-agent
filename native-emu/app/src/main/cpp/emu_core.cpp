@@ -42,7 +42,9 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     core_ = mCoreFind(rom_path);
     if (!core_) { nlog("init: core null"); return false; }
     mCoreInitConfig(core_, nullptr);
-    nlog("init: core init");
+    nlog(core_->init ? "init: fn ptr ok" : "init: fn ptr NULL");
+    nlog(core_->runFrame ? "init: runFrame ok" : "init: runFrame NULL");
+    if (!core_->init) { nlog("init: abort null init"); return false; }
     if (!core_->init(core_)) { nlog("init: core init failed"); return false; }
     nlog("init: core ready");
 
