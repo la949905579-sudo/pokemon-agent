@@ -6,9 +6,12 @@ p = sys.argv[1] if len(sys.argv) > 1 else "third_party/mgba/src/gba/core.c"
 s = open(p).read()
 
 dbg = (
+    '#include <fcntl.h>\n'
+    '#include <unistd.h>\n'
+    '#include <string.h>\n'
     'static void dbg(const char* m) {\n'
-    '    FILE* f = fopen("/sdcard/Download/mgba_init.log", "a");\n'
-    '    if (f) { fprintf(f, "%s\\n", m); fclose(f); }\n'
+    '    int fd = open("/sdcard/Download/mgba_init.log", O_WRONLY | O_CREAT | O_APPEND, 0644);\n'
+    '    if (fd >= 0) { write(fd, m, strlen(m)); write(fd, "\\n", 1); close(fd); }\n'
     '}\n'
 )
 
