@@ -37,27 +37,27 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     config_ = new struct mCoreConfig{};
     mCoreConfigInit(config_, "native-emu");
 
-    nlog("init: create core");
-    core_ = mCoreCreate(mPLATFORM_GBA);
+    nlog("init: find core");
+    // 与 libretro 前端一致：按 ROM 头自动识别平台
+    core_ = mCoreFind(rom_path);
     if (!core_) { nlog("init: core null"); return false; }
-    // 先应用配置，再初始化 core
     mCoreInitConfig(core_, nullptr);
     nlog("init: core init");
     if (!core_->init(core_)) { nlog("init: core init failed"); return false; }
     nlog("init: core ready");
 
-    // 顺序：先 loadROM（会创建视频上下文），再 setVideoBuffer，最后 reset
+    nlog("init: video buffer");
+    video_.assign(VIDEO_W * VIDEO_H, 0);
+    core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
+    nlog("init: buffer ok");
+
+    // 顺序与 libretro 一致：init -> setVideoBuffer -> loadROM -> reset
     nlog("init: load file");
     if (!mCoreLoadFile(core_, rom_path)) {
         nlog("init: load failed");
         return false;
     }
     nlog("init: load ok");
-
-    nlog("init: video buffer");
-    video_.assign(VIDEO_W * VIDEO_H, 0);
-    core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
-    nlog("init: buffer ok");
     (void) bios_path;
 
     nlog("init: reset");
