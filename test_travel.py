@@ -91,6 +91,8 @@ def test_travel_auto_battle():
 
     with patch.object(pathfind, "in_battle", lambda: st["battle"]), \
          patch.object(pathfind.terrain, "_map_hdr", lambda: 0x1111), \
+         patch.object(pathfind.terrain, "load", lambda: (0x1111, 20, 20, [0] * 400)), \
+         patch.object(pathfind, "_leave_grass", lambda: None), \
          patch.object(pathfind, "goto", fake_goto), \
          patch.object(auto_battle, "battle_loop", fake_battle):
         r = pathfind.travel(10, 10, max_battles=2)
@@ -108,6 +110,7 @@ def test_travel_warped():
 
     with patch.object(pathfind, "in_battle", lambda: False), \
          patch.object(pathfind.terrain, "_map_hdr", lambda: st["hdr"]), \
+         patch.object(pathfind.terrain, "load", lambda: (0x1111, 20, 20, [0] * 400)), \
          patch.object(pathfind, "goto", fake_goto):
         r = pathfind.travel(10, 10)
     assert r == "warped", r
