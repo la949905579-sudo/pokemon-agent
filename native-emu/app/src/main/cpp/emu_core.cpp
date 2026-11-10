@@ -7,8 +7,8 @@
 #include <mgba/core/core.h>
 #include <mgba/core/config.h>
 #include <mgba/core/version.h>
-#include <mgba/core/video.h>
 #include <mgba/gba/core.h>
+#include <mgba-util/image.h>   // mColor
 #include <mgba-util/vfs.h>
 
 namespace emu {
