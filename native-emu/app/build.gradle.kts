@@ -49,3 +49,18 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
+
+// 构建前给 mGBA 插调试日志（定位 core->init 崩溃用）
+tasks.register("patchMgba") {
+    doLast {
+        val root = project.rootDir
+        val proc = ProcessBuilder("python3", "$root/tools/patch_mgba.py")
+            .directory(root)
+            .redirectErrorStream(true)
+            .start()
+        val out = proc.inputStream.bufferedReader().readText()
+        val rc = proc.waitFor()
+        println("patchMgba rc=$rc out=$out")
+    }
+}
+tasks.named("preBuild") { dependsOn("patchMgba") }
