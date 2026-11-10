@@ -9,7 +9,6 @@
 #include <mgba/core/version.h>
 #include <mgba/gba/core.h>
 #include <mgba-util/image.h>   // mColor
-#include <mgba-util/vfs.h>
 
 namespace emu {
 
@@ -30,20 +29,11 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     video_.assign(VIDEO_W * VIDEO_H, 0);
     core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
 
-    struct VFile* vf = VFileOpen(rom_path, O_RDONLY);
-    if (!vf) return false;
-    bool ok = core_->loadROM(core_, vf);
-    if (!ok) {
-        vf->close(vf);
+    if (!mCoreLoadFile(core_, rom_path)) {
         return false;
     }
-
-    if (bios_path && *bios_path) {
-        struct VFile* bvf = VFileOpen(bios_path, O_RDONLY);
-        if (bvf) {
-            core_->loadBIOS(core_, bvf, 0);
-        }
-    }
+    // BIOS：P0 不使用（mGBA 内置兜底）；P1 用 core->loadBIOS 接 VFile 再补
+    (void) bios_path;
 
     core_->reset(core_);
     return true;
