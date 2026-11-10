@@ -77,3 +77,25 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_dsh_emu_EmuCore_setSpeed(JNIEnv*, jobject, jint num, jint den) {
     emu::Emu::get().setSpeed((int) num, (int) den);
 }
+
+extern "C" JNIEXPORT jintArray JNICALL
+Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
+    const uint32_t* buf = emu::Emu::get().videoBuffer();
+    int w = emu::Emu::get().videoWidth();
+    int h = emu::Emu::get().videoHeight();
+    if (!buf) return nullptr;
+    jintArray arr = env->NewIntArray(w * h);
+    if (!arr) return nullptr;
+    env->SetIntArrayRegion(arr, 0, w * h, (const jint*) buf);
+    return arr;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_dsh_emu_EmuCore_videoWidth(JNIEnv*, jobject) {
+    return emu::Emu::get().videoWidth();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_dsh_emu_EmuCore_videoHeight(JNIEnv*, jobject) {
+    return emu::Emu::get().videoHeight();
+}

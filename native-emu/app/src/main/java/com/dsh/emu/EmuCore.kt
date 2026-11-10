@@ -21,6 +21,9 @@ object EmuCore {
     external fun writeMemory(addr: Int, data: ByteArray): Boolean
     external fun frameCount(): Long
     external fun setSpeed(num: Int, den: Int)
+    external fun frameBuffer(): IntArray?
+    external fun videoWidth(): Int
+    external fun videoHeight(): Int
 
     // ---- 按键常量 ----
     const val KEY_A = 1 shl 0
