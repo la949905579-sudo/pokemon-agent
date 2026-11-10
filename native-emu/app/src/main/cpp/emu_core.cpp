@@ -40,6 +40,7 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     nlog("init: create core");
     core_ = mCoreCreate(mPLATFORM_GBA);
     if (!core_) { nlog("init: core null"); return false; }
+    if (!core_->init(core_)) { nlog("init: core init failed"); return false; }
     mCoreInitConfig(core_, nullptr);
 
     // 顺序：先 loadROM（会创建视频上下文），再 setVideoBuffer，最后 reset
