@@ -60,6 +60,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 如果私有目录已有 ROM（上次选择过），直接载入
+        try {
+            val f = File(filesDir, "rom.gba")
+            if (f.exists() && f.length() > 0) {
+                romPath = f.absolutePath
+                emuReady = EmuCore.init(f.absolutePath, "")
+                if (emuReady) {
+                    EmuCore.start()
+                    romReadyState.value = true
+                    runningState.value = true
+                    statusText.value = "ROM 已载入 (${f.length()} bytes)"
+                }
+            }
+        } catch (e: Throwable) {
+            statusText.value = "自动载入失败: ${e.message}"
+        }
         setContent { AppScreen(this) }
     }
 
