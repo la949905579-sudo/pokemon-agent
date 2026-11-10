@@ -97,11 +97,15 @@ class MainActivity : ComponentActivity() {
         }
         val rom = findRomFile()
         if (rom == null) { statusText.value = "没找到 .gba 文件"; return }
-        statusText.value = "载入 ${rom.name}"
-        emuReady = EmuCore.init(rom.absolutePath, "")
-        romReadyState.value = emuReady
-        statusText.value = if (emuReady) "ROM 已载入" else "mGBA 初始化失败"
-        if (emuReady) { EmuCore.start(); runningState.value = true }
+        statusText.value = "扫描到 ${rom.name}（${rom.length()}B）"
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            statusText.value = "调用 mGBA init..."
+            val ok = EmuCore.init(rom.absolutePath, "")
+            emuReady = ok
+            romReadyState.value = ok
+            statusText.value = if (ok) "ROM 已载入" else "mGBA 初始化失败"
+            if (ok) { EmuCore.start(); runningState.value = true }
+        }, 500)
     }
 
     fun launchRomPicker() {
