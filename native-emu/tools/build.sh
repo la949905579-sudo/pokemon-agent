@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# P0 构建：JDK17 + Android SDK/NDK + Gradle 8.9
+# 本地（arm64/proot）构建：需要 qemu 包装的 aapt2 + 系统 cmake
+# CI（x86_64）直接用 gradlew，不会走这些 hack
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,5 +15,11 @@ fi
 GRADLE=${GRADLE:-gradle}
 if [ -x ./gradlew ]; then GRADLE=./gradlew; fi
 
-"$GRADLE" :app:assembleDebug "$@"
+ARGS=()
+# arm64 本机才需要这两个覆盖（CI 上 x86_64 原生工具链正常）
+if [ -e /usr/bin/qemu-x86_64-static ]; then
+  ARGS+=("-Pcmake.dir=/usr")
+fi
+
+"$GRADLE" :app:assembleDebug "${ARGS[@]}" "$@"
 echo "APK: app/build/outputs/apk/debug/app-debug.apk"
