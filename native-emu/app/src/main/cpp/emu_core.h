@@ -4,6 +4,7 @@
 #include <vector>
 
 struct mCore;
+struct mCoreConfig;
 
 namespace emu {
 
@@ -42,6 +43,7 @@ public:
 private:
     Emu() = default;
     mCore* core_ = nullptr;
+    struct mCoreConfig* config_ = nullptr;
     std::mutex mu_;
     uint64_t frames_ = 0;
     std::vector<uint32_t> video_;

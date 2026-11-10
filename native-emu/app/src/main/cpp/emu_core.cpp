@@ -22,6 +22,10 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     if (core_) return true;
     if (!rom_path || !*rom_path) return false;
 
+    // mGBA 要求先初始化全局配置系统，否则后续调用会崩
+    config_ = new struct mCoreConfig;
+    mCoreConfigInit(config_, "native-emu");
+
     core_ = mCoreCreate(mPLATFORM_GBA);
     if (!core_) return false;
     mCoreInitConfig(core_, nullptr);
@@ -49,6 +53,11 @@ void Emu::stop() {
     if (core_) {
         core_->deinit(core_);
         core_ = nullptr;
+    }
+    if (config_) {
+        mCoreConfigDeinit(config_);
+        delete config_;
+        config_ = nullptr;
     }
 }
 
