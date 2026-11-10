@@ -27,6 +27,8 @@ add_library(emu SHARED
 )
 
 target_include_directories(emu PRIVATE ${MGBA_DIR}/include)
+# mGBA 把 ENABLE_VFS 作为库私有宏，我们的目标需要自己声明才能用 VFS API
+target_compile_definitions(emu PRIVATE ENABLE_VFS)
 
 # 如果 mGBA 目标是 mgba（静态/共享），直接链；否则按需调整
 target_link_libraries(emu PRIVATE mgba android log m)
