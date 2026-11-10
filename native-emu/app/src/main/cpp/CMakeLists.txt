@@ -27,8 +27,11 @@ add_library(emu SHARED
 )
 
 target_include_directories(emu PRIVATE ${MGBA_DIR}/include)
-# mGBA 把 ENABLE_VFS 作为库私有宏，我们的目标需要自己声明才能用 VFS API
-target_compile_definitions(emu PRIVATE ENABLE_VFS)
+
+# libretro 官方给 mGBA 用的是 DISABLE_THREADING（Android 上线程代理易崩）。
+# 该宏会改变结构体布局，库和调用方必须一致定义。
+target_compile_definitions(mgba PRIVATE DISABLE_THREADING)
+target_compile_definitions(emu PRIVATE DISABLE_THREADING ENABLE_VFS)
 
 # 如果 mGBA 目标是 mgba（静态/共享），直接链；否则按需调整
 target_link_libraries(emu PRIVATE mgba android log m)
