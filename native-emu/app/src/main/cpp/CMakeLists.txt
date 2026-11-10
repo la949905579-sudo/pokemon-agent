@@ -19,7 +19,7 @@ set(BUILD_GLES2 OFF CACHE BOOL "" FORCE)
 set(BUILD_FFMPEG OFF CACHE BOOL "" FORCE)
 set(BUILD_PNG OFF CACHE BOOL "" FORCE)
 set(BUILD_ZLIB ON CACHE BOOL "" FORCE)
-add_subdirectory(${MGBA_DIR} mgba_build)
+add_subdirectory(${MGBA_DIR} mgba_build EXCLUDE_FROM_ALL)
 
 add_library(emu SHARED
     emu_jni.cpp

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <mutex>
+#include <vector>
 
 struct mCore;
 
@@ -35,11 +36,15 @@ public:
     uint64_t frameCount();
     void setSpeed(int num, int den);
 
+    static constexpr int VIDEO_W = 240;
+    static constexpr int VIDEO_H = 160;
+
 private:
     Emu() = default;
     mCore* core_ = nullptr;
     std::mutex mu_;
     uint64_t frames_ = 0;
+    std::vector<uint32_t> video_;
     bool running_ = false;
     int speed_num_ = 1, speed_den_ = 1;
 };
