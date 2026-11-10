@@ -30,8 +30,11 @@ target_include_directories(emu PRIVATE ${MGBA_DIR}/include)
 
 # libretro 官方给 mGBA 用的是 DISABLE_THREADING（Android 上线程代理易崩）。
 # 该宏会改变结构体布局，库和调用方必须一致定义。
-target_compile_definitions(mgba PRIVATE DISABLE_THREADING)
-target_compile_definitions(emu PRIVATE DISABLE_THREADING ENABLE_VFS)
+# 对齐 libretro 官方 mgba 核心的编译定义（Android 上验证可用）
+foreach(def DISABLE_THREADING MINIMAL_CORE=2 ENABLE_VFS)
+    target_compile_definitions(mgba PRIVATE ${def})
+    target_compile_definitions(emu PRIVATE ${def})
+endforeach()
 
 # 如果 mGBA 目标是 mgba（静态/共享），直接链；否则按需调整
 target_link_libraries(emu PRIVATE mgba android log m)
