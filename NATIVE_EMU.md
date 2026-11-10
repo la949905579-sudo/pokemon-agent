@@ -167,6 +167,24 @@ R=1<<8  L=1<<9
 
 ---
 
+## 四半、开发环境（本机已装好，2026-11-11）
+
+| 组件 | 路径 / 版本 |
+|---|---|
+| JDK | `/usr/lib/jvm/java-17-openjdk-arm64`（17.0.21） |
+| Android SDK | `/root/android-sdk`（platform 34 / build-tools 34.0.0 / platform-tools） |
+| NDK | `/root/android-sdk/ndk/27.0.12077973` |
+| Gradle | `/opt/gradle-8.9`（未生成 wrapper，命令用绝对路径） |
+| mGBA 源码 | `native-emu/third_party/mgba`（已 clone，已 .gitignore） |
+
+构建命令：
+```bash
+cd native-emu
+export ANDROID_SDK_ROOT=/root/android-sdk ANDROID_HOME=/root/android-sdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+/opt/gradle-8.9/bin/gradle :app:assembleDebug --no-daemon
+```
+
 ## 五、目录结构建议
 
 ```
