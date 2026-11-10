@@ -4,6 +4,9 @@
 
 **运行环境**：Android 手机 + proot Ubuntu + RetroArch（游戏在前台或分屏）
 
+> 📖 **完整工具手册见 [`TOOLS.md`](TOOLS.md)**（每个模块的用途/用法/注意事项）。
+> 本文件偏架构说明，部分内容停留在早期设计稿，与代码不一致时以 `TOOLS.md` 和 `ARCHITECTURE.md` 为准。
+
 ---
 
 ## 快速开始
@@ -11,7 +14,7 @@
 ```bash
 cd /root/workspace
 
-# 跑全部测试（19 个）
+# 跑全部测试（24 个）
 python3 run_tests.py
 
 # 读当前游戏状态

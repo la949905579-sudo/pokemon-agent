@@ -42,12 +42,16 @@ def _map_hdr():
 
 def _from_hdr(hdr):
     """从地图 header 读出 (地块数组地址, 宽, 高)。"""
+    # 合法 header 只在 ROM / EWRAM；垃圾指针（如 0x4ce42f08）直接拒绝
+    if not (0x08000000 <= hdr < 0x0A000000 or 0x02000000 <= hdr < 0x02040000):
+        return None
     hd = rd(hdr, 16)
     if len(hd) < 16:
         return None
     w, h = struct.unpack_from("<ii", hd, 0)
     m = struct.unpack_from("<I", hd, 0x0C)[0]
-    if 5 <= w <= 120 and 5 <= h <= 120 and m:
+    if (5 <= w <= 120 and 5 <= h <= 120
+            and (0x08000000 <= m < 0x0A000000 or 0x02000000 <= m < 0x02040000)):
         return m, w, h
     return None
 
