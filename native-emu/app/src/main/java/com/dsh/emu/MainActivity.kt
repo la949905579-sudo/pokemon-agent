@@ -53,6 +53,57 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** 是否有所有文件访问权限 */
+    fun hasAllFiles(): Boolean =
+        if (android.os.Build.VERSION.SDK_INT >= 30)
+            android.os.Environment.isExternalStorageManager()
+        else true
+
+    fun openAllFilesSettings() {
+        try {
+            val i = android.content.Intent(
+                android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                android.net.Uri.parse("package:$packageName")
+            )
+            startActivity(i)
+        } catch (e: Throwable) {
+            statusText.value = "无法打开权限页: ${e.message}"
+        }
+    }
+
+    /** 扫描常见 ROM 目录，找第一个 .gba */
+    fun findRomFile(): File? {
+        val dirs = listOf(
+            "/sdcard/rom/gba",
+            "/sdcard/ROM/gba",
+            "/sdcard/Download",
+            "/sdcard/Documents"
+        )
+        for (d in dirs) {
+            val dir = File(d)
+            if (!dir.isDirectory) continue
+            dir.listFiles()?.firstOrNull { it.isFile && it.name.lowercase().endsWith(".gba") }
+                ?.let { return it }
+        }
+        return null
+    }
+
+    /** 直接加载扫描到的 ROM（无需选择器） */
+    fun loadScannedRom() {
+        if (!hasAllFiles()) {
+            statusText.value = "需要「所有文件访问」权限"
+            openAllFilesSettings()
+            return
+        }
+        val rom = findRomFile()
+        if (rom == null) { statusText.value = "没找到 .gba 文件"; return }
+        statusText.value = "载入 ${rom.name}"
+        emuReady = EmuCore.init(rom.absolutePath, "")
+        romReadyState.value = emuReady
+        statusText.value = if (emuReady) "ROM 已载入" else "mGBA 初始化失败"
+        if (emuReady) { EmuCore.start(); runningState.value = true }
+    }
+
     fun launchRomPicker() {
         try { romPicker.launch(arrayOf("*/*")) }
         catch (e: Throwable) { statusText.value = "选择器失败: ${e.message}" }
@@ -220,7 +271,7 @@ fun AppScreen(activity: MainActivity) {
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(onClick = { activity.launchRomPicker() }) { Text("载入 ROM") }
+                    Button(onClick = { activity.loadScannedRom() }) { Text("载入 ROM") }
                     Button(onClick = {
                         val nr = !activity.runningState.value
                         activity.runningState.value = nr
