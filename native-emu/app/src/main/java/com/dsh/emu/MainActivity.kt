@@ -53,13 +53,13 @@ fun AppScreen() {
     Column(Modifier.fillMaxSize().background(Color(0xFF101010))) {
         // 上屏：游戏
         Box(
-            Modifier.weight(2f).fillMaxWidth().background(Color.Black),
+            Modifier.weight(1f).fillMaxWidth().background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
             AndroidView(factory = { ctx ->
                 android.view.SurfaceView(ctx)
             }, modifier = Modifier.fillMaxSize())
-            Text("画面区（P0-3 接入 mGBA 帧缓冲）", color = Color(0xFF666666), fontSize = 12.sp)
+            Text("上屏 1:1（P0-3 接入 mGBA 帧缓冲）", color = Color(0xFF666666), fontSize = 12.sp)
         }
 
         // 下屏：状态 / 控制
@@ -76,7 +76,7 @@ fun AppScreen() {
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("下屏（P1 接自动化面板）", color = Color(0xFF777777), fontSize = 12.sp)
+                Text("下屏 1:1（P1 接自动化面板）", color = Color(0xFF777777), fontSize = 12.sp)
             }
         }
     }
