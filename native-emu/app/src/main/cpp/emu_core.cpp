@@ -42,16 +42,18 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     if (!core_) { nlog("init: core null"); return false; }
     mCoreInitConfig(core_, nullptr);
 
-    nlog("init: video buffer");
-    video_.assign(VIDEO_W * VIDEO_H, 0);
-    core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
-
+    // 顺序：先 loadROM（会创建视频上下文），再 setVideoBuffer，最后 reset
     nlog("init: load file");
     if (!mCoreLoadFile(core_, rom_path)) {
         nlog("init: load failed");
         return false;
     }
     nlog("init: load ok");
+
+    nlog("init: video buffer");
+    video_.assign(VIDEO_W * VIDEO_H, 0);
+    core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
+    nlog("init: buffer ok");
     (void) bios_path;
 
     nlog("init: reset");
