@@ -53,6 +53,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** 崩溃排查用：写外部文件 */
+    private fun step(msg: String) {
+        try {
+            File("/sdcard/Download/emu_steps.log").appendText("${System.currentTimeMillis()} $msg\n")
+        } catch (_: Throwable) {}
+    }
+
     /** 是否有所有文件访问权限 */
     fun hasAllFiles(): Boolean =
         if (android.os.Build.VERSION.SDK_INT >= 30)
@@ -95,16 +102,20 @@ class MainActivity : ComponentActivity() {
             openAllFilesSettings()
             return
         }
+        step("perm=ok")
         val rom = findRomFile()
-        if (rom == null) { statusText.value = "没找到 .gba 文件"; return }
+        if (rom == null) { statusText.value = "没找到 .gba 文件"; step("no rom"); return }
+        step("found ${rom.name} len=${rom.length()}")
         statusText.value = "扫描到 ${rom.name}（${rom.length()}B）"
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             statusText.value = "调用 mGBA init..."
+            step("before init")
             val ok = EmuCore.init(rom.absolutePath, "")
+            step("after init ok=$ok")
             emuReady = ok
             romReadyState.value = ok
             statusText.value = if (ok) "ROM 已载入" else "mGBA 初始化失败"
-            if (ok) { EmuCore.start(); runningState.value = true }
+            if (ok) { step("before start"); EmuCore.start(); runningState.value = true; step("after start") }
         }, 500)
     }
 
