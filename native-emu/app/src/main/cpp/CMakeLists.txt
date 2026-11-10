@@ -8,7 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(EMU_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../../..)
 execute_process(COMMAND python3 ${EMU_ROOT}/tools/patch_mgba.py
                 WORKING_DIRECTORY ${EMU_ROOT}
-                OUTPUT_QUIET ERROR_QUIET)
+                RESULT_VARIABLE PATCH_RESULT
+                OUTPUT_VARIABLE PATCH_OUT
+                ERROR_VARIABLE PATCH_ERR)
+message(STATUS "mgba patch: rc=${PATCH_RESULT} out=${PATCH_OUT} err=${PATCH_ERR}")
 
 # mGBA 源码必须放在 native-emu/third_party/mgba/
 set(MGBA_DIR ${CMAKE_CURRENT_LIST_DIR}/../../../../third_party/mgba)
