@@ -40,18 +40,22 @@ class MainActivity : ComponentActivity() {
         setContent { AppScreen(this) }
     }
 
-    /** SAF 选中的 URI 复制到私有目录（mGBA 需要真实路径） */
-    fun importRom(uri: Uri): Boolean {
+    /** SAF 选中的 URI 复制到私有目录（mGBA 需要真实路径）；返回 "" 表示成功 */
+    fun importRom(uri: Uri): String {
         return try {
             val dst = File(filesDir, "rom.gba")
             contentResolver.openInputStream(uri)?.use { input ->
                 dst.outputStream().use { input.copyTo(it) }
-            }
+            } ?: return "打开输入流失败"
+            val size = dst.length()
+            if (size <= 0) return "复制后文件为空"
+            android.util.Log.i("NativeEmu", "rom copied: ${dst.absolutePath} $size bytes")
             romPath = dst.absolutePath
             emuReady = EmuCore.init(dst.absolutePath, "")
-            emuReady
-        } catch (e: Exception) {
-            false
+            if (emuReady) "" else "mGBA 初始化失败 (size=$size)"
+        } catch (e: Throwable) {
+            android.util.Log.e("NativeEmu", "import failed", e)
+            "${e.javaClass.simpleName}: ${e.message}"
         }
     }
 }
@@ -128,10 +132,10 @@ fun AppScreen(activity: MainActivity) {
     ) { uri: Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
         status = "载入中..."
-        val ok = activity.importRom(uri)
-        romReady = ok
-        status = if (ok) "ROM 已载入" else "载入失败"
-        if (ok) {
+        val err = activity.importRom(uri)
+        romReady = err.isEmpty()
+        status = if (romReady) "ROM 已载入" else "失败: $err"
+        if (romReady) {
             EmuCore.start()
             running = true
             emuView.start()
