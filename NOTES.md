@@ -501,3 +501,10 @@ python3 logq.py --grep got=2 --json
   - `party_order()` 由 active 推导，仅用于主菜单
   - 换人成功判据 = 场上 species 变成目标（`turn==4` 也会出现在菜单里）
 - 组件：`switch._cursor_for_species` / `_wait_species` / `_wait_array_stable`
+
+### 地形校正层（2026-11-11）
+- `terrain.mark_blocked(x,y)`：把「数据说可走、实际走不动」的格写入 `maps/override_<map>.json`
+- `pathfind._note_blocked` 自动调用（撞墙/NPC 时）；`terrain.walkable` 查询后绕开
+- 单向坎：`nav.can_step` 允许高→低（差 1~2），反向禁止
+- 小树苗 317 直接不可走
+- 局限：数据「不可走、实际可走」的格无法通过走路发现（只能手动补 override）

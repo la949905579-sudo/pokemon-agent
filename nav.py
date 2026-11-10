@@ -12,6 +12,15 @@ DIRS = [(0, -1, "up"), (0, 1, "down"), (-1, 0, "left"), (1, 0, "right")]
 DELTA = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 
 
+def can_step(vals, w, x, y, nx, ny):
+    """高度层规则：同层可走；单向坎允许从高往低跳（差 1~2），反向禁止。"""
+    e1 = (vals[y * w + x] >> 12) & 0xF
+    e2 = (vals[ny * w + nx] >> 12) & 0xF
+    if e1 == e2:
+        return True
+    return e1 > e2 and (e1 - e2) <= 2
+
+
 def bfs(vals, w, h, start, goal, blocked):
     q = deque([start])
     prev = {start: None}
@@ -26,7 +35,7 @@ def bfs(vals, w, h, start, goal, blocked):
             if not terrain.walkable(vals, w, nx, ny):
                 continue
             # 只在同一高度层移动：水边/悬崖的碰撞位也是 0，但跨层走不过去
-            if ((vals[ny * w + nx] >> 12) & 0xF) != ((vals[cur[1] * w + cur[0]] >> 12) & 0xF):
+            if not can_step(vals, w, cur[0], cur[1], nx, ny):
                 continue
             if (nx, ny) in blocked:
                 continue
@@ -76,7 +85,7 @@ def bfs_turns(vals, w, h, start, goal, blocked, turn_penalty=1.6):
             if not walkable(nx, ny) or (nx, ny) in blocked:
                 continue
             # 同高度层才能走
-            if ((vals[ny * w + nx] >> 12) & 0xF) != ((vals[y * w + x] >> 12) & 0xF):
+            if not can_step(vals, w, x, y, nx, ny):
                 continue
             turn = turn_penalty if (d is not None and d != nd) else 0.0
             nc = cost + 1.0 + turn

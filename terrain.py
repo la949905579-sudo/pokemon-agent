@@ -106,6 +106,7 @@ def _check_warp():
         locate_map(force=True)
 
 def load():
+    global _cur_addr
     # 换图由 locate_map 里的 gMapHeader 指针检测，不再靠坐标剧变
     addr, w, h = locate_map()
     if not addr:
@@ -114,7 +115,9 @@ def load():
     hdr = _cache.get("hdr")
     if (_vals_cache["addr"] == addr and _vals_cache["hdr"] == hdr
             and _vals_cache["vals"] is not None):
+        _cur_addr = addr
         return addr, w, h, _vals_cache["vals"]
+    _cur_addr = addr
     d = rd(addr, w * h * 2)
     if len(d) < w * h * 2:
         return None, w, h, None
@@ -123,6 +126,7 @@ def load():
         addr, w, h = locate_map(force=True)
         if not addr:
             return None, w, h, None
+        _cur_addr = addr
         d = rd(addr, w * h * 2)
         if len(d) < w * h * 2:
             return None, w, h, None
@@ -151,10 +155,58 @@ def is_grass(vals, w, x, y):
         return False
     return (vals[y * w + x] & 0x3FF) in GRASS_IDS
 
+TREE_SAPLING = 317   # 小树苗：需要居合斩，当前不可走
+
+# 运行时校正层：数据说可走、实际走不动的格（按地图地址持久化）
+_cur_addr = None
+_overrides = {}
+
+
+def _override_path(addr):
+    return f"/root/workspace/maps/override_{addr:x}.json"
+
+
+def _load_overrides(addr):
+    import json, os
+    if addr in _overrides:
+        return _overrides[addr]
+    d = {"blocked": []}
+    try:
+        with open(_override_path(addr), encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:
+        pass
+    _overrides[addr] = {"blocked": {tuple(p) for p in d.get("blocked", [])}}
+    return _overrides[addr]
+
+
+def mark_blocked(x, y, addr=None):
+    """记录「数据说可走、实际走不动」的格（供下次寻路绕开）。"""
+    import json
+    addr = addr or _cur_addr
+    if not addr:
+        return
+    ov = _load_overrides(addr)
+    ov["blocked"].add((x, y))
+    try:
+        with open(_override_path(addr), "w", encoding="utf-8") as f:
+            json.dump({"blocked": sorted([list(p) for p in ov["blocked"]])}, f,
+                      ensure_ascii=False)
+    except Exception:
+        pass
+
+
 def walkable(vals, w, x, y):
     if not (0 <= x < w and 0 <= y < len(vals) // w):
         return False
-    return ((vals[y * w + x] >> 10) & 3) == 0
+    v = vals[y * w + x]
+    if (v & 0x3FF) == TREE_SAPLING:
+        return False
+    if _cur_addr:
+        ov = _load_overrides(_cur_addr)
+        if (x, y) in ov["blocked"]:
+            return False
+    return ((v >> 10) & 3) == 0
 
 
 OBJ_BASE = 0x02036E38

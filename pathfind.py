@@ -38,6 +38,10 @@ def _note_blocked(p, ttl=BLOCK_TTL, force=False):
         except Exception:
             pass
     _blocked[p] = time.time() + ttl
+    try:
+        terrain.mark_blocked(p[0], p[1])
+    except Exception:
+        pass
 
 
 def _plan(vals, w, h, cur, goal, avoid_grass=False):
