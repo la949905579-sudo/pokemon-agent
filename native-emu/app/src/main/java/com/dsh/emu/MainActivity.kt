@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -34,6 +33,30 @@ import java.io.File
 class MainActivity : ComponentActivity() {
     @Volatile var romPath: String? = null
     @Volatile var emuReady = false
+
+    // 用 Compose 可观察状态，避免 Activity 重建后回调丢失
+    val statusText = androidx.compose.runtime.mutableStateOf("未载入 ROM")
+    val romReadyState = androidx.compose.runtime.mutableStateOf(false)
+    val runningState = androidx.compose.runtime.mutableStateOf(false)
+
+    private val romPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) { statusText.value = "已取消"; return@registerForActivityResult }
+        statusText.value = "载入中..."
+        val err = importRom(uri)
+        romReadyState.value = err.isEmpty()
+        statusText.value = if (romReadyState.value) "ROM 已载入" else "失败: $err"
+        if (romReadyState.value) {
+            EmuCore.start()
+            runningState.value = true
+        }
+    }
+
+    fun launchRomPicker() {
+        try { romPicker.launch(arrayOf("*/*")) }
+        catch (e: Throwable) { statusText.value = "选择器失败: ${e.message}" }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,25 +144,15 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
 fun AppScreen(activity: MainActivity) {
     var frame by remember { mutableStateOf(0L) }
     var fps by remember { mutableStateOf(0) }
-    var running by remember { mutableStateOf(false) }
-    var romReady by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("未载入 ROM") }
     var keys by remember { mutableStateOf(0) }
     val emuView = remember { EmuView(activity) }
+    val romReady = activity.romReadyState.value
+    val status = activity.statusText.value
+    val running = activity.runningState.value
 
-    val picker = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        status = "载入中..."
-        val err = activity.importRom(uri)
-        romReady = err.isEmpty()
-        status = if (romReady) "ROM 已载入" else "失败: $err"
-        if (romReady) {
-            EmuCore.start()
-            running = true
-            emuView.start()
-        }
+    // ROM 就绪后启动渲染线程
+    LaunchedEffect(romReady) {
+        if (romReady) emuView.start()
     }
 
     // 统计帧率
@@ -207,11 +220,11 @@ fun AppScreen(activity: MainActivity) {
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
+                    Button(onClick = { activity.launchRomPicker() }) { Text("载入 ROM") }
                     Button(onClick = {
-                        picker.launch(arrayOf("*/*"))
-                    }) { Text("载入 ROM") }
-                    Button(onClick = {
-                        if (romReady) { running = !running; EmuCore.pause() }
+                        val nr = !activity.runningState.value
+                        activity.runningState.value = nr
+                        if (nr) { EmuCore.resume(); emuView.start() } else { EmuCore.pause() }
                     }) { Text(if (running) "暂停" else "继续") }
                     Button(onClick = {
                         val m = EmuCore.KEY_START
