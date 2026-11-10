@@ -3,6 +3,16 @@
 #include <cstring>
 #include <vector>
 #include <fcntl.h>
+#include <unistd.h>
+
+static void nlog(const char* msg) {
+    int fd = open("/sdcard/Download/emu_native.log", O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (fd >= 0) {
+        std::string line = std::string(msg) + "\n";
+        write(fd, line.c_str(), line.size());
+        close(fd);
+    }
+}
 
 #include <mgba/core/core.h>
 #include <mgba/core/config.h>
@@ -23,23 +33,30 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     if (!rom_path || !*rom_path) return false;
 
     // mGBA 要求先初始化全局配置系统，否则后续调用会崩
-    config_ = new struct mCoreConfig;
+    nlog("init: config");
+    config_ = new struct mCoreConfig{};
     mCoreConfigInit(config_, "native-emu");
 
+    nlog("init: create core");
     core_ = mCoreCreate(mPLATFORM_GBA);
-    if (!core_) return false;
+    if (!core_) { nlog("init: core null"); return false; }
     mCoreInitConfig(core_, nullptr);
 
+    nlog("init: video buffer");
     video_.assign(VIDEO_W * VIDEO_H, 0);
     core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
 
+    nlog("init: load file");
     if (!mCoreLoadFile(core_, rom_path)) {
+        nlog("init: load failed");
         return false;
     }
-    // BIOS：P0 不使用（mGBA 内置兜底）；P1 用 core->loadBIOS 接 VFile 再补
+    nlog("init: load ok");
     (void) bios_path;
 
+    nlog("init: reset");
     core_->reset(core_);
+    nlog("init: done");
     return true;
 }
 
