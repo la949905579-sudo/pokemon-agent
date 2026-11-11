@@ -429,6 +429,7 @@ private fun UpdatePage(activity: MainActivity) {
     var checking by remember { mutableStateOf(false) }
     var latest by remember { mutableStateOf<Updater.Release?>(null) }
     var error by remember { mutableStateOf("") }
+    var progress by remember { mutableStateOf(-1) }
     val buildTime = remember {
         try {
             java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
@@ -459,18 +460,34 @@ private fun UpdatePage(activity: MainActivity) {
             Text("最新: ${r.tag}", color = TXT, fontSize = 12.sp)
             Text(r.body.take(400), color = DIM, fontSize = 11.sp)
             Spacer(Modifier.height(6.dp))
-            Box(Modifier.background(ACCENT, RoundedCornerShape(10.dp)).clickable {
-                activity.statusText.value = "下载中..."
+            Box(Modifier.background(if (progress >= 0) CARD else ACCENT, RoundedCornerShape(10.dp)).clickable {
+                if (progress >= 0) return@clickable
+                progress = 0
                 Thread {
                     val f = File(activity.cacheDir, "update.apk")
-                    if (Updater.download(r.url, f)) {
-                        activity.runOnUiThread { Updater.install(activity, f) }
-                    } else {
-                        activity.runOnUiThread { activity.statusText.value = "下载失败" }
+                    val ok = Updater.download(r.url, f) { pct ->
+                        activity.runOnUiThread { progress = pct }
+                    }
+                    activity.runOnUiThread {
+                        if (ok) {
+                            progress = -1
+                            Updater.install(activity, f)
+                        } else {
+                            progress = -1
+                            activity.statusText.value = "下载失败"
+                        }
                     }
                 }.start()
             }.padding(horizontal = 18.dp, vertical = 8.dp)) {
-                Text("下载并安装", color = Color.White, fontSize = 12.sp)
+                Text(if (progress >= 0) "下载中 $progress%" else "下载并安装", color = Color.White, fontSize = 12.sp)
+            }
+            if (progress >= 0) {
+                Spacer(Modifier.height(6.dp))
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { progress / 100f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = ACCENT,
+                )
             }
         }
     }

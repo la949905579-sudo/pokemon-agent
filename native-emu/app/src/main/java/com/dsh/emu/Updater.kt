@@ -46,17 +46,31 @@ object Updater {
         }
     }
 
-    fun download(url: String, dest: File): Boolean {
+    fun download(url: String, dest: File, onProgress: (Int) -> Unit = {}): Boolean {
         return try {
+            // 下载前清掉旧安装包
+            try { dest.delete() } catch (_: Throwable) {}
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.instanceFollowRedirects = true
             conn.setRequestProperty("User-Agent", "NativeEmu-Updater/1.0")
             conn.setRequestProperty("Accept", "application/octet-stream")
             conn.connectTimeout = 15000
             conn.readTimeout = 180000
+            val total = conn.contentLengthLong
+            var read = 0L
             conn.inputStream.use { input ->
-                dest.outputStream().use { out -> input.copyTo(out) }
+                dest.outputStream().use { out ->
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n <= 0) break
+                        out.write(buf, 0, n)
+                        read += n
+                        if (total > 0) onProgress(((read * 100) / total).toInt())
+                    }
+                }
             }
+            onProgress(100)
             // 校验：必须是 zip（APK）且大小合理
             val ok = dest.length() > 1_000_000 && isApkFile(dest)
             if (!ok) dest.delete()
