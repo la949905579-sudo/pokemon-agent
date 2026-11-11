@@ -112,6 +112,14 @@ class GameStateTest {
     }
 
     @Test
+    fun facingValidRange() {
+        memory[Addresses.FACING_ADDR] = 2.toByte()
+        assertEquals(2, GameState.facing())
+        memory[Addresses.FACING_ADDR] = 9.toByte()
+        assertEquals(-1, GameState.facing())
+    }
+
+    @Test
     fun coordsNullWhenShortRead() {
         Memo.reader = { _, n -> null }
         assertNull(GameState.coords())

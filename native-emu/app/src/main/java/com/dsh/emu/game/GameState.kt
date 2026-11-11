@@ -56,6 +56,12 @@ object GameState {
         return out
     }
 
+    /** 玩家朝向（0=下 1=上 2=左 3=右，低字节）。读不到返回 -1。 */
+    fun facing(): Int {
+        val v = Memo.u8(Addresses.FACING_ADDR)
+        return if (v < 0 || v > 3) -1 else v
+    }
+
     /** 我方场上 species（战斗结构 +0）。 */
     fun mySpecies(): Int = Memo.u16(Addresses.MY_BATTLE)
 
