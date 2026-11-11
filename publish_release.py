@@ -15,19 +15,18 @@ TOKEN = os.environ.get("GITHUB_TOKEN", "")
 API = "https://api.github.com"
 
 
-def api(path, method="GET", data=None, raw=None, ctype=None):
+def api(path, method="GET", data=None):
     url = API + path
-    body = None
-    headers = {"Authorization": "token " + TOKEN, "Accept": "application/vnd.github+json"}
+    cmd = ["curl", "-s", "--max-time", "120", "-X", method,
+           "-H", "Authorization: token " + TOKEN,
+           "-H", "Accept: application/vnd.github+json"]
     if data is not None:
-        body = json.dumps(data).encode()
-        headers["Content-Type"] = "application/json"
-    if raw is not None:
-        body = raw
-        headers["Content-Type"] = ctype or "application/octet-stream"
-    req = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.loads(r.read().decode() or "{}")
+        cmd += ["-H", "Content-Type: application/json", "-d", json.dumps(data)]
+    cmd.append(url)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if r.returncode != 0:
+        raise Exception("api fail: " + r.stderr[:200])
+    return json.loads(r.stdout or "{}")
 
 
 def latest_run_artifact():
@@ -76,11 +75,19 @@ def main():
         print("release 已存在:", rel["id"])
     except Exception:
         body = "自动发布：commit " + sha
+        # 优先用本地 git 提交信息（sha 为 local 时 API 查不到）
         try:
-            c = api(f"/repos/{OWNER}/{REPO}/commits/{sha}")
-            body = c["commit"]["message"]
+            body = subprocess.check_output(
+                ["git", "-C", "/root/workspace", "log", "-1", "--format=%s"],
+                text=True).strip()
         except Exception:
             pass
+        if body.startswith("自动发布"):
+            try:
+                c = api(f"/repos/{OWNER}/{REPO}/commits/{sha}")
+                body = c["commit"]["message"]
+            except Exception:
+                pass
         rel = api(f"/repos/{OWNER}/{REPO}/releases", "POST", {
             "tag_name": tag, "name": "NativeEmu " + tag,
             "body": body, "draft": False, "prerelease": False,
@@ -96,7 +103,7 @@ def main():
         "curl", "-s", "-X", "POST",
         "-H", "Authorization: token " + TOKEN,
         "-H", "Content-Type: application/vnd.android.package-archive",
-        "--data-binary", "@" + apk, up_url,
+        "--data-binary", "@" + os.path.abspath(apk), up_url,
     ], capture_output=True, text=True, timeout=300)
     if r.returncode != 0:
         raise SystemExit("上传失败: " + r.stderr[:200])
