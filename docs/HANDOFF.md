@@ -67,18 +67,21 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 - 下屏数据：**本地 Kotlin GameState 优先**，Python 推送兜底；地图（minimap）仍靠推送
 - 用户偏好：中文、简洁；**每次构建前先列改动清单确认**（commit message 即 OTA 更新日志）；构建放后台别阻塞
 
-## 六、GitHub token
+## 六、推送凭据（已改为 SSH，2026-11-12）
 
-当前 token 的明文不写进仓库（GitHub Push Protection 会阻止）。需要时向物主索取。
-旧 token 已全部删除；新 token 有 repo + workflow 权限，2026-12-11 到期。
-到期后重新生成：设置 → Developer settings → Personal access tokens (classic)。
+- 远端已从 HTTPS 改为 `git@github.com:la949905579-sudo/pokemon-agent.git`。
+- 手机上有 ed25519 密钥：`~/.ssh/github_ed25519`（私钥，600），公钥已加到 GitHub 账号，
+  备注 `dsh-phone`；`~/.ssh/config` 里指定了 `IdentityFile`。
+- **不需要 token 了**：`git push` 直接可用。旧 token `native-emu-push`（12-11 到期）保留未动。
+- 换设备/换容器时：生成本机密钥 → 把公钥加到 GitHub → 改 remote 为 SSH，
+  不要在聊天或文档里贴私钥。
 
 ## 六·五、安全债（考官 2026-11-12 提出）
 
 - **签名私钥在公开仓库里**：`native-emu/app/keystore.jks` + 文档里的固定口令。仓库是 public，
   等于签名私钥公开——理论上任何人只要拿到推送权限就能签一个「同签名」的包，App 会当正常更新收下。
   彻底解决要轮换签名，但会导致已装 App 无法覆盖升级（要卸载重装），所以先记录、不贸然动。
-- 凭据纪律：token 不进仓库、不进文档、用完即删（已按此执行过一次）。
+- 凭据纪律：私钥/token 不进仓库、不进文档、不进聊天；用 SSH 密钥代替 token。
 
 ## 七、注意
 
