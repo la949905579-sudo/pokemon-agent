@@ -49,6 +49,11 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     if (!core_->init(core_)) { nlog("init: core init failed"); return false; }
     nlog("init: core ready");
 
+    // 没有 BIOS 时必须跳过 BIOS 引导，直接从 ROM 入口执行（否则 CPU 从空 BIOS 区跑会崩）
+    nlog("init: skip bios");
+    core_->opts.skipBios = true;
+    core_->opts.useBios = false;
+
     nlog("init: video buffer");
     video_.assign(VIDEO_W * VIDEO_H, 0);
     core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
