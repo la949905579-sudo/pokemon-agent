@@ -188,7 +188,9 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
                 bmp = b
             }
             b.setPixels(px, 0, gw, 0, 0, gw, gh)
-            val c: Canvas = holder.lockCanvas() ?: continue
+            // 硬件加速画布：drawBitmap 的缩放走 GPU（软件 lockCanvas 全屏缩放太慢）
+            val c: Canvas = (if (android.os.Build.VERSION.SDK_INT >= 26)
+                holder.lockHardwareCanvas() else holder.lockCanvas()) ?: continue
             try {
                 c.drawColor(AndroidColor.BLACK)
                 // 3:2 等比居中
