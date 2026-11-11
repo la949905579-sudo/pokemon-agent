@@ -90,7 +90,10 @@ void Emu::stop() {
 uint64_t Emu::runFrame() {
     std::lock_guard<std::mutex> lk(mu_);
     if (!running_ || !core_) return frames_;
+    bool first = (frames_ == 0);
+    if (first) nlog("frame: first before");
     core_->runFrame(core_);
+    if (first) nlog("frame: first after");
     frames_++;
     return frames_;
 }
