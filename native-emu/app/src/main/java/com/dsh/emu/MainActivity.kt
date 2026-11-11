@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 import java.io.File
 
-enum class Page { MAP, TEAM, BAG, NICK, DEX, NAU, SAVE, OPTION, BATTLE, KEYS, UPDATE }
+enum class Page { MAP, TEAM, BAG, NICK, DEX, SAVE, OPTION, BATTLE, KEYS, UPDATE }
 
 class MainActivity : ComponentActivity() {
     val statusText = mutableStateOf("")
@@ -295,7 +295,6 @@ fun AppScreen(activity: MainActivity) {
                         page == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
                         page == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
                         page == Page.DEX -> PlaceholderPage("图鉴", "需要图鉴内存结构")
-                        page == Page.NAU -> PlaceholderPage("领取", "未实现")
                         page == Page.SAVE -> SavePage(activity, romReady, onRom = { activity.refreshRoms(); showRoms = true })
                         page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE })
                         page == Page.UPDATE -> UpdatePage(activity)
@@ -306,7 +305,7 @@ fun AppScreen(activity: MainActivity) {
                 Column(Modifier.width(80.dp).fillMaxHeight().padding(start = 4.dp)) {
                     val tabs = listOf(
                         "地图" to Page.MAP, "队伍" to Page.TEAM, "背包" to Page.BAG,
-                        "名字" to Page.NICK, "图鉴" to Page.DEX, "领取" to Page.NAU,
+                        "名字" to Page.NICK, "图鉴" to Page.DEX,
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
