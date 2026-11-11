@@ -40,8 +40,15 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
 
     nlog("init: find core");
     // 与 libretro 前端一致：按 ROM 头自动识别平台
+    // 清理上一次失败的 core（否则下次会误判“已初始化”）
+    if (core_) { core_ = nullptr; }
     core_ = mCoreFind(rom_path);
     if (!core_) { nlog("init: core null"); return false; }
+    if (!core_->init || !core_->runFrame) {
+        nlog("init: core invalid -> reset");
+        core_ = nullptr;
+        return false;
+    }
     mCoreInitConfig(core_, nullptr);
     { char b[160]; snprintf(b, sizeof(b), "init: core=%p init=%p runFrame=%p platform=%p",
         (void*)core_, (void*)core_->init, (void*)core_->runFrame, (void*)core_->platform); nlog(b); }
