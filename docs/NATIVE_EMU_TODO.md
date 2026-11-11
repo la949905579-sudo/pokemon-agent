@@ -3,13 +3,10 @@
 > 更新：2026-11-12 05:20（与 `git log` / `CHANGELOG v2026.11.12-1` 对齐）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
-## 当前阻塞（交接第一件事）
+## 当前阻塞（2026-11-12 05:35 已全部解除）
 
-- [ ] **CI 编译红**：`MainActivity.kt:358` 用了 `detectTapGestures`，但 import 区没有
-      `androidx.compose.foundation.gestures.detectTapGestures`。
-      补上这一行再推；如果还红，按日志 `e: file:///home/runner/…` 继续找（可能不止一处）。
-- [ ] **Release 是旧包**：`build-d0bd1c3` 里的 APK 实际是 11-11 19:21 的成功产物（11,486,833 B），
-      标签和内容不符。等 CI 绿了重发，别用 App 内 OTA。
+- [x] CI 编译失败：缺 `detectTapGestures` import + `KeyPadArea` 残留重复布局块（多一个 `}`）
+- [x] Release 旧包：已删 `build-d0bd1c3`，新发 `build-4c76a5b`（CI run 43103245820 的产物）
 
 ## 已完成
 

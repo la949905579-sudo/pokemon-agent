@@ -18,18 +18,18 @@
 - **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
 - **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
 
-## 二·五、构建与发布现状（2026-11-12 05:20 实测，必读）
+## 二·五、构建与发布现状（2026-11-12 05:35 实测）
 
-- HEAD = `81c2f5c`；**CI 自 03:51 起没成功过**：7 次构建失败 + 2 次 startup_failure，
-  另有一次排队 25 分钟没跑起来（`22f6ded`）。最后一次失败 05:05。
-- 已修（2026-11-12 05:35）：`MainActivity.kt` 补上
-  `androidx.compose.foundation.gestures.detectTapGestures` 的 import。
-  推送后若 CI 还红，按日志 `e: file:///home/runner/…` 继续定位（可能不止一处）。
-- **最新 Release `build-d0bd1c3` 是旧包**：APK 11,486,833 B，与 11-11 19:21 的成功构建完全一致；
-  标签与内容不符。CI 绿之前**不要走 App 内 OTA**。
-- 反复用空提交触发构建是无效的（`87c3323`、`22f6ded`），必须改代码。
-- Python 测试：`python3 run_tests.py` → **28/28 通过**（05:07 实测）。
+- HEAD = `4c76a5b`，**CI 已通过**（run 43103245820，05:30），APK 已发到 Release `build-4c76a5b`。
+- 之前 03:51–05:26 连续失败的两层原因，都已修掉：
+  1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
+  2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
+     `Expecting a top level declaration`（`2b5d3ca` 插入新布局时没删旧块）
+- 旧 Release `build-d0bd1c3`（错包）已删除，`releases/latest` 现在指向 `build-4c76a5b`。
+- Python 测试：`python3 run_tests.py` → **28/28 通过**。
 - 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
+- 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
+  比反复推空提交省时间。
 
 ## 三、下一批待办（已和用户确认过方案）
 
