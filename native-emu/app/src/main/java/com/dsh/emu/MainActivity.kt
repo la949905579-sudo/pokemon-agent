@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -222,21 +223,27 @@ fun AppScreen(activity: MainActivity) {
                         }
                     }
                 } else {
-                    Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            KeyPad("▲", EmuCore.KEY_UP) { keys = it; EmuCore.setKeys(it) }
-                            Row {
-                                KeyPad("◀", EmuCore.KEY_LEFT) { keys = it; EmuCore.setKeys(it) }
-                                Spacer(Modifier.width(24.dp))
-                                KeyPad("▶", EmuCore.KEY_RIGHT) { keys = it; EmuCore.setKeys(it) }
+                    // 整块区域接管触摸：多指分别命中按键
+                    Box(
+                        Modifier.weight(1f).fillMaxWidth().pointerInteropFilter { ev ->
+                            val w = ev.view.width.toFloat()
+                            val h = ev.view.height.toFloat()
+                            var mask = 0
+                            for (i in 0 until ev.pointerCount) {
+                                mask = mask or hitKey(ev.getX(i), ev.getY(i), w, h)
                             }
-                            KeyPad("▼", EmuCore.KEY_DOWN) { keys = it; EmuCore.setKeys(it) }
+                            if (mask != keys) { keys = mask; EmuCore.setKeys(mask) }
+                            true
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            KeyPad("B", EmuCore.KEY_B, 54.dp) { keys = it; EmuCore.setKeys(it) }
-                            Spacer(Modifier.width(10.dp))
-                            KeyPad("A", EmuCore.KEY_A, 54.dp) { keys = it; EmuCore.setKeys(it) }
+                    ) {
+                        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                PadLabel("▲"); Row { PadLabel("◀"); Spacer(Modifier.width(24.dp)); PadLabel("▶") }; PadLabel("▼")
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                PadLabel("B", 54.dp); Spacer(Modifier.width(10.dp)); PadLabel("A", 54.dp)
+                            }
                         }
                     }
                 }
@@ -270,26 +277,31 @@ fun AppScreen(activity: MainActivity) {
     }
 }
 
-/** 多指按键：每个按钮独立跟踪自己的 pointer */
+/** 只负责显示，触摸由整块区域的 hitKey 处理 */
 @Composable
-fun KeyPad(label: String, mask: Int, size: androidx.compose.ui.unit.Dp = 44.dp,
-           onChange: (Int) -> Unit) {
+fun PadLabel(label: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
     Box(
-        Modifier
-            .size(size)
-            .background(Color(0xFF333333), CircleShape)
-            .pointerInput(mask) {
-                while (true) {
-                    awaitPointerEventScope {
-                        awaitFirstDown(requireUnconsumed = false)
-                        onChange(mask)
-                        waitForUpOrCancellation()
-                        onChange(0)
-                    }
-                }
-            },
+        Modifier.size(size).background(Color(0xFF333333), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text(label, color = Color.White, fontSize = 15.sp, textAlign = TextAlign.Center)
     }
+}
+
+/** 触摸坐标 -> 按键掩码（左半区方向键，右半区 A/B） */
+private fun hitKey(x: Float, y: Float, w: Float, h: Float): Int {
+    val cx = w * 0.28f
+    val cy = h * 0.50f
+    if (x < w * 0.55f) {
+        val dx = x - cx
+        val dy = y - cy
+        val r = minOf(w, h) * 0.10f
+        if (kotlin.math.abs(dx) < r && kotlin.math.abs(dy) < r) return 0   // 中心空白
+        return if (kotlin.math.abs(dx) > kotlin.math.abs(dy)) {
+            if (dx < 0) EmuCore.KEY_LEFT else EmuCore.KEY_RIGHT
+        } else {
+            if (dy < 0) EmuCore.KEY_UP else EmuCore.KEY_DOWN
+        }
+    }
+    return if (x > w * 0.72f) EmuCore.KEY_A else EmuCore.KEY_B
 }
