@@ -22,14 +22,14 @@
 
 - HEAD = `81c2f5c`；**CI 自 03:51 起没成功过**：7 次构建失败 + 2 次 startup_failure，
   另有一次排队 25 分钟没跑起来（`22f6ded`）。最后一次失败 05:05。
-- 已确认的一处错误：`MainActivity.kt:358` 用了 `detectTapGestures`，import 区缺
-  `androidx.compose.foundation.gestures.detectTapGestures`。补上再推；
-  若 CI 还红，按日志里的 `e: file:///home/runner/…` 行继续定位（可能不止一处）。
+- 已修（2026-11-12 05:35）：`MainActivity.kt` 补上
+  `androidx.compose.foundation.gestures.detectTapGestures` 的 import。
+  推送后若 CI 还红，按日志 `e: file:///home/runner/…` 继续定位（可能不止一处）。
 - **最新 Release `build-d0bd1c3` 是旧包**：APK 11,486,833 B，与 11-11 19:21 的成功构建完全一致；
   标签与内容不符。CI 绿之前**不要走 App 内 OTA**。
 - 反复用空提交触发构建是无效的（`87c3323`、`22f6ded`），必须改代码。
 - Python 测试：`python3 run_tests.py` → **28/28 通过**（05:07 实测）。
-- 工作区干净，只有 `map_cache.txt`（运行缓存）会变。
+- 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
 
 ## 三、下一批待办（已和用户确认过方案）
 

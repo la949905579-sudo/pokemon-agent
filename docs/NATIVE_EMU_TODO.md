@@ -65,8 +65,9 @@
 - [ ] 自动化开关（工具页，需决策层接入）
 - [ ] 联机支持（GBA link cable，方案待调研）
 
-## 已知脏点（可顺手清）
+## 已清理（2026-11-12 05:35）
 
-- `native-emu/.../game/GameState.kt` 末尾有 `// build trigger 2026-11-12` 的临时注释（22f6ded 留下的）
-- `map_cache.txt` 被纳入了版本库，每次推送都在变，属于运行缓存
-- 空提交 `87c3323`（chore 触发构建）在历史里，不影响功能
+- [x] `MainActivity.kt` 补上 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
+- [x] 删掉 `GameState.kt` 末尾 `// build trigger 2026-11-12` 临时注释
+- [x] `map_cache.txt` 移出版本库（已加 `.gitignore`，仍保留在本地）
+- 空提交 `87c3323`（chore 触发构建）还在历史里，不影响功能，不必处理
