@@ -50,15 +50,31 @@ object Updater {
         return try {
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.instanceFollowRedirects = true
+            conn.setRequestProperty("User-Agent", "NativeEmu-Updater/1.0")
+            conn.setRequestProperty("Accept", "application/octet-stream")
             conn.connectTimeout = 15000
-            conn.readTimeout = 120000
+            conn.readTimeout = 180000
             conn.inputStream.use { input ->
                 dest.outputStream().use { out -> input.copyTo(out) }
             }
-            dest.length() > 1_000_000
+            // 校验：必须是 zip（APK）且大小合理
+            val ok = dest.length() > 1_000_000 && isApkFile(dest)
+            if (!ok) dest.delete()
+            ok
         } catch (e: Throwable) {
+            try { dest.delete() } catch (_: Throwable) {}
             false
         }
+    }
+
+    private fun isApkFile(f: File): Boolean {
+        return try {
+            java.io.FileInputStream(f).use { ins ->
+                val b = ByteArray(4)
+                if (ins.read(b) != 4) return false
+                b[0] == 'P'.code.toByte() && b[1] == 'K'.code.toByte()
+            }
+        } catch (e: Throwable) { false }
     }
 
     /** 调系统安装器（需要 REQUEST_INSTALL_PACKAGES + FileProvider）。 */
