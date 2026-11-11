@@ -131,6 +131,7 @@
 | `docs/STRUCTURE.md` | 项目结构规范（STRUCTURE） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
+| `docs/roles/auditor.md` | 督导（auditor）提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
 ## 构建
@@ -236,4 +237,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 172 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 173 个文件（不含 `native-emu/third_party/` 第三方源码）。
