@@ -249,7 +249,7 @@ fun AppScreen(activity: MainActivity) {
     // 战斗结束回小地图
     LaunchedEffect(status.battle, page) {
         if (status.battle.isNotBlank()) {
-            if (page != Page.KEYS && page != Page.MENU && page != Page.BATTLE) {
+            if (page != Page.KEYS && page != Page.BATTLE) {
                 page = Page.BATTLE
             }
         } else if (page == Page.BATTLE) {
