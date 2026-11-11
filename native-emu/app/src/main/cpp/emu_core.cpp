@@ -31,8 +31,13 @@ Emu& Emu::get() {
 
 bool Emu::init(const char* rom_path, const char* bios_path) {
     std::lock_guard<std::mutex> lk(mu_);
-    if (core_) return true;
     if (!rom_path || !*rom_path) return false;
+    // 允许重新加载 ROM：先释放旧的 core
+    if (core_) {
+        nlog("init: deinit old core");
+        core_->deinit(core_);
+        core_ = nullptr;
+    }
 
     // mGBA 要求先初始化全局配置系统，否则后续调用会崩
     nlog("init: config");
