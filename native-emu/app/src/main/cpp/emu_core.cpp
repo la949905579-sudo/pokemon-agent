@@ -96,7 +96,13 @@ uint64_t Emu::runFrame() {
     std::lock_guard<std::mutex> lk(mu_);
     if (!running_ || !core_) return frames_;
     bool first = (frames_ == 0);
-    if (first) nlog("frame: first before");
+    if (first) {
+        char b[200];
+        size_t rs = core_->romSize(core_);
+        snprintf(b, sizeof(b), "frame: cpu=%p board=%p romSize=%zu", 
+                 (void*)core_->cpu, (void*)core_->board, rs);
+        nlog(b);
+    }
     core_->runFrame(core_);
     if (first) nlog("frame: first after");
     frames_++;
