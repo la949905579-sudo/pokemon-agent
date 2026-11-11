@@ -13,6 +13,7 @@ import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -75,20 +76,56 @@ object Updater {
 
     private fun appendToFile(line: String) {
         val f = File(LOG_PATH)
-        try { f.parentFile?.mkdirs() } catch (_: Throwable) {}
+        try { f.parentFile?.mkdirs() } catch (e: Throwable) { logWarn("mkdirs", e) }
         try {
             if (f.length() > LOG_MAX_BYTES) {
                 // 规范第四节第 3 条：单文件 5MB 上限，超出滚动一份
                 val old = File("$LOG_PATH.1")
-                try { old.delete() } catch (_: Throwable) {}
-                try { f.renameTo(old) } catch (_: Throwable) {}
+                try { old.delete() } catch (e: Throwable) { logWarn("rotate_delete", e) }
+                try { f.renameTo(old) } catch (e: Throwable) { logWarn("rotate_rename", e) }
             }
-        } catch (_: Throwable) {}
+        } catch (e: Throwable) { logWarn("rotate", e) }
         FileOutputStream(f, true).use { it.write((line + "\n").toByteArray()) }
     }
 
     private fun hostOf(url: String): String =
         try { URL(url).host ?: "?" } catch (_: Throwable) { "?" }
+
+    /** 清洗异常文本：去掉完整 URL（GitHub 资源链接带签名参数），截断并压成一行。 */
+    private fun sanitize(msg: String?): String {
+        val raw = msg ?: "-"
+        var s = try { Regex("https?://\\S+").replace(raw, "<url>") } catch (_: Throwable) { raw }
+        if (s.length > 120) s = s.take(120)
+        return s.replace(' ', '_').replace('\n', '_').replace('\r', '_').replace('\t', '_')
+    }
+
+    /** logger 自己的兜底日志：只进 logcat，不写文件（写文件失败再写文件会递归）。 */
+    private fun logWarn(stage: String, e: Throwable) {
+        try {
+            Log.println(Log.WARN, LOG_TAG,
+                "${nowIso()} WARN  ota.log stage=$stage code=${errCode(e)} msg=${sanitize(e.message)}")
+        } catch (_: Throwable) {}
+    }
+
+    /** 安装包 SHA-256 前 12 位（只记短摘要）；算不出来记 code=sha_fail，不影响有效性判定。 */
+    private fun sha12(f: File): String? =
+        try {
+            val md = MessageDigest.getInstance("SHA-256")
+            f.inputStream().use { input ->
+                val buf = ByteArray(16 * 1024)
+                while (true) {
+                    val n = input.read(buf)
+                    if (n <= 0) break
+                    md.update(buf, 0, n)
+                }
+            }
+            md.digest().joinToString("") { b ->
+                ((b.toInt() and 0xff) + 0x100).toString(16).substring(1)
+            }.take(12)
+        } catch (e: Throwable) {
+            log("WARN", "ota.verify", "stage" to "sha", "code" to "sha_fail", "msg" to sanitize(e.message))
+            null
+        }
 
     fun latest(): Release? {
         return try {
@@ -128,7 +165,7 @@ object Updater {
                 null
             }
         } catch (e: Throwable) {
-            log("ERROR", "ota.check", "stage" to "fetch", "code" to errCode(e), "msg" to e.message)
+            log("ERROR", "ota.check", "stage" to "fetch", "code" to errCode(e), "msg" to sanitize(e.message))
             null
         }
     }
@@ -140,7 +177,7 @@ object Updater {
             try {
                 dest.delete()
             } catch (e: Throwable) {
-                log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e), "msg" to e.message)
+                log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e), "msg" to sanitize(e.message))
             }
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.instanceFollowRedirects = true
@@ -155,7 +192,7 @@ object Updater {
                 try {
                     dest.delete()
                 } catch (e: Throwable) {
-                    log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e), "msg" to e.message)
+                    log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e), "msg" to sanitize(e.message))
                 }
                 return false
             }
@@ -185,22 +222,25 @@ object Updater {
             }
             onProgress(100)
             log("INFO", "ota.download", "stage" to "done", "bytes" to read)
-            // 校验：必须是 zip（APK）且大小合理
+            // 校验：必须是 zip（APK）且大小合理；sha 只记前 12 位，方便把日志和构建对上
+            val sha = sha12(dest) ?: "-"
             val ok = dest.length() > 1_000_000 && isApkFile(dest)
             if (!ok) {
                 val why = if (dest.length() <= 1_000_000) "too_small" else "not_zip"
-                log("ERROR", "ota.verify", "stage" to "check", "ok" to false, "code" to why, "bytes" to dest.length())
+                log("ERROR", "ota.verify", "stage" to "check", "ok" to false, "code" to why,
+                    "bytes" to dest.length(), "sha" to sha)
                 dest.delete()
             } else {
-                log("INFO", "ota.verify", "stage" to "check", "ok" to true, "bytes" to dest.length())
+                log("INFO", "ota.verify", "stage" to "check", "ok" to true,
+                    "bytes" to dest.length(), "sha" to sha)
             }
             ok
         } catch (e: Throwable) {
-            log("ERROR", "ota.download", "stage" to "fetch", "code" to errCode(e), "msg" to e.message)
+            log("ERROR", "ota.download", "stage" to "fetch", "code" to errCode(e), "msg" to sanitize(e.message))
             try {
                 dest.delete()
             } catch (e2: Throwable) {
-                log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e2), "msg" to e2.message)
+                log("WARN", "ota.download", "stage" to "cleanup", "code" to errCode(e2), "msg" to sanitize(e2.message))
             }
             false
         }
@@ -214,7 +254,7 @@ object Updater {
                 b[0] == 'P'.code.toByte() && b[1] == 'K'.code.toByte()
             }
         } catch (e: Throwable) {
-            log("ERROR", "ota.verify", "stage" to "read", "code" to errCode(e), "msg" to e.message)
+            log("ERROR", "ota.verify", "stage" to "read", "code" to errCode(e), "msg" to sanitize(e.message))
             false
         }
     }
@@ -235,11 +275,11 @@ object Updater {
             }
             activity.startActivity(i)
         } catch (e: Throwable) {
-            log("WARN", "ota.install", "stage" to "settings", "code" to errCode(e), "msg" to e.message)
+            log("WARN", "ota.install", "stage" to "settings", "code" to errCode(e), "msg" to sanitize(e.message))
             try {
                 activity.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
             } catch (e2: Throwable) {
-                log("ERROR", "ota.install", "stage" to "settings", "code" to errCode(e2), "msg" to e2.message)
+                log("ERROR", "ota.install", "stage" to "settings", "code" to errCode(e2), "msg" to sanitize(e2.message))
             }
         }
     }
@@ -261,7 +301,7 @@ object Updater {
             log("INFO", "ota.install", "stage" to "start", "ok" to true, "bytes" to apk.length())
             true
         } catch (e: Throwable) {
-            log("ERROR", "ota.install", "stage" to "start", "code" to errCode(e), "msg" to e.message)
+            log("ERROR", "ota.install", "stage" to "start", "code" to errCode(e), "msg" to sanitize(e.message))
             false
         }
     }

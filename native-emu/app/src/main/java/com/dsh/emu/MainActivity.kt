@@ -576,7 +576,11 @@ private fun UpdatePage(activity: MainActivity) {
                         activity.downloadProgress.value = -1
                         if (ok) {
                             if (!Updater.install(activity, f)) {
-                                activity.statusText.value = "请在设置里允许「安装未知应用」后重试"
+                                if (!Updater.canInstall(activity)) {
+                                    activity.statusText.value = "请在设置里允许「安装未知应用」后重试"
+                                } else {
+                                    activity.statusText.value = "安装失败，详见 ota.log"
+                                }
                             }
                         } else {
                             activity.statusText.value = "下载失败"
