@@ -165,10 +165,7 @@ bool Emu::saveState(const char* path) {
     if (!core_->saveState) { nlog("save: no api"); return false; }
     size_t sz = core_->stateSize ? core_->stateSize(core_) : 0;
     { char b[64]; snprintf(b, sizeof(b), "save: stateSize=%zu", sz); nlog(b); }
-    struct VFile* vf = VFileOpen(path, O_WRONLY | O_CREAT | O_TRUNC);
-    if (!vf) { nlog("save: vfile fail"); return false; }
     nlog("save: writing");
-    vf->close(vf);
     // 自己写文件：core->saveState 接受内存缓冲区
     std::vector<uint8_t> buf(sz);
     if (!core_->saveState) { nlog("save: no state api"); return false; }
