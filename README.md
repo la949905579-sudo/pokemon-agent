@@ -1,3 +1,17 @@
+# 项目总览
+
+这个仓库现在有两个部分：
+
+| 项目 | 说明 | 目录 |
+|---|---|---|
+| **Pokemon 自动化** | 火红中文版的读内存/决策/自动战斗工具 | 根目录 `*.py` |
+| **NativeEmu** | 自研双屏 GBA 模拟器（mGBA + Kotlin），上屏游戏、下屏控制台 | `native-emu/` |
+
+两者通过 **TCP 桥**（`127.0.0.1:55401`）连接：设置 `EMU_BACKEND=native` 后，
+`memory.py` / `ra.py` 会自动改用 NativeEmu 而不是 RetroArch 的 UDP。
+
+---
+
 # Pokemon FireRed 自动化工具
 
 通过 RetroArch 的 UDP 接口读取游戏内存、注入按键，实现宝可梦（火红中文版）的自动化操作。

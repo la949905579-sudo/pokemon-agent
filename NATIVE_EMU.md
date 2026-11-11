@@ -5,6 +5,20 @@
 
 ---
 
+## 当前状态（2026-11-11）
+
+P0 已跑通并在手机上实测：
+
+- 双屏 1:1（上屏 240×160 游戏、下屏 Compose 控制台）
+- ROM 加载（自动扫描 `/sdcard/rom/gba` 等）、存档/读档
+- 触屏按键（多指、按住高亮）
+- 60fps 限帧、RGB565→ARGB 正确渲染
+- **TCP 桥 :55401**：`read` / `write` / `press` / `frame` / `status`
+- 后台常驻（前台服务 + WakeLock + 电池无限制），后台帧持续推进
+- 固定签名 + App 内 OTA（MENU → 更新，显示版本/构建时间/更新说明）
+
+入口：`NATIVE_EMU_TODO.md`（待办）· `native-emu/`（工程）· `emu_bridge.py`（Python 客户端）
+
 ## 一、范围与边界
 
 **做**：

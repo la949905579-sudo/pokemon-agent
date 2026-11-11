@@ -3,6 +3,20 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.11-1（NativeEmu v0.2）
+### 新增
+- 原生双屏 GBA 模拟器（mGBA 内核 + Kotlin/Compose + NDK）
+- 下屏控制台：小地图 / 六宫格菜单 / 日志 / 按键页
+- TCP 桥 `:55401`（read/write/press/frame/status），Python 侧 `emu_bridge.py`
+- `memory.py` / `ra.py` 支持 `EMU_BACKEND=native` 切换
+- 前台保活 + WakeLock；固定签名 + App 内 OTA 更新
+
+### 修复
+- mGBA 初始化顺序、编译宏不一致（结构体布局）、无 BIOS 时 `skipBios`
+- 像素 ABGR→ARGB、帧率统计、多指按键 `ACTION_POINTER_UP`
+- 存档 API 参数类型（内存缓冲区 vs VFile）
+- 重新加载 ROM 被 `if (core_) return true` 拦截
+
 ## v2026.11.10-15（2026-11-10）
 ### 修复
 - 固定跨图路线遇到 NPC 对话时直接走、导致整条路线失败（现在按 B 关对话后重试）
