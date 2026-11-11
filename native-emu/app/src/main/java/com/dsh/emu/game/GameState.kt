@@ -68,6 +68,19 @@ object GameState {
     /** 敌方 species。 */
     fun enemySpecies(): Int = Memo.u16(Addresses.EN_BATTLE)
 
+    data class EnemyInfo(val lv: Int, val hp: Int, val maxHp: Int, val species: Int)
+
+    /** 敌方战斗摘要（等级/HP/最大 HP/species）。读不到返回 null。 */
+    fun enemyInfo(): EnemyInfo? {
+        val d = Memo.bytes(Addresses.ENEMY_BASE, 8) ?: return null
+        val lv = d[0].toInt() and 0xFF
+        val hp = (d[2].toInt() and 0xFF) or ((d[3].toInt() and 0xFF) shl 8)
+        val mhp = (d[4].toInt() and 0xFF) or ((d[5].toInt() and 0xFF) shl 8)
+        val sp = Memo.u16(Addresses.EN_BATTLE)
+        if (lv == 0 && hp == 0 && mhp == 0) return null
+        return EnemyInfo(lv, hp, mhp, sp)
+    }
+
     /** 我方 4 个招式 id（+0x0C 起，4 × u16）。 */
     fun myMoves(): List<Int> {
         val base = Addresses.MY_BATTLE + 0x0C

@@ -16,6 +16,7 @@ object Addresses {
     const val PARTY_CURSOR = 0x0203B0A9
     const val FACING_ADDR = 0x02036E38 + 0x18
 
+    const val ENEMY_BASE = 0x02024080        // 敌方战斗摘要：+0 等级，+2 HP，+4 maxHP
     const val MY_BATTLE = 0x02023BE4         // 我方场上
     const val EN_BATTLE = 0x02023C3C         // 敌方场上
     const val MOVE_LAST = 0x02023D4C

@@ -120,6 +120,26 @@ class GameStateTest {
     }
 
     @Test
+    fun enemyInfoReadsHp() {
+        val base = Addresses.ENEMY_BASE
+        memory[base] = 5.toByte()          // lv 5
+        putU16(base + 2, 20)               // hp 20
+        putU16(base + 4, 22)               // max 22
+        putU16(Addresses.EN_BATTLE, 16)    // species 16
+        val e = GameState.enemyInfo()!!
+        assertEquals(5, e.lv)
+        assertEquals(20, e.hp)
+        assertEquals(22, e.maxHp)
+        assertEquals(16, e.species)
+    }
+
+    @Test
+    fun enemyInfoNullWhenEmpty() {
+        Memo.reader = { _, n -> ByteArray(n) }
+        assertNull(GameState.enemyInfo())
+    }
+
+    @Test
     fun coordsNullWhenShortRead() {
         Memo.reader = { _, n -> null }
         assertNull(GameState.coords())
