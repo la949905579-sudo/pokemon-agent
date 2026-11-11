@@ -1,137 +1,66 @@
-# 交接文档
+# 交接文档（2026-11-12 04:15）
 
-> 新会话按顺序读：**TOOLS.md → NOTES.md → 本文件**（`TOOLS.md` 是工具手册，`NOTES.md` 是地址与实测结论）。
+> 给下一个会话：先读本文件 + `README.md` + `PROJECT_PLAN.md` + `NATIVE_EMU_TODO.md`。
 
----
+## 一、项目是什么
 
-## 一、接手步骤（5 分钟）
+两个部分，一条 TCP 桥连接：
 
-1. 读 `TOOLS.md`（每个工具怎么用）
-2. 读 `NOTES.md`（内存地址、实战踩坑）
-3. 读本文件（当前状态 + 待办）
-4. `python3 run_tests.py` 确认 **24/24**
-5. 读游戏状态：
-   ```bash
-   python3 -c "import info,state,terrain; a,w,h,_=terrain.load(); print(info.scene(), hex(a), state.coords())"
-   ```
+1. **NativeEmu**（`native-emu/`）：自研 Android 双屏 GBA 模拟器（mGBA 内核 + Kotlin/Compose + NDK），上屏游戏，下屏控制台，TCP 桥 `127.0.0.1:55401`
+2. **Pokemon 自动化**（根目录 `*.py`）：火红中文版的读内存/决策/自动化，通过 `EMU_BACKEND=native` 切到 NativeEmu（否则走 RetroArch UDP）
 
----
+仓库：`https://github.com/la949905579-sudo/pokemon-agent`（master）
 
-## 二、协作规则（必须遵守）
+## 二、当前进度
 
-- **动游戏 / 改文件前先问**：说清「理解 + 做法 + 依据 + 风险」，等用户说「执行/可以/开始」
-- **只读探测不用问**：读内存、看屏幕、读文件可直接做
-- 用户偏好：中文、简洁（手机小屏）、模块独立性优先
-- 工作守则见 `AGENTS.md`（测试离线 / 单一真源 / 判据实测 / 迁移后实机）
+- **P0 平台**：完成（双屏/渲染/60fps/存档/多指按键/后台保活/固定签名/OTA）
+- **P1 插件化**：完成（`framework/` + `games/pokemon_firered/` + `run_game.py`，28 项 Python 测试）
+- **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
+- **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
 
----
+## 三、下一批待办（已和用户确认过方案）
 
-## 三、当前游戏状态（新档，2026-11-11）
+1. **存档卡槽**：3 槽，显示保存时间 + 存档/读档/删除（`state1-3.sav`）
+2. **队伍详情字段**：属性 / 4 招式 + PP / 经验
+3. **行走路径提示**：点地图先画路线 + 步数 + 「开始走」
+4. **招式点击施放**：读 `MOVE_CURSOR`(0x02023FFC) → 方向键序列 → 回读确认（风险最高，需防护）
 
-- **位置**：深灰市（`0x82de3e8`，48×40），精灵中心门口附近
-- **队伍**：小火龙 Lv10，29/29（招式：抓/叫声）
-- **进度**：全新存档（玩家 A、劲敌 AM）
-  - 已完成：真新镇 → 1 号道路 → 常磐市（治疗 + 商店包裹 → 回真新镇交博士拿图鉴/5 球）→ 2 号道路 → 常磐森林（用户手动穿过）→ 深灰市（治疗）
-- **卡点**：深灰市**道馆入口没找到**（地图上只扫到精灵中心 (17,25)、商店 (28,18) 两扇门，道馆门不是 metatile 98）
-- **下一步**：找到道馆 → 打小刚（岩石系）。注意小火龙火系打岩石 0.5 倍，建议先抓猴怪（22 号道路）或练到 Lv12+
+详见 `NATIVE_EMU_TODO.md`。
 
-### 新档流程要点（实测）
-- 卧室楼梯在 (10,2)，**向左走一步**下楼
-- 常磐市北出口：从 (19,0) 向上进 2 号道路
-- 2 号道路南段→森林：需要绕开单向坎/树苗（`(6,52)` 向上已记录到 map_links）
-- 常磐森林入口房间 `0x8320808`(15×12) → 走到 (7,1) 向上 → 森林主体 `0x82fc730`(54×69)
-
----
-
-## 四、代码进度
-
-- 最新 tag：`v2026.11.11-2`
-- 未提交改动（本次会话）：
-  - `memory.py`：分块读（>0x1000 字节）
-  - `terrain.py`：`_from_hdr` 校验垃圾指针（非法 header 直接拒绝 → 回退 EWRAM 扫描）
-  - `maps/override_*.json`：地形校正层产物（2 张地图）
-- 测试：24/24
-
-### 近期里程碑
-| 版本 | 内容 |
-|---|---|
-| v2026.11.10-13 | 换人按 species 身份定位（菜单内外数组顺序不同） |
-| v2026.11.10-14 | 换人评分 v2 + 开场等级压制 |
-| v2026.11.10-15 | 固定路线处理 NPC 对话；travel_map 跨通道 |
-| v2026.11.11-1 | 新档从头测试记录 |
-| v2026.11.11-2 | 单向坎 / 树苗 / 地形校正层 |
-
----
-
-## 五、待办
-
-### P0（接手后先做）
-1. **深灰市道馆**：找到入口 → 打小刚（第一枚徽章）
-   - 需要先解决：小火龙打岩石系不利 → 抓猴怪（22 号道路）或练级
-2. **存档**：新档还没存过档！**进下一个城市先存**（避免再丢进度）
-
-### P1
-3. **常磐森林寻路**：森林是迷宫，目前靠手动；可加「路径记录器」（手动走时后台记录坐标+地图）
-4. **单向坎方向限制**：现在允许任意方向高→低，实际游戏可能只允许“向下跳”
-
-### P2（代码）
-5. 威胁评估接入决策（目前只写日志）
-6. `action.py` ↔ `switch.py` 循环依赖
-7. 室内地图 `OFF_X/OFF_Y=7` 换算在换图瞬间可能读到旧值
-
-### 已完成（旧档，2026-11-10）
-- 华蓝道馆未打（旧档已覆盖）
-- 旧档进度已随新档覆盖（玩家 A）
-
----
-
-## 六、环境注意
-
-- RetroArch（mGBA 核心）+ 游戏**前台**
-- UDP：读内存 55355，按键 55400
-- **大地图必须分块读**（>0x1000 字节）
-- `gMapHeader`(0x02036DFC) 可能是垃圾值 → 交给 EWRAM 扫描兜底（约 4s，有缓存）
-- 触摸覆盖层（RetroArch overlay）会挡住游戏输入，卡死时先关覆盖层
-- 手机屏幕小：回复简洁
-
----
-
-## 七、快速命令
+## 四、关键命令
 
 ```bash
-# 测试
+# Python 测试（28 项）
 python3 run_tests.py
 
-# 状态
-python3 -c "import info,state,terrain; a,w,h,_=terrain.load(); print(info.scene(), hex(a), state.coords())"
+# 状态推送（下屏数据）
+bash /root/workspace/start_push.sh     # 启动常驻（setsid）
+bash /root/workspace/start_push.sh stop
 
-# 打一场
-python3 -c "import battle_loop; print(battle_loop.battle_loop(max_rounds=12, verbose=False))"
+# 构建：推送即触发 CI（.github/workflows/build-native-emu.yml）
+git push
 
-# 单图寻路
-python3 -c "import pathfind; print(pathfind.goto(10,15))"
-
-# 练级（场数/目标等级/秒）
-python3 farm.py 3 12 300
-
-# 回合观测
-python3 train.py 1 180
-
-# 日志查询
-python3 logq.py --mod pathfind --since 30m
-
-# 地图可视化
-python3 mapdraw.py 12,39
+# 下载 + 发布（会检查构建是否成功）
+GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 ```
 
----
+## 五、环境与坑
 
-## 八、本次会话的教训
+- 手机：Android 16，arm64；本机无法完整编译（NDK 是 x86_64），**一律用 GitHub Actions 构建**
+- 构建产物下载到 `/sdcard/Download/DSH-Go/app-debug.apk`
+- 签名固定：`native-emu/app/keystore.jks`（口令 emu123456）→ 可覆盖安装
+- **mGBA 集成坑**（详见 `native-emu/README.md`）：emµ 与 libmgba 编译宏必须一致、初始化顺序、skipBios、RGB565、存档 API、mCoreFind 竞态
+- 下屏数据：**本地 Kotlin GameState 优先**，Python 推送兜底；地图（minimap）仍靠推送
+- 用户偏好：中文、简洁；**每次构建前先列改动清单确认**（commit message 即 OTA 更新日志）；构建放后台别阻塞
 
-1. **大地图读不全是分块问题**：`rd(addr, 7452)` 单次超 UDP 缓冲，返回不完整 → 分块 + 校验 `len()`
-2. **gMapHeader 可能是垃圾**：`_from_hdr` 必须校验指针在 ROM/EWRAM 范围，否则读到假地图
-3. **换人身份用 species**：菜单打开前后队伍数组顺序不同，下标会错
-4. **单向坎/树苗**：BFS 不知道会穿墙；已加 `can_step` 和树苗 317 不可走
-5. **触摸覆盖层会卡死游戏**：卡死时先关覆盖层，别急着软复位（新档没存档会全丢）
-6. **道馆门不一定是 metatile 98**：扫门找不到时靠截图/手动定位
-7. **旧档会被新档覆盖**：开新档前确认用户接受
+## 六、GitHub token
+
+当前 token 的明文不写进仓库（GitHub Push Protection 会阻止）。需要时向物主索取。
+旧 token 已全部删除；新 token 有 repo + workflow 权限，2026-12-11 到期。
+到期后重新生成：设置 → Developer settings → Personal access tokens (classic)。
+
+## 七、注意
+
+- `BATTLE_FLAG` 战斗中可能短暂为 0（动画/结算），已用 `battle_anim` + 4 秒滞回处理
+- 点击地图前往会**真按方向键**（180ms/步），误触会移动角色
+- 用户手机开着 VPN 时 GitHub API 可能连不上
