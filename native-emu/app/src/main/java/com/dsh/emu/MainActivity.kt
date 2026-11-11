@@ -502,29 +502,6 @@ private fun KeyPadArea(keys: Int, onChange: (Int) -> Unit) {
             }
         }
     }
-
-        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                PadLabel("▲", EmuCore.KEY_UP, pads, pressed = (keys and EmuCore.KEY_UP) != 0)
-                Row {
-                    PadLabel("◀", EmuCore.KEY_LEFT, pads, pressed = (keys and EmuCore.KEY_LEFT) != 0)
-                    Spacer(Modifier.width(18.dp))
-                    PadLabel("▶", EmuCore.KEY_RIGHT, pads, pressed = (keys and EmuCore.KEY_RIGHT) != 0)
-                }
-                PadLabel("▼", EmuCore.KEY_DOWN, pads, pressed = (keys and EmuCore.KEY_DOWN) != 0)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PadLabel("B", EmuCore.KEY_B, pads, 52.dp, (keys and EmuCore.KEY_B) != 0)
-                Spacer(Modifier.width(10.dp))
-                PadLabel("A", EmuCore.KEY_A, pads, 52.dp, (keys and EmuCore.KEY_A) != 0)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                PadLabel("ST", EmuCore.KEY_START, pads, 40.dp, (keys and EmuCore.KEY_START) != 0)
-                Spacer(Modifier.height(8.dp))
-                PadLabel("SE", EmuCore.KEY_SELECT, pads, 40.dp, (keys and EmuCore.KEY_SELECT) != 0)
-            }
-        }
-    }
 }
 
 data class PadPos(val mask: Int, val cx: Float, val cy: Float, val r: Float)
