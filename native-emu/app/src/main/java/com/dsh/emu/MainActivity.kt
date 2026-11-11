@@ -254,12 +254,12 @@ fun AppScreen(activity: MainActivity) {
                         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                PadLabel("▲", EmuCore.KEY_UP, pads)
-                                Row { PadLabel("◀", EmuCore.KEY_LEFT, pads); Spacer(Modifier.width(24.dp)); PadLabel("▶", EmuCore.KEY_RIGHT, pads) }
-                                PadLabel("▼", EmuCore.KEY_DOWN, pads)
+                                PadLabel("▲", EmuCore.KEY_UP, pads, pressed = (keys and EmuCore.KEY_UP) != 0)
+                                Row { PadLabel("◀", EmuCore.KEY_LEFT, pads, pressed = (keys and EmuCore.KEY_LEFT) != 0); Spacer(Modifier.width(24.dp)); PadLabel("▶", EmuCore.KEY_RIGHT, pads, pressed = (keys and EmuCore.KEY_RIGHT) != 0) }
+                                PadLabel("▼", EmuCore.KEY_DOWN, pads, pressed = (keys and EmuCore.KEY_DOWN) != 0)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                PadLabel("B", EmuCore.KEY_B, pads, 54.dp); Spacer(Modifier.width(10.dp)); PadLabel("A", EmuCore.KEY_A, pads, 54.dp)
+                                PadLabel("B", EmuCore.KEY_B, pads, 54.dp, pressed = (keys and EmuCore.KEY_B) != 0); Spacer(Modifier.width(10.dp)); PadLabel("A", EmuCore.KEY_A, pads, 54.dp, pressed = (keys and EmuCore.KEY_A) != 0)
                             }
                         }
                     }
@@ -298,12 +298,12 @@ data class PadPos(val mask: Int, val cx: Float, val cy: Float, val r: Float)
 
 /** 显示按钮，并把真实中心坐标登记给命中测试 */
 @Composable
-fun PadLabel(label: String, mask: Int, pads: MutableList<PadPos>, size: androidx.compose.ui.unit.Dp = 44.dp) {
+fun PadLabel(label: String, mask: Int, pads: MutableList<PadPos>, size: androidx.compose.ui.unit.Dp = 44.dp, pressed: Boolean = false) {
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val radiusPx = with(density) { size.toPx() / 2f } * 1.15f
+    val radiusPx = with(density) { size.toPx() / 2f } * 0.92f
     Box(
         Modifier.size(size)
-            .background(Color(0xFF333333), CircleShape)
+            .background(if (pressed) Color(0xFF7B5CE5) else Color(0xFF333333), CircleShape)
             .onGloballyPositioned {
                 val c = it.localToWindow(androidx.compose.ui.geometry.Offset(
                     it.size.width / 2f, it.size.height / 2f))
