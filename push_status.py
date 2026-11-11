@@ -8,13 +8,26 @@ import json
 import socket
 import time
 
-import info
-import state
+from framework import loader
 
 HOST, PORT = "127.0.0.1", 55401
 
+_plugin = None
+
+
+def plugin():
+    global _plugin
+    if _plugin is None:
+        _plugin = loader.load("pokemon_firered")
+    return _plugin
+
 
 def build_status():
+    return plugin().status()
+
+
+def _legacy_build_status():
+    import info, state
     ctx = info.context()
     scene = str(ctx.get("scene", ""))
     battle = ""
