@@ -10,8 +10,13 @@ import android.os.IBinder
 
 /** 前台服务：避免 App 切后台被系统回收（自动化需要常驻）。 */
 class EmuService : Service() {
+    private fun log(m: String) {
+        try { java.io.File("/sdcard/Download/service.log").appendText("$m\n") } catch (_: Throwable) {}
+    }
+
     override fun onCreate() {
         super.onCreate()
+        log("service: onCreate sdk=${Build.VERSION.SDK_INT}")
         val nm = getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= 26) {
             val ch = NotificationChannel("emu", "模拟器", NotificationManager.IMPORTANCE_LOW)
@@ -31,10 +36,18 @@ class EmuService : Service() {
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 .build()
         }
-        startForeground(1, notif)
+        try {
+            startForeground(1, notif)
+            log("service: startForeground ok")
+        } catch (e: Throwable) {
+            log("service: startForeground fail ${e.javaClass.simpleName}: ${e.message}")
+        }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        log("service: onStartCommand flags=$flags")
+        return START_STICKY
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 }

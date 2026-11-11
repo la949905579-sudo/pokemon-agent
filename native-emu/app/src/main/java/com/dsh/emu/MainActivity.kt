@@ -48,8 +48,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         try {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
+            try { java.io.File("/sdcard/Download/service.log").appendText("activity: startForegroundService called\n") } catch (_: Throwable) {}
         } catch (e: Throwable) {
-            android.util.Log.w("NativeEmu", "foreground service failed", e)
+            try { java.io.File("/sdcard/Download/service.log").appendText("activity: startForegroundService fail ${e.message}\n") } catch (_: Throwable) {}
         }
         val bridgeOk = bridge.start()
         statusText.value = if (bridgeOk) "TCP 桥 :55401 已启动" else "未载入 ROM"
