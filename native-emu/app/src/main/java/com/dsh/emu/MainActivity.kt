@@ -42,6 +42,9 @@ class MainActivity : ComponentActivity() {
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
     val speedState = mutableStateOf(1)
+    val downloadProgress = mutableStateOf(-1)
+    val updateLatest = mutableStateOf<Updater.Release?>(null)
+    val updateError = mutableStateOf("")
     var emuView: EmuView? = null
     private val bridge = BridgeServer(55401)
 
@@ -484,9 +487,9 @@ fun PadLabel(label: String, mask: Int, pads: MutableList<PadPos>, size: androidx
 @Composable
 private fun UpdatePage(activity: MainActivity) {
     var checking by remember { mutableStateOf(false) }
-    var latest by remember { mutableStateOf<Updater.Release?>(null) }
-    var error by remember { mutableStateOf("") }
-    var progress by remember { mutableStateOf(-1) }
+    val latest = activity.updateLatest.value
+    val error = activity.updateError.value
+    val progress = activity.downloadProgress.value
     val buildTime = remember {
         try {
             java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
@@ -505,7 +508,8 @@ private fun UpdatePage(activity: MainActivity) {
                     val r = Updater.latest()
                     activity.runOnUiThread {
                         checking = false
-                        if (r == null) error = "检查失败（网络或没有 release）" else latest = r
+                        if (r == null) activity.updateError.value = "检查失败（网络或没有 release）"
+                        else activity.updateLatest.value = r
                     }
                 }.start()
             }.padding(horizontal = 18.dp, vertical = 8.dp)) {
@@ -515,24 +519,24 @@ private fun UpdatePage(activity: MainActivity) {
         latest?.let { r ->
             Spacer(Modifier.height(8.dp))
             Text("最新: ${r.tag}", color = TXT, fontSize = 12.sp)
-            Text(r.body.take(400), color = DIM, fontSize = 11.sp)
+            Text(r.body, color = DIM, fontSize = 11.sp, maxLines = 8,
+                modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(6.dp))
             Box(Modifier.background(if (progress >= 0) CARD else ACCENT, RoundedCornerShape(10.dp)).clickable {
-                if (progress >= 0) return@clickable
-                progress = 0
+                if (activity.downloadProgress.value >= 0) return@clickable
+                activity.downloadProgress.value = 0
                 Thread {
                     val f = File(activity.cacheDir, "update.apk")
                     val ok = Updater.download(r.url, f) { pct ->
-                        activity.runOnUiThread { progress = pct }
+                        activity.runOnUiThread { activity.downloadProgress.value = pct }
                     }
                     activity.runOnUiThread {
+                        activity.downloadProgress.value = -1
                         if (ok) {
-                            progress = -1
                             if (!Updater.install(activity, f)) {
                                 activity.statusText.value = "请在设置里允许「安装未知应用」后重试"
                             }
                         } else {
-                            progress = -1
                             activity.statusText.value = "下载失败"
                         }
                     }
