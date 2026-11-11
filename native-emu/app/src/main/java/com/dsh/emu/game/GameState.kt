@@ -29,16 +29,35 @@ object GameState {
     /** 对话框是否打开。 */
     fun inDialog(): Boolean = Memo.u8(Addresses.DIALOG_FLAG) != 0
 
-    /** 场景名（与 Python 的 info.scene() 保持一致的简化版）。 */
+    /** 最近一次确认在战斗里的时间（毫秒），用于战斗结束的滞回。 */
+    @Volatile
+    private var lastBattleAt = 0L
+
+    /** 滞回时长：战斗标记消失后，这段时间内仍视为战斗（等对话框/动画走完）。 */
+    private const val BATTLE_HOLD_MS = 4000L
+
+    /**
+     * 场景名。
+     * 战斗中按回合标志细分；战斗标记消失但还在对话（击败提示等）且最近战斗过，
+     * 返回 "battle_end"，避免下屏立刻跳回地图。
+     */
     fun scene(): String {
-        if (!inBattle()) return "map"
-        return when (turnFlag()) {
-            0 -> "battle_intro"
-            1 -> "battle_main"
-            2 -> "battle_moves"
-            4 -> "anim"
-            else -> "battle"
+        val now = System.currentTimeMillis()
+        if (inBattle()) {
+            lastBattleAt = now
+            return when (turnFlag()) {
+                0 -> "battle_intro"
+                1 -> "battle_main"
+                2 -> "battle_moves"
+                4 -> "anim"
+                else -> "battle"
+            }
         }
+        // 刚结束战斗、还在对话里（按确定关对话框）→ 保持战斗页
+        if (inDialog() && now - lastBattleAt < BATTLE_HOLD_MS) {
+            return "battle_end"
+        }
+        return "map"
     }
 
     /** 队伍（跳过空槽，等级 0 视为无效）。 */
