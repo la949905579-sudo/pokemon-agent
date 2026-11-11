@@ -49,7 +49,7 @@ object GameState {
                 0 -> "battle_intro"
                 1 -> "battle_main"
                 2 -> "battle_moves"
-                4 -> "anim"
+                4 -> "battle_anim"   // 战斗动画阶段也算战斗，避免跳回地图
                 else -> "battle"
             }
         }
