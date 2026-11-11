@@ -182,7 +182,7 @@ data class EmuStatus(
     val battle: String = "",
     val foeLv: Int = 0, val foeHp: Int = 0, val foeMax: Int = 0,
     val meLv: Int = 0, val meHp: Int = 0, val meMax: Int = 0,
-    val moves: List<Int> = emptyList(),
+    val moves: List<String> = emptyList(),
 )
 
 private fun parseStatus(json: String): EmuStatus {
@@ -199,9 +199,9 @@ private fun parseStatus(json: String): EmuStatus {
         val d = o.optJSONObject("battle_detail")
         val foe = d?.optJSONObject("foe")
         val me = d?.optJSONObject("me")
-        val moves = mutableListOf<Int>()
+        val moves = mutableListOf<String>()
         me?.optJSONArray("moves")?.let { arr ->
-            for (i in 0 until arr.length()) moves.add(arr.optInt(i))
+            for (i in 0 until arr.length()) moves.add(arr.optString(i, ""))
         }
         EmuStatus(
             o.optString("map", ""), o.optInt("x"), o.optInt("y"), team, o.optString("battle", ""),
@@ -552,11 +552,11 @@ private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
                 Row(Modifier.weight(1f)) {
                     for (col in 0..1) {
                         val idx = row * 2 + col
-                        val mv = s.moves.getOrNull(idx) ?: 0
+                        val mv = s.moves.getOrNull(idx).orEmpty()
                         Box(Modifier.weight(1f).fillMaxHeight().padding(4.dp)
                             .background(CARD, RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center) {
-                            Text("招式 ${idx + 1}" + if (mv != 0) " (#$mv)" else "", color = TXT, fontSize = 12.sp)
+                            Text(if (mv.isNotEmpty()) mv else "—", color = if (mv.isNotEmpty()) TXT else DIM, fontSize = 13.sp)
                         }
                     }
                 }
