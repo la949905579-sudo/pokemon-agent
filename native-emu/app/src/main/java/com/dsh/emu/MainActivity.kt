@@ -32,6 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.viewinterop.AndroidView
 import java.io.File
 
@@ -175,12 +176,15 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
     }
 }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun AppScreen(activity: MainActivity) {
     var frame by remember { mutableStateOf(0L) }
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
     var showRoms by remember { mutableStateOf(false) }
+    var areaW by remember { mutableStateOf(1f) }
+    var areaH by remember { mutableStateOf(1f) }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
     val status = activity.statusText.value
@@ -225,16 +229,19 @@ fun AppScreen(activity: MainActivity) {
                 } else {
                     // 整块区域接管触摸：多指分别命中按键
                     Box(
-                        Modifier.weight(1f).fillMaxWidth().pointerInteropFilter { ev ->
-                            val w = ev.view.width.toFloat()
-                            val h = ev.view.height.toFloat()
-                            var mask = 0
-                            for (i in 0 until ev.pointerCount) {
-                                mask = mask or hitKey(ev.getX(i), ev.getY(i), w, h)
+                        Modifier.weight(1f).fillMaxWidth()
+                            .onGloballyPositioned {
+                                areaW = it.size.width.toFloat()
+                                areaH = it.size.height.toFloat()
                             }
-                            if (mask != keys) { keys = mask; EmuCore.setKeys(mask) }
-                            true
-                        }
+                            .pointerInteropFilter { ev ->
+                                var mask = 0
+                                for (i in 0 until ev.pointerCount) {
+                                    mask = mask or hitKey(ev.getX(i), ev.getY(i), areaW, areaH)
+                                }
+                                if (mask != keys) { keys = mask; EmuCore.setKeys(mask) }
+                                true
+                            }
                     ) {
                         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically) {
