@@ -42,10 +42,18 @@ class MainActivity : ComponentActivity() {
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
     var emuView: EmuView? = null
+    private val bridge = BridgeServer(55401)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val bridgeOk = bridge.start()
+        statusText.value = if (bridgeOk) "TCP 桥 :55401 已启动" else "未载入 ROM"
         setContent { AppScreen(this) }
+    }
+
+    override fun onDestroy() {
+        bridge.stop()
+        super.onDestroy()
     }
 
     override fun onPause() {
