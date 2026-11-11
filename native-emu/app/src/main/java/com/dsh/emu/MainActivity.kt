@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 import java.io.File
 
-enum class Page { MINIMAP, MENU, LOG, KEYS, UPDATE }
+enum class Page { MINIMAP, MENU, LOG, KEYS, UPDATE, BATTLE }
 
 class MainActivity : ComponentActivity() {
     val statusText = mutableStateOf("")
@@ -179,6 +179,9 @@ data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
     val team: List<TeamMon> = emptyList(),
     val battle: String = "",
+    val foeLv: Int = 0, val foeHp: Int = 0, val foeMax: Int = 0,
+    val meLv: Int = 0, val meHp: Int = 0, val meMax: Int = 0,
+    val moves: List<Int> = emptyList(),
 )
 
 private fun parseStatus(json: String): EmuStatus {
@@ -192,7 +195,19 @@ private fun parseStatus(json: String): EmuStatus {
                 team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max")))
             }
         }
-        EmuStatus(o.optString("map", ""), o.optInt("x"), o.optInt("y"), team, o.optString("battle", ""))
+        val d = o.optJSONObject("battle_detail")
+        val foe = d?.optJSONObject("foe")
+        val me = d?.optJSONObject("me")
+        val moves = mutableListOf<Int>()
+        me?.optJSONArray("moves")?.let { arr ->
+            for (i in 0 until arr.length()) moves.add(arr.optInt(i))
+        }
+        EmuStatus(
+            o.optString("map", ""), o.optInt("x"), o.optInt("y"), team, o.optString("battle", ""),
+            foe?.optInt("lv") ?: 0, foe?.optInt("hp") ?: 0, foe?.optInt("mhp") ?: 0,
+            me?.optInt("lv") ?: 0, me?.optInt("hp") ?: 0, me?.optInt("mhp") ?: 0,
+            moves,
+        )
     } catch (e: Exception) { EmuStatus() }
 }
 
@@ -212,6 +227,15 @@ fun AppScreen(activity: MainActivity) {
     val logs = UiState.logs.value
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
+
+    // 检测到战斗自动切战斗页，战斗结束回小地图（手动在 KEYS/MENU 时不抢）
+    LaunchedEffect(status.battle) {
+        if (status.battle.isNotBlank() && page != Page.KEYS && page != Page.MENU) {
+            page = Page.BATTLE
+        } else if (status.battle.isBlank() && page == Page.BATTLE) {
+            page = Page.MINIMAP
+        }
+    }
 
     LaunchedEffect(running) {
         if (!running) return@LaunchedEffect
@@ -272,6 +296,7 @@ fun AppScreen(activity: MainActivity) {
                         items(logs) { Text(it, color = TXT, fontSize = 11.sp) }
                     }
                     page == Page.UPDATE -> UpdatePage(activity)
+                    page == Page.BATTLE -> BattlePage(status, onKeys = { page = Page.KEYS })
                     else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
                 }
             }
@@ -500,6 +525,45 @@ private fun UpdatePage(activity: MainActivity) {
                     color = ACCENT,
                 )
             }
+        }
+    }
+}
+
+
+@Composable
+private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
+    Column(Modifier.fillMaxSize().padding(4.dp)) {
+        // 敌方
+        Text("敌方  Lv${s.foeLv}   ${s.foeHp}/${s.foeMax}", color = Color(0xFFFF9090), fontSize = 12.sp)
+        androidx.compose.material3.LinearProgressIndicator(
+            progress = { if (s.foeMax > 0) s.foeHp.toFloat() / s.foeMax else 0f },
+            modifier = Modifier.fillMaxWidth().height(6.dp), color = Color(0xFFFF6060))
+        Spacer(Modifier.height(6.dp))
+        // 我方
+        Text("我方  Lv${s.meLv}   ${s.meHp}/${s.meMax}", color = TXT, fontSize = 12.sp)
+        androidx.compose.material3.LinearProgressIndicator(
+            progress = { if (s.meMax > 0) s.meHp.toFloat() / s.meMax else 0f },
+            modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
+        Spacer(Modifier.height(8.dp))
+        // 4 招式（只显示，不点，避免误操作）
+        Column(Modifier.weight(1f).fillMaxWidth()) {
+            for (row in listOf(0, 1)) {
+                Row(Modifier.weight(1f)) {
+                    for (col in 0..1) {
+                        val idx = row * 2 + col
+                        val mv = s.moves.getOrNull(idx) ?: 0
+                        Box(Modifier.weight(1f).fillMaxHeight().padding(4.dp)
+                            .background(CARD, RoundedCornerShape(10.dp)),
+                            contentAlignment = Alignment.Center) {
+                            Text("招式 ${idx + 1}" + if (mv != 0) " (#$mv)" else "", color = TXT, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            BarButton("按键", false) { onKeys() }
+            BarButton("回小地图", false) { }
         }
     }
 }
