@@ -178,6 +178,8 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
     override fun run() {
         val gw = EmuCore.videoWidth().coerceAtLeast(240)
         val gh = EmuCore.videoHeight().coerceAtLeast(160)
+        val targetNs = (1_000_000_000L / 59.7275).toLong()   // GBA 原生帧率，防止跑成 2 倍速
+        var nextNs = System.nanoTime()
         while (running) {
             val f = EmuCore.runFrame()
             if (f == 0L) { Thread.sleep(16); continue }
@@ -203,6 +205,14 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
                 c.drawBitmap(b, null, dst, paint)
             } finally {
                 holder.unlockCanvasAndPost(c)
+            }
+            // 限帧
+            nextNs += targetNs
+            val nowNs = System.nanoTime()
+            if (nextNs > nowNs) {
+                try { Thread.sleep((nextNs - nowNs) / 1_000_000) } catch (_: InterruptedException) {}
+            } else {
+                nextNs = nowNs
             }
         }
     }
