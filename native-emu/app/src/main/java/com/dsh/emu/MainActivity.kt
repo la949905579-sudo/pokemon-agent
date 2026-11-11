@@ -325,6 +325,7 @@ private fun MenuPage(
     }
 }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun KeyPadArea(keys: Int, onChange: (Int) -> Unit) {
     var areaOrigin by remember { mutableStateOf(Offset.Zero) }

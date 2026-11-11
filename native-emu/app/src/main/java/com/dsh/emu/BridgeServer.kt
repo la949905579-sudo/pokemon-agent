@@ -100,7 +100,7 @@ class BridgeServer(private val port: Int = 55401) {
                 // 外部推送的界面状态（JSON），下屏直接显示
                 val json = line.substringAfter("status").trim()
                 if (json.isNotEmpty()) {
-                    com.dsh.emu.UiState.statusJson = json
+                    com.dsh.emu.UiState.statusJson.value = json
                 }
                 "ok"
             }
