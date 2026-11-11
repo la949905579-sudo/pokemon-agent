@@ -89,9 +89,14 @@ class MainActivity : ComponentActivity() {
 
     fun loadRom(rom: File) {
         statusText.value = "载入中..."
-        val ok = EmuCore.init(rom.absolutePath, "")
+        var ok = false
+        for (attempt in 0 until 4) {
+            ok = EmuCore.init(rom.absolutePath, "")
+            if (ok) break
+            try { Thread.sleep(120) } catch (_: InterruptedException) {}
+        }
         romReadyState.value = ok
-        statusText.value = if (ok) rom.name.take(24) else "初始化失败"
+        statusText.value = if (ok) rom.name.take(24) else "初始化失败（重试 4 次）"
         if (ok) { EmuCore.start(); runningState.value = true }
     }
 }
@@ -261,9 +266,18 @@ fun AppScreen(activity: MainActivity) {
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                BarButton("KEYS", page == Page.KEYS) { page = if (page == Page.KEYS) Page.MINIMAP else Page.KEYS }
-                BarButton("MENU", page == Page.MENU) { page = if (page == Page.MENU) Page.MINIMAP else Page.MENU }
-                BarButton("LOG", page == Page.LOG) { page = if (page == Page.LOG) Page.MINIMAP else Page.LOG }
+                BarButton("KEYS", page == Page.KEYS) {
+                    showRoms = false
+                    page = if (page == Page.KEYS) Page.MINIMAP else Page.KEYS
+                }
+                BarButton("MENU", page == Page.MENU) {
+                    showRoms = false
+                    page = if (page == Page.MENU) Page.MINIMAP else Page.MENU
+                }
+                BarButton("LOG", page == Page.LOG) {
+                    showRoms = false
+                    page = if (page == Page.LOG) Page.MINIMAP else Page.LOG
+                }
             }
         }
     }
