@@ -424,19 +424,22 @@ private fun KeyPadArea(keys: Int, onChange: (Int) -> Unit) {
         fun hit(idx: Int): Int {
             val px = ev.getX(idx) + areaOrigin.x
             val py = ev.getY(idx) + areaOrigin.y
-            for (p in pads) {
-                val dx = px - p.cx; val dy = py - p.cy
-                if (dx * dx + dy * dy <= p.r * p.r) return p.mask
+            for (pp in pads) {
+                val dx = px - pp.cx
+                val dy = py - pp.cy
+                if (dx * dx + dy * dy <= pp.r * pp.r) return pp.mask
             }
             return 0
         }
         when (action) {
             android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_POINTER_DOWN -> {
-                val i = ev.actionIndex; val m = hit(i)
+                val i = ev.actionIndex
+                val m = hit(i)
                 if (m != 0) pointerMasks[ev.getPointerId(i)] = m
             }
             android.view.MotionEvent.ACTION_MOVE -> for (i in 0 until ev.pointerCount) {
-                val id = ev.getPointerId(i); val m = hit(i)
+                val id = ev.getPointerId(i)
+                val m = hit(i)
                 if (m != 0) pointerMasks[id] = m else pointerMasks.remove(id)
             }
             android.view.MotionEvent.ACTION_POINTER_UP -> pointerMasks.remove(ev.getPointerId(ev.actionIndex))
@@ -447,6 +450,45 @@ private fun KeyPadArea(keys: Int, onChange: (Int) -> Unit) {
         if (mask != keys) onChange(mask)
         true
     }) {
+        Column(Modifier.fillMaxSize()) {
+            // 顶部：L / R
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                PadLabel("L", EmuCore.KEY_L, pads, 44.dp, (keys and EmuCore.KEY_L) != 0)
+                PadLabel("R", EmuCore.KEY_R, pads, 44.dp, (keys and EmuCore.KEY_R) != 0)
+            }
+            // 中部：方向键 + A/B
+            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    PadLabel("▲", EmuCore.KEY_UP, pads, pressed = (keys and EmuCore.KEY_UP) != 0)
+                    Row {
+                        PadLabel("◀", EmuCore.KEY_LEFT, pads, pressed = (keys and EmuCore.KEY_LEFT) != 0)
+                        Spacer(Modifier.width(18.dp))
+                        PadLabel("▶", EmuCore.KEY_RIGHT, pads, pressed = (keys and EmuCore.KEY_RIGHT) != 0)
+                    }
+                    PadLabel("▼", EmuCore.KEY_DOWN, pads, pressed = (keys and EmuCore.KEY_DOWN) != 0)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        PadLabel("B", EmuCore.KEY_B, pads, 52.dp, (keys and EmuCore.KEY_B) != 0)
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            PadLabel("A", EmuCore.KEY_A, pads, 52.dp, (keys and EmuCore.KEY_A) != 0)
+                            Spacer(Modifier.height(4.dp))
+                        }
+                    }
+                }
+            }
+            // 底部：Select / Start
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
+                PadLabel("SE", EmuCore.KEY_SELECT, pads, 40.dp, (keys and EmuCore.KEY_SELECT) != 0)
+                Spacer(Modifier.width(20.dp))
+                PadLabel("ST", EmuCore.KEY_START, pads, 40.dp, (keys and EmuCore.KEY_START) != 0)
+            }
+        }
+    }
+
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 PadLabel("▲", EmuCore.KEY_UP, pads, pressed = (keys and EmuCore.KEY_UP) != 0)
@@ -630,6 +672,21 @@ private fun PlaceholderPage(title: String, hint: String) {
 @Composable
 private fun TeamPage(s: EmuStatus) {
     var detail by remember { mutableStateOf<TeamMon?>(null) }
+    if (detail != null) {
+        val m = detail!!
+        Column(Modifier.fillMaxSize()) {
+            Text(m.name, color = TXT, fontSize = 16.sp)
+            Spacer(Modifier.height(6.dp))
+            Text("等级 ${m.lv}", color = TXT, fontSize = 13.sp)
+            Text("HP ${m.hp}/${m.max}", color = TXT, fontSize = 13.sp)
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
+                modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
+            Spacer(Modifier.weight(1f))
+            BarButton("返回", true) { detail = null }
+        }
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         if (s.team.isEmpty()) {
             PlaceholderPage("队伍", "等待推送（或还没拿到宝可梦）")
@@ -645,24 +702,8 @@ private fun TeamPage(s: EmuStatus) {
                     progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
                     modifier = Modifier.fillMaxWidth().height(4.dp), color = GREEN)
             }
-            if (s.team.isNotEmpty()) Text("点名字看详情", color = DIM, fontSize = 10.sp)
+            Text("点名字看详情", color = DIM, fontSize = 10.sp)
         }
-    }
-    detail?.let { m ->
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { detail = null },
-            title = { Text(m.name) },
-            text = {
-                Column {
-                    Text("等级 ${m.lv}", fontSize = 12.sp)
-                    Text("HP ${m.hp}/${m.max}", fontSize = 12.sp)
-                    Text("队伍位置 ${m.name.ifBlank { "?" }}", fontSize = 11.sp, color = DIM)
-                }
-            },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { detail = null }) { Text("关闭") }
-            },
-        )
     }
 }
 
