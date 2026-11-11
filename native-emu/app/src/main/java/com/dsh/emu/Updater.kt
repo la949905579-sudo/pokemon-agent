@@ -92,12 +92,39 @@ object Updater {
     }
 
     /** 调系统安装器（需要 REQUEST_INSTALL_PACKAGES + FileProvider）。 */
-    fun install(activity: Activity, apk: File) {
+    /** 是否有「安装未知应用」权限（API 26+）。 */
+    fun canInstall(context: android.content.Context): Boolean {
+        return if (android.os.Build.VERSION.SDK_INT >= 26) {
+            context.packageManager.canRequestPackageInstalls()
+        } else true
+    }
+
+    /** 跳系统设置页允许安装。 */
+    fun openInstallSettings(activity: Activity) {
+        try {
+            val i = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:" + activity.packageName)
+            }
+            activity.startActivity(i)
+        } catch (e: Throwable) {
+            try {
+                activity.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES))
+            } catch (_: Throwable) {}
+        }
+    }
+
+    /** 安装前检查权限：没有就跳设置页并返回 false。 */
+    fun install(activity: Activity, apk: File): Boolean {
+        if (!canInstall(activity)) {
+            openInstallSettings(activity)
+            return false
+        }
         val uri: Uri = FileProvider.getUriForFile(activity, activity.packageName + ".fileprovider", apk)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         activity.startActivity(intent)
+        return true
     }
 }

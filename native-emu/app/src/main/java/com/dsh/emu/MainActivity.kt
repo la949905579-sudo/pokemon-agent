@@ -528,7 +528,9 @@ private fun UpdatePage(activity: MainActivity) {
                     activity.runOnUiThread {
                         if (ok) {
                             progress = -1
-                            Updater.install(activity, f)
+                            if (!Updater.install(activity, f)) {
+                                activity.statusText.value = "请在设置里允许「安装未知应用」后重试"
+                            }
                         } else {
                             progress = -1
                             activity.statusText.value = "下载失败"
