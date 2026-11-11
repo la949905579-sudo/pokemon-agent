@@ -140,6 +140,14 @@ class GameStateTest {
     }
 
     @Test
+    fun speciesNames() {
+        assertEquals("妙蛙种子", com.dsh.emu.game.Species.nameOf(1))
+        assertEquals("小火龙", com.dsh.emu.game.Species.nameOf(4))
+        assertEquals("梦幻", com.dsh.emu.game.Species.nameOf(151))
+        assertEquals("#999", com.dsh.emu.game.Species.nameOf(999))
+    }
+
+    @Test
     fun coordsNullWhenShortRead() {
         Memo.reader = { _, n -> null }
         assertNull(GameState.coords())
