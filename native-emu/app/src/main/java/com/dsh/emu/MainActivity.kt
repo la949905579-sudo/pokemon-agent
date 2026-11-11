@@ -620,12 +620,14 @@ private fun PlaceholderPage(title: String, hint: String) {
 
 @Composable
 private fun TeamPage(s: EmuStatus) {
+    var detail by remember { mutableStateOf<TeamMon?>(null) }
     Column(Modifier.fillMaxSize()) {
         if (s.team.isEmpty()) {
             PlaceholderPage("队伍", "等待推送（或还没拿到宝可梦）")
         } else {
             for (m in s.team) {
-                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp).clickable { detail = m },
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text(m.name, color = TXT, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Text("Lv${m.lv}", color = DIM, fontSize = 11.sp, modifier = Modifier.width(42.dp))
                     Text("${m.hp}/${m.max}", color = if (m.max > 0 && m.hp * 3 < m.max) Color(0xFFFF6060) else TXT, fontSize = 11.sp)
@@ -634,7 +636,24 @@ private fun TeamPage(s: EmuStatus) {
                     progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
                     modifier = Modifier.fillMaxWidth().height(4.dp), color = GREEN)
             }
+            if (s.team.isNotEmpty()) Text("点名字看详情", color = DIM, fontSize = 10.sp)
         }
+    }
+    detail?.let { m ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { detail = null },
+            title = { Text(m.name) },
+            text = {
+                Column {
+                    Text("等级 ${m.lv}", fontSize = 12.sp)
+                    Text("HP ${m.hp}/${m.max}", fontSize = 12.sp)
+                    Text("队伍位置 ${m.name.ifBlank { "?" }}", fontSize = 11.sp, color = DIM)
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { detail = null }) { Text("关闭") }
+            },
+        )
     }
 }
 
