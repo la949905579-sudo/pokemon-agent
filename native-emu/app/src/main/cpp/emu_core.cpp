@@ -154,10 +154,16 @@ uint64_t Emu::frameCount() {
 
 bool Emu::saveState(const char* path) {
     std::lock_guard<std::mutex> lk(mu_);
-    if (!core_ || !core_->saveState) return false;
+    nlog("save: begin");
+    if (!core_) { nlog("save: no core"); return false; }
+    if (!core_->saveState) { nlog("save: no api"); return false; }
+    size_t sz = core_->stateSize ? core_->stateSize(core_) : 0;
+    { char b[64]; snprintf(b, sizeof(b), "save: stateSize=%zu", sz); nlog(b); }
     struct VFile* vf = VFileOpen(path, O_WRONLY | O_CREAT | O_TRUNC);
-    if (!vf) return false;
+    if (!vf) { nlog("save: vfile fail"); return false; }
+    nlog("save: writing");
     bool ok = core_->saveState(core_, vf);
+    nlog(ok ? "save: ok" : "save: failed");
     vf->close(vf);
     return ok;
 }
