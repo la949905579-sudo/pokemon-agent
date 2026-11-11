@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    testImplementation("junit:junit:4.13.2")
 }
 
 // 构建前给 mGBA 插调试日志（定位 core->init 崩溃用）

@@ -1,0 +1,70 @@
+package com.dsh.emu.game
+
+/** 游戏状态解码（对应 Python 的 state.py / info.py 的只读部分）。 */
+object GameState {
+
+    data class Coords(val x: Int, val y: Int)
+
+    data class PartyMon(val slot: Int, val lv: Int, val hp: Int, val maxHp: Int, val pid: Long)
+
+    /** 坐标（地块坐标，原始值 - 7）。读不到返回 null。 */
+    fun coords(): Coords? {
+        val x = Memo.s16(Addresses.X_ADDR)
+        val y = Memo.s16(Addresses.Y_ADDR)
+        if (x == -1) return null
+        return Coords(x - Addresses.TILE_OFF, y - Addresses.TILE_OFF)
+    }
+
+    /** 是否在战斗中（0 = 地图）。 */
+    fun inBattle(): Boolean = Memo.u8(Addresses.BATTLE_FLAG) != 0
+
+    /** 回合阶段（1=主菜单 2=招式 4=动画 0=开场）。 */
+    fun turnFlag(): Int = Memo.u8(Addresses.TURN_FLAG)
+
+    /** 对话框是否打开。 */
+    fun inDialog(): Boolean = Memo.u8(Addresses.DIALOG_FLAG) != 0
+
+    /** 场景名（与 Python 的 info.scene() 保持一致的简化版）。 */
+    fun scene(): String {
+        if (!inBattle()) return "map"
+        return when (turnFlag()) {
+            0 -> "battle_intro"
+            1 -> "battle_main"
+            2 -> "battle_moves"
+            4 -> "anim"
+            else -> "battle"
+        }
+    }
+
+    /** 队伍（跳过空槽，等级 0 视为无效）。 */
+    fun party(): List<PartyMon> {
+        val buf = Memo.bytes(Addresses.PARTY_ADDR, Addresses.PARTY_STRIDE * 6) ?: return emptyList()
+        val out = mutableListOf<PartyMon>()
+        for (i in 0 until 6) {
+            val base = i * Addresses.PARTY_STRIDE
+            val lv = buf[base + Addresses.PARTY_LV].toInt() and 0xFF
+            if (lv <= 0 || lv > 100) continue
+            val hp = (buf[base + Addresses.PARTY_HP].toInt() and 0xFF) or
+                ((buf[base + Addresses.PARTY_HP + 1].toInt() and 0xFF) shl 8)
+            val mhp = (buf[base + Addresses.PARTY_HP + 2].toInt() and 0xFF) or
+                ((buf[base + Addresses.PARTY_HP + 3].toInt() and 0xFF) shl 8)
+            val pid = (0 until 4).fold(0L) { acc, k ->
+                acc or ((buf[base + Addresses.PARTY_PID + k].toLong() and 0xFF) shl (8 * k))
+            }
+            out.add(PartyMon(i, lv, hp, mhp, pid))
+        }
+        return out
+    }
+
+    /** 我方场上 species（战斗结构 +0）。 */
+    fun mySpecies(): Int = Memo.u16(Addresses.MY_BATTLE)
+
+    /** 敌方 species。 */
+    fun enemySpecies(): Int = Memo.u16(Addresses.EN_BATTLE)
+
+    /** 我方 4 个招式 id（+0x0C 起，4 × u16）。 */
+    fun myMoves(): List<Int> {
+        val base = Addresses.MY_BATTLE + 0x0C
+        return (0 until 4).map { i -> Memo.u16(base + i * 2) }
+    }
+}
