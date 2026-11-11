@@ -121,6 +121,7 @@
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
 | `docs/HANDOFF.md` | 交接文档（2026-11-12 05:25） | 保留 |
+| `docs/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
 | `docs/NATIVE_EMU.md` | 原生双屏 GBA 模拟器 · 项目规划（NATIVE_EMU） | 保留 |
 | `docs/NATIVE_EMU_TODO.md` | NativeEmu 待办 | 保留 |
 | `docs/NOTES.md` | 叶绿内存（实测） | 保留 |
@@ -237,4 +238,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 173 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 174 个文件（不含 `native-emu/third_party/` 第三方源码）。

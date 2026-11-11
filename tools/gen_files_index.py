@@ -26,7 +26,7 @@ OVERRIDES = {
     "bridge.py": ("平台", "注册制中间层（未接入主链路）"),
     "handlers.py": ("平台", "注册制中间层（未接入主链路）"),
     "emu_bridge.py": ("平台", "NativeEmu TCP 桥客户端（rd/wr/press/frame）"),
-    "incident_notes.md": ("文档", "事故与复盘记录"),
+    "INCIDENTS.md": ("文档", "事故复盘库（现象/根因/固化改动）"),
     "publish_release.py": ("构建", "把 CI 产物发布到 GitHub Release（OTA 更新源）"),
     "push_status.py": ("平台", "把状态推给模拟器下屏（:55401 status 命令）"),
     "run_game.py": ("平台", "插件化入口：EMU_BACKEND=native python3 run_game.py <game_id>"),
