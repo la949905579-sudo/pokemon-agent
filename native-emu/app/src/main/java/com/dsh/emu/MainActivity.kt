@@ -258,9 +258,7 @@ fun AppScreen(activity: MainActivity) {
     // 战斗结束回小地图
     LaunchedEffect(status.battle, page) {
         if (status.battle.isNotBlank()) {
-            if (page != Page.KEYS && page != Page.BATTLE) {
-                page = Page.BATTLE
-            }
+            if (page != Page.BATTLE) page = Page.BATTLE
         } else if (page == Page.BATTLE) {
             page = Page.MAP
         }
@@ -307,7 +305,7 @@ fun AppScreen(activity: MainActivity) {
                         page == Page.SAVE -> SavePage(activity, romReady, onRom = { activity.refreshRoms(); showRoms = true })
                         page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE })
                         page == Page.UPDATE -> UpdatePage(activity)
-                        page == Page.BATTLE -> BattlePage(status, onKeys = { page = Page.KEYS })
+                        page == Page.BATTLE -> BattlePage(status, keys, { k -> keys = k; EmuCore.setKeys(k) })
                         else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
                     }
                 }
@@ -554,7 +552,7 @@ private fun UpdatePage(activity: MainActivity) {
 
 
 @Composable
-private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
+private fun BattlePage(s: EmuStatus, keysState: Int, onChange: (Int) -> Unit) {
     Column(Modifier.fillMaxSize().padding(4.dp)) {
         // 敌方
         Text("敌方  Lv${s.foeLv}   ${s.foeHp}/${s.foeMax}", color = Color(0xFFFF9090), fontSize = 12.sp)
@@ -584,9 +582,9 @@ private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            BarButton("按键", false) { onKeys() }
-            BarButton("回小地图", false) { }
+        // 战斗中也要能按键：把按键区嵌进来
+        Box(Modifier.fillMaxWidth().height(120.dp)) {
+            KeyPadArea(keysState, onChange)
         }
     }
 }
