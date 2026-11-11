@@ -4,6 +4,10 @@ project(native-emu CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Debug 构建也开 -O2（mGBA 在 -O0 下只有 10fps）
+set(CMAKE_C_FLAGS_DEBUG "-O2 -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -g")
+
 # 给 mGBA 的 core init 插调试日志（崩在 core->init 时定位用）
 set(EMU_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../../..)
 execute_process(COMMAND python3 ${EMU_ROOT}/tools/patch_mgba.py
