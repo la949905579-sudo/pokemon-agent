@@ -240,7 +240,16 @@ fun AppScreen(activity: MainActivity) {
     val romReady = activity.romReadyState.value
     val running = activity.runningState.value
     val roms = activity.romListState.value
-    val status = parseStatus(UiState.statusJson.value)
+    // 优先用本地 Kotlin 读取；推送数据仅作兜底
+    var localJson by remember { mutableStateOf("") }
+    LaunchedEffect(romReady) {
+        while (romReady) {
+            localJson = buildLocalStatusJson()
+            kotlinx.coroutines.delay(500)
+        }
+    }
+    val pushed = parseStatus(UiState.statusJson.value)
+    val status = if (localJson.isNotBlank()) parseStatus(localJson) else pushed
     val logs = UiState.logs.value
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
@@ -654,5 +663,54 @@ private fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () ->
         Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
             onUpdate()
         }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
+    }
+}
+
+
+/** 用 Kotlin GameState 直接读内存，组装下屏用的 JSON（与 Python 推送格式一致）。 */
+private fun buildLocalStatusJson(): String {
+    return try {
+        val c = com.dsh.emu.game.GameState.coords()
+        val party = com.dsh.emu.game.GameState.party()
+        val scene = com.dsh.emu.game.GameState.scene()
+        val battle = if (scene.startsWith("battle")) scene else ""
+        val o = org.json.JSONObject()
+        o.put("map", scene)
+        o.put("x", c?.x ?: 0)
+        o.put("y", c?.y ?: 0)
+        o.put("battle", battle)
+        val team = org.json.JSONArray()
+        for (m in party) {
+            val t = org.json.JSONObject()
+            t.put("name", "#" + (m.slot + 1))
+            t.put("lv", m.lv)
+            t.put("hp", m.hp)
+            t.put("max", m.maxHp)
+            team.put(t)
+        }
+        o.put("team", team)
+        if (battle.isNotBlank()) {
+            val detail = org.json.JSONObject()
+            val moves = org.json.JSONArray()
+            for (mid in com.dsh.emu.game.GameState.myMoves()) {
+                val info = com.dsh.emu.game.GameData.moves[mid]
+                moves.put(if (info != null) info.first else "")
+            }
+            val me = org.json.JSONObject()
+            me.put("lv", party.firstOrNull()?.lv ?: 0)
+            me.put("hp", party.firstOrNull()?.hp ?: 0)
+            me.put("mhp", party.firstOrNull()?.maxHp ?: 0)
+            me.put("moves", moves)
+            detail.put("me", me)
+            val foe = org.json.JSONObject()
+            foe.put("lv", 0)
+            foe.put("hp", 0)
+            foe.put("mhp", 0)
+            detail.put("foe", foe)
+            o.put("battle_detail", detail)
+        }
+        o.toString()
+    } catch (e: Throwable) {
+        ""
     }
 }
