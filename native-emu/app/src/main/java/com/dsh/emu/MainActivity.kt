@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
 class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     @Volatile private var running = false
     @Volatile private var shouldRun = false
-    @Volatile var speed = 1   # 1x / 2x / 4x：每帧跑几次 runFrame
+    @Volatile var speed = 1   // 1x / 2x / 4x：每帧跑几次 runFrame
     @Volatile private var surfaceReady = false
     private var thread: Thread? = null
     private var bmp: Bitmap? = null
