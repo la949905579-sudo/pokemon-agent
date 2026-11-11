@@ -3,6 +3,7 @@
 #include <cstring>
 #include <vector>
 #include "emu_core.h"
+#include <mgba-util/image.h>
 
 #define LOG_TAG "native-emu"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -88,15 +89,10 @@ Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
     if (!arr) return nullptr;
     std::vector<jint> tmp((size_t)(w * h));
     if (emu::Emu::bytesPerPixel() == 2) {
-        // mGBA 输出 RGB565（uint16）
+        // 交给 mGBA 官方转换：mColor -> ARGB8，避免猜通道顺序
         const uint16_t* p16 = (const uint16_t*) buf;
         for (int i = 0; i < w * h; i++) {
-            uint32_t c = p16[i];
-            // RGB565：R/B 5 位，G 6 位，按各自位宽线性映射到 8 位
-            uint32_t r = ((c & 0x1F) * 255) / 31;
-            uint32_t g = (((c >> 5) & 0x3F) * 255) / 63;
-            uint32_t b = (((c >> 11) & 0x1F) * 255) / 31;
-            tmp[i] = (jint)(0xFF000000u | (r << 16) | (g << 8) | b);
+            tmp[i] = (jint) mColorConvert(p16[i], mCOLOR_NATIVE, mCOLOR_ARGB8);
         }
     } else {
     // mGBA 32 位像素是 ABGR（0xAABBGGRR），Android Bitmap 要 ARGB（0xAARRGGBB）
