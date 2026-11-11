@@ -185,6 +185,7 @@ fun AppScreen(activity: MainActivity) {
     var showRoms by remember { mutableStateOf(false) }
     var areaOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     val pads = remember { mutableStateListOf<PadPos>() }
+    val pointerMasks = remember { mutableMapOf<Int, Int>() }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
     val status = activity.statusText.value
@@ -233,24 +234,38 @@ fun AppScreen(activity: MainActivity) {
                             .onGloballyPositioned { areaOrigin = it.localToWindow(androidx.compose.ui.geometry.Offset.Zero) }
                             .pointerInteropFilter { ev ->
                                 val action = ev.actionMasked
-                                if (action == android.view.MotionEvent.ACTION_UP ||
-                                    action == android.view.MotionEvent.ACTION_CANCEL) {
-                                    if (keys != 0) { keys = 0; EmuCore.setKeys(0) }
-                                    return@pointerInteropFilter true
-                                }
-                                // ACTION_POINTER_UP：抬起的是 actionIndex 那根，跳过它重算
-                                val skip = if (action == android.view.MotionEvent.ACTION_POINTER_UP) ev.actionIndex else -1
-                                var mask = 0
-                                for (i in 0 until ev.pointerCount) {
-                                    if (i == skip) continue
-                                    val px = ev.getX(i) + areaOrigin.x
-                                    val py = ev.getY(i) + areaOrigin.y
+                                fun hitAt(idx: Int): Int {
+                                    val px = ev.getX(idx) + areaOrigin.x
+                                    val py = ev.getY(idx) + areaOrigin.y
                                     for (p in pads) {
                                         val dx = px - p.cx
                                         val dy = py - p.cy
-                                        if (dx * dx + dy * dy <= p.r * p.r) { mask = mask or p.mask; break }
+                                        if (dx * dx + dy * dy <= p.r * p.r) return p.mask
                                     }
+                                    return 0
                                 }
+                                when (action) {
+                                    android.view.MotionEvent.ACTION_DOWN,
+                                    android.view.MotionEvent.ACTION_POINTER_DOWN -> {
+                                        val idx = ev.actionIndex
+                                        val m = hitAt(idx)
+                                        if (m != 0) pointerMasks[ev.getPointerId(idx)] = m
+                                    }
+                                    android.view.MotionEvent.ACTION_MOVE -> {
+                                        for (i in 0 until ev.pointerCount) {
+                                            val id = ev.getPointerId(i)
+                                            val m = hitAt(i)
+                                            if (m != 0) pointerMasks[id] = m else pointerMasks.remove(id)
+                                        }
+                                    }
+                                    android.view.MotionEvent.ACTION_POINTER_UP -> {
+                                        pointerMasks.remove(ev.getPointerId(ev.actionIndex))
+                                    }
+                                    android.view.MotionEvent.ACTION_UP,
+                                    android.view.MotionEvent.ACTION_CANCEL -> pointerMasks.clear()
+                                }
+                                var mask = 0
+                                for (m in pointerMasks.values) mask = mask or m
                                 if (mask != keys) { keys = mask; EmuCore.setKeys(mask) }
                                 true
                             }
