@@ -307,7 +307,9 @@ fun AppScreen(activity: MainActivity) {
                                     }.padding(vertical = 6.dp))
                             }
                         }
-                        page == Page.MAP -> MinimapPage(status)
+                        page == Page.MAP -> MinimapPage(status) { tx, ty ->
+                            walkTo(activity, status, tx, ty)
+                        }
                         page == Page.TEAM -> TeamPage(status)
                         page == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
                         page == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
@@ -346,10 +348,20 @@ private fun BarButton(label: String, active: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun MinimapPage(s: EmuStatus) {
+private fun MinimapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit = { _, _ -> }) {
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).background(Color(0xFF14200F), RoundedCornerShape(12.dp))) {
-            androidx.compose.foundation.Canvas(Modifier.fillMaxSize().padding(6.dp)) {
+            androidx.compose.foundation.Canvas(
+                Modifier.fillMaxSize().padding(6.dp)
+                    .pointerInput(s.mmW, s.mmH) {
+                        android.gestures.detectTapGestures { off ->
+                            if (s.mmW <= 0 || s.mmH <= 0) return@detectTapGestures
+                            val tx = (off.x / size.width * s.mmW).toInt().coerceIn(0, s.mmW - 1)
+                            val ty = (off.y / size.height * s.mmH).toInt().coerceIn(0, s.mmH - 1)
+                            onWalk(tx, ty)
+                        }
+                    }
+            ) {
                 val w = s.mmW.coerceAtLeast(1)
                 val h = s.mmH.coerceAtLeast(1)
                 val cw = size.width / w
@@ -788,4 +800,33 @@ private fun buildLocalStatusJson(): String {
     } catch (e: Throwable) {
         ""
     }
+}
+
+
+/** 点击小地图走到目标格：BFS 算方向序列，再逐个按键。 */
+private fun walkTo(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
+    val tiles = s.mmTiles ?: run {
+        activity.statusText.value = "没有地图数据"
+        return
+    }
+    val from = com.dsh.emu.game.MapWalker.Point(s.mmPx, s.mmPy)
+    val to = com.dsh.emu.game.MapWalker.Point(tx, ty)
+    val steps = com.dsh.emu.game.MapWalker.path(tiles, from, to)
+    if (steps == null) { activity.statusText.value = "走不到 ($tx,$ty)"; return }
+    if (steps.isEmpty()) { activity.statusText.value = "已经在这里"; return }
+    activity.statusText.value = "前往 ($tx,$ty)：${steps.size} 步"
+    Thread {
+        for (dir in steps) {
+            val mask = when (dir) {
+                "UP" -> com.dsh.emu.EmuCore.KEY_UP
+                "DOWN" -> com.dsh.emu.EmuCore.KEY_DOWN
+                "LEFT" -> com.dsh.emu.EmuCore.KEY_LEFT
+                else -> com.dsh.emu.EmuCore.KEY_RIGHT
+            }
+            com.dsh.emu.EmuCore.setKeys(mask)
+            try { Thread.sleep(180) } catch (_: InterruptedException) {}
+            com.dsh.emu.EmuCore.setKeys(0)
+            try { Thread.sleep(90) } catch (_: InterruptedException) {}
+        }
+    }.start()
 }
