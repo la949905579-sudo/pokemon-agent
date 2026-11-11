@@ -5,6 +5,17 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("fixed") {
+            storeFile = file("keystore.jks")
+            storePassword = "emu123456"
+            keyAlias = "emu"
+            keyPassword = "emu123456"
+        }
+    }
+    buildTypes {
+        debug { signingConfig = signingConfigs.getByName("fixed") }
+    }
     namespace = "com.dsh.emu"
     compileSdk = 34
     ndkVersion = "27.0.12077973"
