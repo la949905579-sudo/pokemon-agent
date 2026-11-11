@@ -53,6 +53,12 @@
       `MOVE_CURSOR`(0x02023FFC，0左上/1右上/2左下/3右下) → 方向键序列 → 回读光标确认
       防护：执行前二次确认（`TURN_FLAG==2` 且光标读数一致），不一致就停
 
+### P1 · 可观测性（按 docs/OBSERVABILITY.md 落地）
+- [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `2fc5ad8`
+- [ ] 安装结果回调日志（`PACKAGE_ADDED` / `PackageInstaller`），现在只到“拉起安装器”
+- [ ] 日志写入改异步（当前在 UI 线程同步写 `/sdcard`，StrictMode 有抖动风险）
+- [ ] 桥（connect/cmd 失败）与帧循环异常按规范补日志
+
 ### P2 · 寻路
 - [ ] **A* 跨图移植**：`nav/pathfind` 的跨图逻辑搬到 Kotlin（同图 BFS 已完成）
 - [ ] **实机对照**：Kotlin 决策 vs Python 版行为一致
