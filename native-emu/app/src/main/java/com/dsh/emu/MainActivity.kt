@@ -231,7 +231,7 @@ private fun parseStatus(json: String): EmuStatus {
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun AppScreen(activity: MainActivity) {
-    var page by remember { mutableStateOf(Page.MINIMAP) }
+    var page by remember { mutableStateOf(Page.MAP) }
     var frame by remember { mutableStateOf(0L) }
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
@@ -253,7 +253,7 @@ fun AppScreen(activity: MainActivity) {
                 page = Page.BATTLE
             }
         } else if (page == Page.BATTLE) {
-            page = Page.MINIMAP
+            page = Page.MAP
         }
     }
 
