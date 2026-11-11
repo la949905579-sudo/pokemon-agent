@@ -59,33 +59,37 @@ P0 已跑通并在手机上实测：
 
 ## 三、P0 任务清单（验收制）
 
+> **历史计划，已全部完成**（2026-11-12 复核）。当前进度与待办以 `NATIVE_EMU_TODO.md` 为准；
+> 本节保留当初的验收标准，方便回看。
+
+
 ### P0-1 编译链（2-3 天）
-- [ ] 拉 mGBA 源码（tag 稳定版），确认 `-DBUILD_...` 选项
-- [ ] NDK arm64 编译出 `libmgba.so`（先关 png/zlib/ffmpeg 等可选依赖）
-- [ ] 写 `CMakeLists.txt` 接入 Gradle `externalNativeBuild`
-- [ ] 验收：`nm -D libmgba.so` 能看到 `mCoreInit` 等符号；APK 装进手机不崩
+- [x] 拉 mGBA 源码（tag 稳定版），确认 `-DBUILD_...` 选项
+- [x] NDK arm64 编译出 `libmgba.so`（先关 png/zlib/ffmpeg 等可选依赖）
+- [x] 写 `CMakeLists.txt` 接入 Gradle `externalNativeBuild`
+- [x] 验收：`nm -D libmgba.so` 能看到 `mCoreInit` 等符号；APK 装进手机不崩
 
 ### P0-2 最小 JNI（1-2 天）
-- [ ] JNI 层实现 `init/start/pause/stop/runFrame/setKeys`
-- [ ] 验收：logcat 打印帧号持续增长，CPU 占用正常
+- [x] JNI 层实现 `init/start/pause/stop/runFrame/setKeys`
+- [x] 验收：logcat 打印帧号持续增长，CPU 占用正常
 
 ### P0-3 上屏渲染（2-3 天）
-- [ ] `runFrame` 后从 mGBA 取 240×160 帧缓冲（RGB565→ARGB8888）
-- [ ] 渲染线程 → Bitmap → SurfaceView（或 `lockCanvas`）
-- [ ] 验收：画面流畅（≥50fps），无撕裂/绿屏
+- [x] `runFrame` 后从 mGBA 取 240×160 帧缓冲（RGB565→ARGB8888）
+- [x] 渲染线程 → Bitmap → SurfaceView（或 `lockCanvas`）
+- [x] 验收：画面流畅（≥50fps），无撕裂/绿屏
 
 ### P0-4 触屏按键（1-2 天）
-- [ ] 虚拟 D-pad + A/B + Start/Select（Compose 覆盖层）
-- [ ] 触摸状态 → 按键位掩码 → `setKeys`
-- [ ] 验收：能玩到游戏标题、能移动
+- [x] 虚拟 D-pad + A/B + Start/Select（Compose 覆盖层）
+- [x] 触摸状态 → 按键位掩码 → `setKeys`
+- [x] 验收：能玩到游戏标题、能移动
 
 ### P0-5 存档/加载（1 天，P2 前先用）
-- [ ] `saveState()/loadState()` 走 JNI
-- [ ] 验收：存档再读档，进度一致
+- [x] `saveState()/loadState()` 走 JNI
+- [x] 验收：存档再读档，进度一致
 
 ### P0-6 冒烟（0.5 天）
-- [ ] 加载 ROM 玩 10 分钟不崩、不丢帧
-- [ ] 记录帧率/内存/电量基线
+- [x] 加载 ROM 玩 10 分钟不崩、不丢帧
+- [x] 记录帧率/内存/电量基线
 
 **合计约 8-12 天（单人）。**
 

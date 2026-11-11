@@ -8,7 +8,8 @@
 - RetroArch（mGBA 核心）+ 游戏**必须前台**（后台会暂停，内存读不到）
 - UDP 通道：读内存 `127.0.0.1:55355`，按键 `127.0.0.1:55400`
 - 所有命令在 `/root/workspace` 下执行
-- 测试全离线：`python3 run_tests.py`（当前 **24/24**）
+- 测试全离线：`python3 run_tests.py`（当前 **28/28**，即 28 个 `test_*.py`；`run_tests.py` 按文件计数）
+- 模拟器后端：`EMU_BACKEND=native` 走 NativeEmu 的 TCP 桥（见第 12 节），不设则走上面的 RetroArch 通道
 
 ---
 
@@ -292,3 +293,59 @@ python3 changelog.py            # 生成 CHANGELOG 草稿
 4. `gMapHeader` 指针可能是垃圾值 → 靠 EWRAM 扫描兜底 + 缓存
 5. 单向坎：高→低可跳，反向不行；树苗 317 需居合斩
 6. 覆盖层（`maps/override_*.json`）是实测校正，别随手删
+
+---
+
+## 12. NativeEmu（Android 模拟器 + TCP 桥）
+
+**是什么**：`native-emu/` 里的自研双屏 GBA 模拟器（mGBA 内核 + Kotlin/Compose + NDK）。上屏玩游戏，下屏是控制台；自动化通过本机 TCP 桥读写内存和按键。
+
+### 12.1 Python 侧客户端
+
+```bash
+# 切到原生后端（默认走 RetroArch UDP）
+export EMU_BACKEND=native
+python3 -c "import memory; print(memory.rd(0x02024284, 32).hex())"
+```
+
+- `emu_bridge.py`：`rd/wr/press/frame/ping`，端口 `127.0.0.1:55401`
+- `memory.py` / `ra.py`：按 `EMU_BACKEND` 分派，其余代码不用改
+- 桥是行协议，**单连接串行**；一次只发一条，别并发
+
+### 12.2 桥命令（行协议）
+
+| 命令 | 返回 | 说明 |
+|---|---|---|
+| `ping` | `pong` | 探活 |
+| `read <addrHex> <len>` | `ok <hex>` | 读内存，地址如 `2024284` |
+| `write <addrHex> <hex>` | `ok` | 写内存 |
+| `press <mask> <ms>` | `ok` | A=1 B=2 SELECT=4 START=8 RIGHT=16 LEFT=32 UP=64 DOWN=128 R=256 L=512 |
+| `frame` | `ok <n>` | 当前帧号 |
+| `status <json>` | `ok` | 外部推送下屏状态（map/x/y/team/battle） |
+
+### 12.3 构建与发布（本机不能编译）
+
+手机是 arm64 + proot，NDK/aapt2 是 x86_64，**本地一定编不过**，只能走 CI：
+
+```bash
+git push                                   # 改 native-emu/** 触发 .github/workflows/build-native-emu.yml
+# CI 跑 :app:testDebugUnitTest + :app:assembleDebug，产物 artifact app-debug
+GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>   # 构建失败会拒绝发布
+```
+
+- 签名固定 `native-emu/app/keystore.jks`（口令 `emu123456`），换签名会 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
+- `publish_release.py` 只发**最新一次成功构建**的 APK；构建红的时候别手动补发
+
+### 12.4 日志位置（排查第一步）
+
+| 文件 | 内容 |
+|---|---|
+| `/sdcard/Download/emu_native.log` | 内核 init 步骤、ROM 加载 |
+| `/sdcard/Download/service.log` | 前台服务/保活 |
+| `/sdcard/Download/bridge.log` | TCP 桥连接 |
+
+### 12.5 改 Kotlin 前的三个坑
+
+1. 缺 Compose import 是最常见的 CI 红（如 `detectTapGestures` 要 `androidx.compose.foundation.gestures.*`），**改完先在本地 grep 一遍 import**
+2. 构建失败时**别用空提交反复触发**，先看 CI 的 `e: file://…` 行定位哪个文件哪一行
+3. 内核侧坑（编译宏、初始化顺序、skipBios、RGB565）见 `native-emu/README.md`，别在这里改
