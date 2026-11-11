@@ -199,6 +199,43 @@ export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
 /opt/gradle-8.9/bin/gradle :app:assembleDebug --no-daemon
 ```
 
+## 构建与发布（2026-11-11 实测流程）
+
+**本地完整构建不可行**：手机是 arm64 + proot，NDK 的 clang/aapt2 是 x86_64（qemu 嵌套 exec 不可用）。
+**用 GitHub Actions 构建**（x86_64 runner）：
+
+```bash
+# 1) 推送触发（paths: native-emu/**）
+git push
+
+# 2) 下载产物（需要 GITHUB_TOKEN）
+curl -L -H "Authorization: token $GITHUB_TOKEN" \
+  "https://api.github.com/repos/<owner>/<repo>/actions/artifacts/<id>/zip" -o apk.zip
+unzip -o apk.zip -d /sdcard/Download/DSH-Go/
+
+# 3) 发布到 Releases（App 内 OTA 的更新源）
+GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
+```
+
+**OTA 链路**：`publish_release.py` → GitHub Releases（说明取 git 提交信息）
+→ App 的「MENU → 更新」检查 `releases/latest` → 下载（带 UA + APK 头校验）→ 系统安装器。
+
+> 签名固定在 `native-emu/app/keystore.jks`（口令 emu123456），所以可以覆盖安装。
+> 换签名会导致 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
+
+## TCP 桥协议（:55401，行协议）
+
+| 命令 | 返回 | 说明 |
+|---|---|---|
+| `ping` | `pong` | 探活 |
+| `read <addrHex> <len>` | `ok <hexBytes>` | 读内存（地址如 `202c000`） |
+| `write <addrHex> <hex>` | `ok` | 写内存 |
+| `press <mask> <ms>` | `ok` | 按键（A=1 B=2 SELECT=4 START=8 RIGHT=16 LEFT=32 UP=64 DOWN=128 R=256 L=512） |
+| `frame` | `ok <n>` | 当前帧计数 |
+| `status <json>` | `ok` | 外部推送下屏状态（map/x/y/team/battle） |
+
+Python 客户端：`emu_bridge.py`（rd/wr/press/frame/ping）。
+
 ## 五、目录结构建议
 
 ```
