@@ -87,17 +87,17 @@ Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
     jintArray arr = env->NewIntArray(w * h);
     if (!arr) return nullptr;
     std::vector<jint> tmp((size_t)(w * h));
-#if BYTES_PER_PIXEL == 2
-    // mGBA 输出 RGB565（uint16）：低字节在前
-    const uint16_t* p16 = (const uint16_t*) buf;
-    for (int i = 0; i < w * h; i++) {
-        uint32_t c = p16[i];
-        uint32_t r = (c & 0x1F) << 3;
-        uint32_t g = ((c >> 5) & 0x3F) << 2;
-        uint32_t b = ((c >> 11) & 0x1F) << 3;
-        tmp[i] = (jint)(0xFF000000u | (r << 16) | (g << 8) | b);
-    }
-#else
+    if (emu::Emu::bytesPerPixel() == 2) {
+        // mGBA 输出 RGB565（uint16）
+        const uint16_t* p16 = (const uint16_t*) buf;
+        for (int i = 0; i < w * h; i++) {
+            uint32_t c = p16[i];
+            uint32_t r = (c & 0x1F) << 3;
+            uint32_t g = ((c >> 5) & 0x3F) << 2;
+            uint32_t b = ((c >> 11) & 0x1F) << 3;
+            tmp[i] = (jint)(0xFF000000u | (r << 16) | (g << 8) | b);
+        }
+    } else {
     // mGBA 32 位像素是 ABGR（0xAABBGGRR），Android Bitmap 要 ARGB（0xAARRGGBB）
     for (int i = 0; i < w * h; i++) {
         uint32_t c = buf[i];
@@ -108,7 +108,7 @@ Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
         if (a == 0) a = 0xFF;
         tmp[i] = (jint)((a << 24) | (r << 16) | (g << 8) | b);
     }
-#endif
+    }
     env->SetIntArrayRegion(arr, 0, w * h, tmp.data());
     return arr;
 }

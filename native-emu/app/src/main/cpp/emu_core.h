@@ -40,6 +40,8 @@ public:
     bool saveState(const char* path);
     bool loadState(const char* path);
 
+    static int bytesPerPixel();
+
     static constexpr int VIDEO_W = 240;
     static constexpr int VIDEO_H = 160;
 

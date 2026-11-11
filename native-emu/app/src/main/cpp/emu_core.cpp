@@ -154,6 +154,10 @@ uint64_t Emu::frameCount() {
     return frames_;
 }
 
+int Emu::bytesPerPixel() {
+    return BYTES_PER_PIXEL;
+}
+
 bool Emu::saveState(const char* path) {
     std::lock_guard<std::mutex> lk(mu_);
     nlog("save: begin");
