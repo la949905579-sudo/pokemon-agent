@@ -37,14 +37,16 @@ add_library(emu SHARED
 
 target_include_directories(emu PRIVATE ${MGBA_DIR}/include)
 
-# libretro 官方给 mGBA 用的是 DISABLE_THREADING（Android 上线程代理易崩）。
-# 该宏会改变结构体布局，库和调用方必须一致定义。
-# libretro 官方给 mGBA 用的是 DISABLE_THREADING（Android 上线程代理易崩）。
-# 该宏会改变结构体布局，库和调用方必须一致定义。
+# 关键：emu 与 libmgba 必须使用完全一致的编译宏，否则 struct mCore 布局不一致，
+# 读 core->init 等函数指针会拿到垃圾地址。
 foreach(def DISABLE_THREADING ENABLE_VFS COLOR_16_BIT COLOR_5_6_5)
     target_compile_definitions(mgba PRIVATE ${def})
-    target_compile_definitions(emu PRIVATE ${def})
 endforeach()
+get_target_property(MGBA_DEFS mgba COMPILE_DEFINITIONS)
+if(MGBA_DEFS)
+    target_compile_definitions(emu PRIVATE ${MGBA_DEFS})
+endif()
+message(STATUS "mgba defs: ${MGBA_DEFS}")
 
 # 如果 mGBA 目标是 mgba（静态/共享），直接链；否则按需调整
 target_link_libraries(emu PRIVATE mgba android log m)
