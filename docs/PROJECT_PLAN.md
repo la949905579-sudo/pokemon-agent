@@ -120,12 +120,12 @@ class GamePlugin(Protocol):
 - TCP 桥 + Python 客户端
 - 后台常驻 + OTA
 
-### P1 · 插件化（下一步，约 1 周）
-- [ ] 抽出 `GamePlugin` 接口 + `_template`
-- [ ] Pokemon 迁入 `games/pokemon_firered/`
-- [ ] `runner.py` 统一主循环
-- [ ] 测试保持 25/25
-- **验收**：`python3 runner.py pokemon_firered` 能跑起来
+### P1 · 插件化（✅ 2026-11-11 完成）
+- [x] 抽出 `GamePlugin` 接口 + `_template`（`framework/game_plugin.py`）
+- [x] Pokemon 插件 `games/pokemon_firered/`（包装现有 info/state，零改动）
+- [x] `framework/runner.py` 通用主循环 + `framework/loader.py` + `run_game.py`
+- [x] 测试 28/28
+- **用法**：`EMU_BACKEND=native python3 run_game.py pokemon_firered`
 
 ### P2 · 第二个游戏（约 1-2 周）
 - [ ] 选一个结构简单的游戏（候选：黄金太阳、火焰纹章、星之卡比）
