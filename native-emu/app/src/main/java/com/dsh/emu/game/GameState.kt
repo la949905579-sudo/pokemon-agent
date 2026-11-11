@@ -112,3 +112,4 @@ object GameState {
         return (0 until 4).map { i -> Memo.u16(base + i * 2) }
     }
 }
+// build trigger 2026-11-12
