@@ -32,6 +32,8 @@ def api(path, method="GET", data=None):
 def latest_run_artifact():
     runs = api(f"/repos/{OWNER}/{REPO}/actions/runs?per_page=1")["workflow_runs"]
     run = runs[0]
+    if run.get("conclusion") != "success":
+        raise Exception("最新构建未成功（%s），拒绝发布" % run.get("conclusion"))
     arts = api(f"/repos/{OWNER}/{REPO}/actions/runs/{run['id']}/artifacts")["artifacts"]
     if not arts:
         raise Exception("没有 artifact")
@@ -60,6 +62,8 @@ def main():
         tag = sys.argv[1] if len(sys.argv) > 1 else "build-" + sha
         apk = download_apk(aid)
     except Exception as e:
+        if "拒绝发布" in str(e):
+            raise SystemExit(str(e))
         print("artifact 获取失败(%s)，改用本地 APK" % e)
         sha = "local"
         tag = sys.argv[1] if len(sys.argv) > 1 else "local-build"
