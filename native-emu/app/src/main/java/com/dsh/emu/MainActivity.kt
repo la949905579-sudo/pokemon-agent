@@ -51,15 +51,27 @@ class MainActivity : ComponentActivity() {
         runningState.value = false
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 回前台自动恢复（只有已载入 ROM 才恢复）
+        if (romReadyState.value) {
+            EmuCore.resume()
+            runningState.value = true
+        }
+    }
+
     fun scanRoms(): List<File> {
         if (!hasAllFiles()) return emptyList()
-        val dirs = listOf("/sdcard/rom/gba", "/sdcard/ROM/gba", "/sdcard/Download", "/sdcard/Documents")
+        val dirs = listOf("/sdcard/rom/gba", "/sdcard/Download", "/sdcard/Documents")
         val out = mutableListOf<File>()
         for (d in dirs) {
             File(d).listFiles()?.filter { it.isFile && it.name.lowercase().endsWith(".gba") }
                 ?.let { out.addAll(it) }
         }
-        return out.distinctBy { it.absolutePath }.sortedBy { it.name }
+        // Android 存储大小写不敏感，用 canonicalPath 去重
+        return out.distinctBy {
+            try { it.canonicalPath } catch (e: Exception) { it.absolutePath }
+        }.sortedBy { it.name }
     }
 
     fun hasAllFiles(): Boolean =
