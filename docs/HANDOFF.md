@@ -20,7 +20,8 @@
 
 ## 二·五、构建与发布现状（2026-11-12 05:35 实测）
 
-- HEAD = `4c76a5b`，**CI 已通过**（run 43103245820，05:30），APK 已发到 Release `build-4c76a5b`。
+- HEAD = `ccdc130`（代码树 = `4c76a5b`）；CI 已在 `4c76a5b` 通过（run 43103245820，05:30），
+  APK 已发到 Release `build-4c76a5b`。之后的提交只改 `docs/`，不触发构建。
 - 之前 03:51–05:26 连续失败的两层原因，都已修掉：
   1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
   2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
@@ -71,6 +72,13 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 当前 token 的明文不写进仓库（GitHub Push Protection 会阻止）。需要时向物主索取。
 旧 token 已全部删除；新 token 有 repo + workflow 权限，2026-12-11 到期。
 到期后重新生成：设置 → Developer settings → Personal access tokens (classic)。
+
+## 六·五、安全债（考官 2026-11-12 提出）
+
+- **签名私钥在公开仓库里**：`native-emu/app/keystore.jks` + 文档里的固定口令。仓库是 public，
+  等于签名私钥公开——理论上任何人只要拿到推送权限就能签一个「同签名」的包，App 会当正常更新收下。
+  彻底解决要轮换签名，但会导致已装 App 无法覆盖升级（要卸载重装），所以先记录、不贸然动。
+- 凭据纪律：token 不进仓库、不进文档、用完即删（已按此执行过一次）。
 
 ## 七、注意
 
