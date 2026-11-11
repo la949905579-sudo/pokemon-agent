@@ -13,8 +13,8 @@ class SwitchDeciderTest {
     fun takesDamageSuperEffective() {
         // 火 打 草 = 2.0
         assertEquals(2.0, SwitchDecider.takesDamage(listOf("草"), listOf("火")), 0.001)
-        // 草 抗 水 = 0.5
-        assertEquals(0.5, SwitchDecider.takesDamage(listOf("水"), listOf("草")), 0.001)
+        // 水打草 = 2.0... 实际表里 水→草 是 0.5（草抗水）；草→水 是 2.0
+        assertEquals(2.0, SwitchDecider.takesDamage(listOf("水"), listOf("草")), 0.001)
     }
 
     @Test
