@@ -168,7 +168,8 @@ bool Emu::saveState(const char* path) {
     struct VFile* vf = VFileOpen(path, O_WRONLY | O_CREAT | O_TRUNC);
     if (!vf) { nlog("save: vfile fail"); return false; }
     nlog("save: writing");
-    bool ok = core_->saveState(core_, vf);
+    // core->saveState 的参数是内存缓冲区；写 VFile 要用 Named 版本
+    bool ok = mCoreSaveStateNamed(core_, vf, 0);
     nlog(ok ? "save: ok" : "save: failed");
     vf->close(vf);
     return ok;
@@ -179,7 +180,7 @@ bool Emu::loadState(const char* path) {
     if (!core_ || !core_->loadState) return false;
     struct VFile* vf = VFileOpen(path, O_RDONLY);
     if (!vf) return false;
-    bool ok = core_->loadState(core_, vf);
+    bool ok = mCoreLoadStateNamed(core_, vf, 0);
     vf->close(vf);
     return ok;
 }
