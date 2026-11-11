@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 import java.io.File
 
-enum class Page { MINIMAP, MENU, LOG, KEYS, UPDATE, BATTLE }
+enum class Page { MAP, TEAM, BAG, NICK, DEX, NAU, SAVE, OPTION, BATTLE, KEYS, UPDATE }
 
 class MainActivity : ComponentActivity() {
     val statusText = mutableStateOf("")
@@ -274,65 +274,46 @@ fun AppScreen(activity: MainActivity) {
             if (!romReady) Text("点 MENU → ROM 选择游戏", color = DIM, fontSize = 12.sp)
         }
 
-        // 下屏
-        Column(Modifier.weight(1f).fillMaxWidth().background(PANEL).padding(8.dp)) {
+        // 下屏：左侧内容 + 右侧竖排 Tab
+        Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
             Text("${if (status.map.isNotBlank()) status.map else "—"}  (${status.x}, ${status.y})   帧 $frame  FPS $fps",
-                color = DIM, fontSize = 11.sp)
-
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                when {
-                    showRoms -> LazyColumn(Modifier.fillMaxSize()) {
-                        items(roms) { f ->
-                            Text(f.name, color = Color(0xFF9AD0FF), fontSize = 12.sp,
-                                modifier = Modifier.fillMaxWidth().clickable {
-                                    showRoms = false
-                                    activity.loadRom(f)
-                                }.padding(vertical = 6.dp))
+                color = DIM, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+            Row(Modifier.weight(1f).fillMaxWidth().padding(6.dp)) {
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    when {
+                        showRoms -> LazyColumn(Modifier.fillMaxSize()) {
+                            items(roms) { f ->
+                                Text(f.name, color = Color(0xFF9AD0FF), fontSize = 12.sp,
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        showRoms = false
+                                        activity.loadRom(f)
+                                    }.padding(vertical = 6.dp))
+                            }
                         }
+                        page == Page.MAP -> MinimapPage(status)
+                        page == Page.TEAM -> TeamPage(status)
+                        page == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
+                        page == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
+                        page == Page.DEX -> PlaceholderPage("图鉴", "需要图鉴内存结构")
+                        page == Page.NAU -> PlaceholderPage("领取", "未实现")
+                        page == Page.SAVE -> SavePage(activity, romReady, onRom = { activity.refreshRoms(); showRoms = true })
+                        page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE })
+                        page == Page.UPDATE -> UpdatePage(activity)
+                        page == Page.BATTLE -> BattlePage(status, onKeys = { page = Page.KEYS })
+                        else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
                     }
-                    page == Page.MINIMAP -> MinimapPage(status)
-                    page == Page.MENU -> MenuPage(
-                        speed = activity.speedState.value,
-                        onSpeed = {
-                            val next = when (activity.speedState.value) { 1 -> 2; 2 -> 4; else -> 1 }
-                            activity.speedState.value = next
-                            emuView.speed = next
-                        },
-                        onRom = { activity.refreshRoms(); showRoms = true },
-                        onSave = {
-                            if (romReady) activity.statusText.value =
-                                if (EmuCore.saveState(File(activity.filesDir, "state1.sav").absolutePath)) "已存档" else "存档失败"
-                        },
-                        onLoad = {
-                            if (romReady) activity.statusText.value =
-                                if (EmuCore.loadState(File(activity.filesDir, "state1.sav").absolutePath)) "已读档" else "读档失败"
-                        },
-                        onKeys = { page = Page.KEYS },
-                        onLog = { page = Page.LOG },
-                        onMap = { page = Page.MINIMAP },
-                        onUpdate = { page = Page.UPDATE },
+                }
+                Column(Modifier.width(80.dp).fillMaxHeight().padding(start = 4.dp)) {
+                    val tabs = listOf(
+                        "地图" to Page.MAP, "队伍" to Page.TEAM, "背包" to Page.BAG,
+                        "名字" to Page.NICK, "图鉴" to Page.DEX, "领取" to Page.NAU,
+                        "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
-                    page == Page.LOG -> LazyColumn(Modifier.fillMaxSize()) {
-                        items(logs) { Text(it, color = TXT, fontSize = 11.sp) }
+                    for ((label, p2) in tabs) {
+                        TabButton(label, page == p2) { showRoms = false; page = p2 }
                     }
-                    page == Page.UPDATE -> UpdatePage(activity)
-                    page == Page.BATTLE -> BattlePage(status, onKeys = { page = Page.KEYS })
-                    else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
-                }
-            }
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                BarButton("KEYS", page == Page.KEYS) {
-                    showRoms = false
-                    page = if (page == Page.KEYS) Page.MINIMAP else Page.KEYS
-                }
-                BarButton("MENU", page == Page.MENU) {
-                    showRoms = false
-                    page = if (page == Page.MENU) Page.MINIMAP else Page.MENU
-                }
-                BarButton("LOG", page == Page.LOG) {
-                    showRoms = false
-                    page = if (page == Page.LOG) Page.MINIMAP else Page.LOG
+                    Spacer(Modifier.height(4.dp))
+                    TabButton("按键", page == Page.KEYS) { showRoms = false; page = Page.KEYS }
                 }
             }
         }
@@ -599,5 +580,80 @@ private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
             BarButton("按键", false) { onKeys() }
             BarButton("回小地图", false) { }
         }
+    }
+}
+
+
+@Composable
+private fun TabButton(label: String, active: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().weight(1f).padding(vertical = 2.dp)
+            .background(if (active) ACCENT else CARD, RoundedCornerShape(8.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(label, color = if (active) Color.White else DIM, fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun PlaceholderPage(title: String, hint: String) {
+    Box(Modifier.fillMaxSize().background(CARD, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(title, color = TXT, fontSize = 14.sp)
+            Text(hint, color = DIM, fontSize = 11.sp)
+        }
+    }
+}
+
+@Composable
+private fun TeamPage(s: EmuStatus) {
+    Column(Modifier.fillMaxSize()) {
+        if (s.team.isEmpty()) {
+            PlaceholderPage("队伍", "等待推送（或还没拿到宝可梦）")
+        } else {
+            for (m in s.team) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(m.name, color = TXT, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Text("Lv${m.lv}", color = DIM, fontSize = 11.sp, modifier = Modifier.width(42.dp))
+                    Text("${m.hp}/${m.max}", color = if (m.max > 0 && m.hp * 3 < m.max) Color(0xFFFF6060) else TXT, fontSize = 11.sp)
+                }
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
+                    modifier = Modifier.fillMaxWidth().height(4.dp), color = GREEN)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavePage(activity: MainActivity, romReady: Boolean, onRom: () -> Unit) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            if (romReady) activity.statusText.value =
+                if (EmuCore.saveState(File(activity.filesDir, "state1.sav").absolutePath)) "已存档" else "存档失败"
+        }, contentAlignment = Alignment.Center) { Text("即时存档", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            if (romReady) activity.statusText.value =
+                if (EmuCore.loadState(File(activity.filesDir, "state1.sav").absolutePath)) "已读档" else "读档失败"
+        }, contentAlignment = Alignment.Center) { Text("读取存档", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            onRom()
+        }, contentAlignment = Alignment.Center) { Text("载入 ROM", color = TXT, fontSize = 14.sp) }
+    }
+}
+
+@Composable
+private fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -> Unit) {
+    val speed = activity.speedState.value
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            val next = when (activity.speedState.value) { 1 -> 2; 2 -> 4; else -> 1 }
+            activity.speedState.value = next
+            emuView.speed = next
+        }, contentAlignment = Alignment.Center) { Text("速度 ${speed}x", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
+            onUpdate()
+        }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
     }
 }
