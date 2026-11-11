@@ -312,8 +312,9 @@ fun AppScreen(activity: MainActivity) {
                         page == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
                         page == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
                         page == Page.DEX -> PlaceholderPage("图鉴", "需要图鉴内存结构")
-                        page == Page.SAVE -> SavePage(activity, romReady, onRom = { activity.refreshRoms(); showRoms = true })
-                        page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE })
+                        page == Page.SAVE -> SavePage(activity, romReady)
+                        page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE },
+                            onRom = { activity.refreshRoms(); showRoms = true })
                         page == Page.UPDATE -> UpdatePage(activity)
                         page == Page.BATTLE -> BattlePage(status, keys, { k -> keys = k; EmuCore.setKeys(k) })
                         else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
@@ -666,7 +667,7 @@ private fun TeamPage(s: EmuStatus) {
 }
 
 @Composable
-private fun SavePage(activity: MainActivity, romReady: Boolean, onRom: () -> Unit) {
+private fun SavePage(activity: MainActivity, romReady: Boolean) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
             if (romReady) activity.statusText.value =
@@ -676,14 +677,11 @@ private fun SavePage(activity: MainActivity, romReady: Boolean, onRom: () -> Uni
             if (romReady) activity.statusText.value =
                 if (EmuCore.loadState(File(activity.filesDir, "state1.sav").absolutePath)) "已读档" else "读档失败"
         }, contentAlignment = Alignment.Center) { Text("读取存档", color = TXT, fontSize = 14.sp) }
-        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
-            onRom()
-        }, contentAlignment = Alignment.Center) { Text("载入 ROM", color = TXT, fontSize = 14.sp) }
     }
 }
 
 @Composable
-private fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -> Unit) {
+private fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -> Unit, onRom: () -> Unit) {
     val speed = activity.speedState.value
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
@@ -691,6 +689,9 @@ private fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () ->
             activity.speedState.value = next
             emuView.speed = next
         }, contentAlignment = Alignment.Center) { Text("速度 ${speed}x", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            onRom()
+        }, contentAlignment = Alignment.Center) { Text("载入 ROM", color = TXT, fontSize = 14.sp) }
         Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
             onUpdate()
         }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }

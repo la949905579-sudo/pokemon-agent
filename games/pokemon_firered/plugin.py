@@ -51,22 +51,27 @@ class PokemonFireRedPlugin:
             "log": list(self._log[-20:]),
         }
 
+    _mm_cache = {}
+
     def _minimap(self, px, py):
-        """当前地图的格子布局（从 maps/ 缓存读），供下屏画小地图。"""
+        """当前地图的格子布局（按地图地址缓存，避免每次重复 locate_map）。"""
         try:
             addr, w, h = terrain.locate_map()
             if not addr or not w or not h:
-                return {}
-            path = os.path.join(os.path.dirname(__file__), "..", "..", "maps",
-                                "map_%x.json" % addr)
-            path = os.path.normpath(path)
-            tiles = None
-            if os.path.exists(path):
-                with open(path) as f:
-                    tiles = json.load(f).get("tiles")
-            return {"w": w, "h": h, "px": px, "py": py, "tiles": tiles}
+                return getattr(self, "_mm_last", {})
+            if addr not in self._mm_cache:
+                path = os.path.normpath(os.path.join(
+                    os.path.dirname(__file__), "..", "..", "maps", "map_%x.json" % addr))
+                tiles = None
+                if os.path.exists(path):
+                    with open(path) as f:
+                        tiles = json.load(f).get("tiles")
+                self._mm_cache[addr] = tiles
+            out = {"w": w, "h": h, "px": px, "py": py, "tiles": self._mm_cache[addr]}
+            self._mm_last = out
+            return out
         except Exception:
-            return {}
+            return getattr(self, "_mm_last", {})
 
     def _battle_detail(self):
         out = {}
