@@ -75,11 +75,7 @@ OVERRIDES = {
 # 这些目录/后缀按类别说明，不逐个展开
 SKIP_PREFIX = ("native-emu/third_party/",)
 LOG_RE = re.compile(r"\.(log)$")
-DEBUG_RESIDUE = {
-    "battle_collect.log", "battle_sample.log", "flag_sample.log",
-    "mapcap.log", "mapcap2.log", "sample.log", "route_log.txt",
-    "faint2.txt", "faint3.txt", "faint4.txt", "faint_dump.txt",
-}
+DEBUG_RESIDUE = set()
 
 
 def git_files():

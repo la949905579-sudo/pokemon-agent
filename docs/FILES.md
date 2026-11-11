@@ -168,22 +168,6 @@
 | `native-emu/app/src/main/java/com/dsh/emu/BridgeServer.kt` | TCP :55401 服务端（read/write/press/frame/status） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/Updater.kt` | GitHub Releases OTA：检查、下载、校验、拉起安装器 | 保留 |
 
-## 残留
-
-| 文件 | 用途 | 状态 |
-|---|---|---|
-| `battle_collect.log` | 调试日志/转储，建议清理 | 待清理 |
-| `battle_sample.log` | 调试日志/转储，建议清理 | 待清理 |
-| `faint2.txt` | 调试日志/转储，建议清理 | 待清理 |
-| `faint3.txt` | 调试日志/转储，建议清理 | 待清理 |
-| `faint4.txt` | 调试日志/转储，建议清理 | 待清理 |
-| `faint_dump.txt` | 调试日志/转储，建议清理 | 待清理 |
-| `flag_sample.log` | 调试日志/转储，建议清理 | 待清理 |
-| `mapcap.log` | 调试日志/转储，建议清理 | 待清理 |
-| `mapcap2.log` | 调试日志/转储，建议清理 | 待清理 |
-| `route_log.txt` | 调试日志/转储，建议清理 | 待清理 |
-| `sample.log` | 调试日志/转储，建议清理 | 待清理 |
-
 ## 测试
 
 | 文件 | 用途 | 状态 |
@@ -242,4 +226,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 178 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 167 个文件（不含 `native-emu/third_party/` 第三方源码）。
