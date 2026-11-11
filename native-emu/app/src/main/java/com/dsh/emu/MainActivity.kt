@@ -510,7 +510,8 @@ private fun UpdatePage(activity: MainActivity) {
         Box(Modifier.background(if (checking) CARD else ACCENT, RoundedCornerShape(10.dp))
             .clickable {
                 if (checking) return@clickable
-                checking = true; error = ""
+                checking = true
+                activity.updateError.value = ""
                 Thread {
                     val r = Updater.latest()
                     activity.runOnUiThread {
