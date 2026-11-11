@@ -355,7 +355,7 @@ private fun MinimapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit = { _, _ -> }) 
             androidx.compose.foundation.Canvas(
                 Modifier.fillMaxSize().padding(6.dp)
                     .pointerInput(s.mmW, s.mmH) {
-                        android.gestures.detectTapGestures { off ->
+                        detectTapGestures { off ->
                             if (s.mmW <= 0 || s.mmH <= 0) return@detectTapGestures
                             val tx = (off.x / size.width * s.mmW).toInt().coerceIn(0, s.mmW - 1)
                             val ty = (off.y / size.height * s.mmH).toInt().coerceIn(0, s.mmH - 1)
