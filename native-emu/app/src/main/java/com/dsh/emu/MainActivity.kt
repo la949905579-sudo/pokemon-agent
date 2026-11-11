@@ -173,6 +173,7 @@ private val CARD = Color(0xFF2C2C2C)
 private val ACCENT = Color(0xFF7B5CE5)
 private val TXT = Color(0xFFEBEBEB)
 private val DIM = Color(0xFF8C8C8C)
+private val GREEN = Color(0xFF50B478)
 
 data class TeamMon(val name: String, val lv: Int, val hp: Int, val max: Int)
 data class EmuStatus(
