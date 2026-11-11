@@ -16,7 +16,7 @@ object Updater {
     private const val API = "https://api.github.com"
     private const val ASSET = "app-debug.apk"
 
-    data class Release(val tag: String, val url: String)
+    data class Release(val tag: String, val url: String, val body: String)
 
     fun latest(): Release? {
         return try {
@@ -39,7 +39,8 @@ object Updater {
                     }
                 }
             }
-            if (tag.isNotEmpty() && url != null) Release(tag, url) else null
+            val body = o.optString("body", "")
+            if (tag.isNotEmpty() && url != null) Release(tag, url, body) else null
         } catch (e: Throwable) {
             null
         }

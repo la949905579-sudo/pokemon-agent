@@ -13,6 +13,9 @@ android {
             keyPassword = "emu123456"
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
         debug { signingConfig = signingConfigs.getByName("fixed") }
     }
@@ -24,8 +27,10 @@ android {
         applicationId = "com.dsh.emu"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toIntOrNull() ?: 1
+        versionName = "0.2"
+        buildConfigField("String", "GIT_SHA", "\"${(System.getenv("GITHUB_SHA") ?: "local").take(7)}\"")
+        buildConfigField("String", "BUILD_TIME", "\"${System.currentTimeMillis()}\"")
         // 决策：P0 只做 arm64
         ndk { abiFilters += listOf("arm64-v8a") }
         externalNativeBuild {

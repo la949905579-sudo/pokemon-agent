@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 import java.io.File
 
-enum class Page { MINIMAP, MENU, LOG, KEYS }
+enum class Page { MINIMAP, MENU, LOG, KEYS, UPDATE }
 
 class MainActivity : ComponentActivity() {
     val statusText = mutableStateOf("")
@@ -257,26 +257,12 @@ fun AppScreen(activity: MainActivity) {
                         onKeys = { page = Page.KEYS },
                         onLog = { page = Page.LOG },
                         onMap = { page = Page.MINIMAP },
-                        onUpdate = {
-                            Thread {
-                                val rel = Updater.latest()
-                                if (rel == null) {
-                                    activity.statusText.value = "检查更新失败"
-                                    return@Thread
-                                }
-                                activity.statusText.value = "下载 ${rel.tag}..."
-                                val f = File(activity.cacheDir, "update.apk")
-                                if (Updater.download(rel.url, f)) {
-                                    activity.runOnUiThread { Updater.install(activity, f) }
-                                } else {
-                                    activity.statusText.value = "下载失败"
-                                }
-                            }.start()
-                        },
+                        onUpdate = { page = Page.UPDATE },
                     )
                     page == Page.LOG -> LazyColumn(Modifier.fillMaxSize()) {
                         items(logs) { Text(it, color = TXT, fontSize = 11.sp) }
                     }
+                    page == Page.UPDATE -> UpdatePage(activity)
                     else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
                 }
             }
@@ -434,5 +420,58 @@ fun PadLabel(label: String, mask: Int, pads: MutableList<PadPos>, size: androidx
         contentAlignment = Alignment.Center
     ) {
         Text(label, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Center)
+    }
+}
+
+
+@Composable
+private fun UpdatePage(activity: MainActivity) {
+    var checking by remember { mutableStateOf(false) }
+    var latest by remember { mutableStateOf<Updater.Release?>(null) }
+    var error by remember { mutableStateOf("") }
+    val buildTime = remember {
+        try {
+            java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
+                .format(java.util.Date(BuildConfig.BUILD_TIME.toLong()))
+        } catch (e: Exception) { "?" }
+    }
+    Column(Modifier.fillMaxSize().padding(4.dp)) {
+        Text("版本 ${BuildConfig.VERSION_NAME} (${BuildConfig.GIT_SHA})", color = TXT, fontSize = 12.sp)
+        Text("构建 $buildTime", color = DIM, fontSize = 11.sp)
+        Spacer(Modifier.height(8.dp))
+        Box(Modifier.background(if (checking) CARD else ACCENT, RoundedCornerShape(10.dp))
+            .clickable {
+                if (checking) return@clickable
+                checking = true; error = ""
+                Thread {
+                    val r = Updater.latest()
+                    activity.runOnUiThread {
+                        checking = false
+                        if (r == null) error = "检查失败（网络或没有 release）" else latest = r
+                    }
+                }.start()
+            }.padding(horizontal = 18.dp, vertical = 8.dp)) {
+            Text(if (checking) "检查中…" else "检查更新", color = Color.White, fontSize = 12.sp)
+        }
+        if (error.isNotBlank()) Text(error, color = Color(0xFFFF8080), fontSize = 11.sp)
+        latest?.let { r ->
+            Spacer(Modifier.height(8.dp))
+            Text("最新: ${r.tag}", color = TXT, fontSize = 12.sp)
+            Text(r.body.take(400), color = DIM, fontSize = 11.sp)
+            Spacer(Modifier.height(6.dp))
+            Box(Modifier.background(ACCENT, RoundedCornerShape(10.dp)).clickable {
+                activity.statusText.value = "下载中..."
+                Thread {
+                    val f = File(activity.cacheDir, "update.apk")
+                    if (Updater.download(r.url, f)) {
+                        activity.runOnUiThread { Updater.install(activity, f) }
+                    } else {
+                        activity.runOnUiThread { activity.statusText.value = "下载失败" }
+                    }
+                }.start()
+            }.padding(horizontal = 18.dp, vertical = 8.dp)) {
+                Text("下载并安装", color = Color.White, fontSize = 12.sp)
+            }
+        }
     }
 }
