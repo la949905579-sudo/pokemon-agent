@@ -72,7 +72,10 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 - 远端已从 HTTPS 改为 `git@github.com:la949905579-sudo/pokemon-agent.git`。
 - 手机上有 ed25519 密钥：`~/.ssh/github_ed25519`（私钥，600），公钥已加到 GitHub 账号，
   备注 `dsh-phone`；`~/.ssh/config` 里指定了 `IdentityFile`。
-- **不需要 token 了**：`git push` 直接可用。旧 token `native-emu-push`（12-11 到期）保留未动。
+- **git push 不需要 token**：SSH 直接可用。账号里的旧 token `native-emu-push` 已于 2026-11-12 删除，
+  现在没有任何经典 token。
+- **但发 Release 仍要 API 凭据**（SSH 只能推 git，不能调 API）。做法：临时生成一个 7 天的
+  `repo` token，用完即删；或在 GitHub 网页上手动发 Release。切勿把 token 写进仓库/文档。
 - 换设备/换容器时：生成本机密钥 → 把公钥加到 GitHub → 改 remote 为 SSH，
   不要在聊天或文档里贴私钥。
 
