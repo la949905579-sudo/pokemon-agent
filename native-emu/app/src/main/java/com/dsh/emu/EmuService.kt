@@ -50,11 +50,16 @@ class EmuService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log("service: onStartCommand flags=$flags")
         if (wakeLock == null) {
-            val pm = getSystemService(PowerManager::class.java)
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NativeEmu:emu")
-            wakeLock?.setReferenceCounted(false)
-            wakeLock?.acquire()
-            log("service: wakelock acquired")
+            try {
+                val pm = getSystemService(PowerManager::class.java)
+                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NativeEmu:emu")
+                wakeLock?.setReferenceCounted(false)
+                wakeLock?.acquire()
+                log("service: wakelock acquired")
+            } catch (e: Throwable) {
+                log("service: wakelock fail ${e.javaClass.simpleName}: ${e.message}")
+                wakeLock = null
+            }
         }
         return START_STICKY
     }
