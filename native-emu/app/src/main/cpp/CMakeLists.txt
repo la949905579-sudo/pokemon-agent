@@ -43,8 +43,8 @@ target_include_directories(emu PRIVATE ${MGBA_DIR}/include)
 
 # 关键：emu 与 libmgba 必须使用完全一致的编译宏，否则 struct mCore 布局不一致，
 # 读 core->init 等函数指针会拿到垃圾地址。
-# 用 32 位 ARGB 像素（不要 COLOR_16_BIT），与 Android Bitmap 直通
-foreach(def DISABLE_THREADING ENABLE_VFS)
+# GBA 原生 15 位色，libretro 官方用 COLOR_16_BIT（RGB565），JNI 侧再转 ARGB
+foreach(def DISABLE_THREADING ENABLE_VFS COLOR_16_BIT COLOR_5_6_5)
     target_compile_definitions(mgba PRIVATE ${def})
 endforeach()
 get_target_property(MGBA_DEFS mgba COMPILE_DEFINITIONS)
