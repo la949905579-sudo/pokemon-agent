@@ -168,20 +168,36 @@ bool Emu::saveState(const char* path) {
     struct VFile* vf = VFileOpen(path, O_WRONLY | O_CREAT | O_TRUNC);
     if (!vf) { nlog("save: vfile fail"); return false; }
     nlog("save: writing");
-    // core->saveState 的参数是内存缓冲区；写 VFile 要用 Named 版本
-    bool ok = mCoreSaveStateNamed(core_, vf, 0);
-    nlog(ok ? "save: ok" : "save: failed");
     vf->close(vf);
-    return ok;
+    // 自己写文件：core->saveState 接受内存缓冲区
+    std::vector<uint8_t> buf(sz);
+    if (!core_->saveState) { nlog("save: no state api"); return false; }
+    bool ok = core_->saveState(core_, buf.data());
+    if (!ok) { nlog("save: serialize failed"); return false; }
+    FILE* f = fopen(path, "wb");
+    if (!f) { nlog("save: fopen failed"); return false; }
+    size_t wrote = fwrite(buf.data(), 1, sz, f);
+    fclose(f);
+    { char b[80]; snprintf(b, sizeof(b), "save: wrote %zu/%zu", wrote, sz); nlog(b); }
+    return wrote == sz;
 }
 
 bool Emu::loadState(const char* path) {
     std::lock_guard<std::mutex> lk(mu_);
     if (!core_ || !core_->loadState) return false;
-    struct VFile* vf = VFileOpen(path, O_RDONLY);
-    if (!vf) return false;
-    bool ok = mCoreLoadStateNamed(core_, vf, 0);
-    vf->close(vf);
+    FILE* f = fopen(path, "rb");
+    if (!f) { nlog("load: fopen failed"); return false; }
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0) { fclose(f); return false; }
+    std::vector<uint8_t> buf((size_t) sz);
+    size_t rd = fread(buf.data(), 1, (size_t) sz, f);
+    fclose(f);
+    if (rd != (size_t) sz) return false;
+    if (!core_->loadState) return false;
+    bool ok = core_->loadState(core_, buf.data());
+    nlog(ok ? "load: ok" : "load: failed");
     return ok;
 }
 
