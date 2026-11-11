@@ -252,7 +252,14 @@ fun AppScreen(activity: MainActivity) {
         }
     }
     val pushed = parseStatus(UiState.statusJson.value)
-    val status = if (localJson.isNotBlank()) parseStatus(localJson) else pushed
+    val status = if (localJson.isNotBlank()) {
+        val local = parseStatus(localJson)
+        // 地图数据暂时还用推送的（Kotlin 侧没做地图缓存解析）
+        if (pushed.mmTiles != null || pushed.mmW > 0) {
+            local.copy(mmW = pushed.mmW, mmH = pushed.mmH, mmPx = pushed.mmPx,
+                mmPy = pushed.mmPy, mmTiles = pushed.mmTiles)
+        } else local
+    } else pushed
     val logs = UiState.logs.value
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
