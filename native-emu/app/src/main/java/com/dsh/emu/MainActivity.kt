@@ -686,7 +686,7 @@ private fun buildLocalStatusJson(): String {
         val team = org.json.JSONArray()
         for (m in party) {
             val t = org.json.JSONObject()
-            t.put("name", "#" + (m.slot + 1))
+            t.put("name", m.name)
             t.put("lv", m.lv)
             t.put("hp", m.hp)
             t.put("max", m.maxHp)

@@ -5,7 +5,12 @@ object GameState {
 
     data class Coords(val x: Int, val y: Int)
 
-    data class PartyMon(val slot: Int, val lv: Int, val hp: Int, val maxHp: Int, val pid: Long)
+    data class PartyMon(
+        val slot: Int, val lv: Int, val hp: Int, val maxHp: Int, val pid: Long,
+        val species: Int = 0,
+    ) {
+        val name: String get() = Species.nameOf(species)
+    }
 
     /** 坐标（地块坐标，原始值 - 7）。读不到返回 null。 */
     fun coords(): Coords? {
@@ -51,7 +56,8 @@ object GameState {
             val pid = (0 until 4).fold(0L) { acc, k ->
                 acc or ((buf[base + Addresses.PARTY_PID + k].toLong() and 0xFF) shl (8 * k))
             }
-            out.add(PartyMon(i, lv, hp, mhp, pid))
+            val dec = PartyCrypto.decrypt(buf, base)
+            out.add(PartyMon(i, lv, hp, mhp, pid, dec?.species ?: 0))
         }
         return out
     }
