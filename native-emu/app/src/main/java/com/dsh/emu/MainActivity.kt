@@ -297,7 +297,19 @@ fun AppScreen(activity: MainActivity) {
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(onClick = { activity.loadScannedRom() }) { Text("载入 ROM") }
+                    Button(onClick = { activity.loadScannedRom() }) { Text("ROM") }
+                    Button(onClick = {
+                        if (!romReady) return@Button
+                        val f = File(activity.filesDir, "state1.sav")
+                        val ok = EmuCore.saveState(f.absolutePath)
+                        activity.statusText.value = if (ok) "已存档" else "存档失败"
+                    }) { Text("存档") }
+                    Button(onClick = {
+                        if (!romReady) return@Button
+                        val f = File(activity.filesDir, "state1.sav")
+                        val ok = EmuCore.loadState(f.absolutePath)
+                        activity.statusText.value = if (ok) "已读档" else "读档失败"
+                    }) { Text("读档") }
                     Button(onClick = {
                         val nr = !activity.runningState.value
                         activity.runningState.value = nr
