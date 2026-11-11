@@ -28,10 +28,16 @@ class BridgeServer(private val port: Int = 55401) {
             server = ServerSocket(port, 8, InetAddress.getLoopbackAddress())
             running = true
             Thread { acceptLoop() }.apply { isDaemon = true; start() }
+            log("bridge: listening on ${InetAddress.getLoopbackAddress().hostAddress}:$port")
             true
         } catch (e: IOException) {
+            log("bridge: bind failed ${e.javaClass.simpleName}: ${e.message}")
             false
         }
+    }
+
+    private fun log(msg: String) {
+        try { java.io.File("/sdcard/Download/bridge.log").appendText("$msg\n") } catch (_: Throwable) {}
     }
 
     fun stop() {
