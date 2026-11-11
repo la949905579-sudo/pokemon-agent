@@ -3,6 +3,24 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.12-1（NativeEmu v0.3）
+### 新增
+- 下屏改为「左侧内容 + 右侧竖排 Tab」（地图/队伍/背包/名字/图鉴/存档/设置/按键）
+- 队伍显示宝可梦中文名（关东 151 名表 + PortablePokemon 解密）
+- 敌方等级/HP/最大 HP 读取
+- 按键布局 A：L/R 肩键 + 方向键 + A/B + Start/Select 重排
+- 加速 1x/2x/4x
+- OTA 下载进度条 + APK 校验 + 安装权限引导
+- 小地图数据缓存（推送不再卡）
+
+### 修复
+- 战斗页自动切换：动画/击败对话框阶段不再跳回地图（battle_anim + 4 秒滞回）
+- 队伍详情改为下屏内容区（不弹窗遮挡）
+- 切换 Tab 时下载中断（状态提到 Activity）
+- 更新日志只显示一行（改多行）
+- 载入 ROM 移到设置页
+- 构建失败时发布脚本误发旧包（加成功校验）
+
 ## v2026.11.11-1（NativeEmu v0.2）
 ### 新增
 - 原生双屏 GBA 模拟器（mGBA 内核 + Kotlin/Compose + NDK）

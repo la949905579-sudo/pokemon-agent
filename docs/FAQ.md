@@ -43,3 +43,22 @@ A: `EMU_BACKEND=native python3 farm.py ...`；不设置就还是走 RetroArch UD
 
 **Q: 下屏队伍是空的**
 A: 还没拿到宝可梦（游戏进度），或 `push_status.py` 没在跑。
+
+## 战斗与下屏
+
+**Q: 进战斗了但下屏没切战斗页**
+A: 需要 Python 推送或本地状态读到 `battle`。检查 `bash /root/workspace/start_push.sh` 是否在跑；新版下屏也会直接读本地内存。
+
+**Q: 出招后下屏跳回地图**
+A: 已修（动画阶段映射为 `battle_anim` + 4 秒滞回）。旧版请更新。
+
+**Q: 点小地图会直接走吗**
+A: 会（180ms/步）。注意这是真按键，会移动角色。
+
+## 构建
+
+**Q: 构建一直 queued**
+A: GitHub Actions 排队拥堵，等或手动 rerun。
+
+**Q: 构建失败自动发布旧包**
+A: 已修（publish_release 检查 run 结论）。
