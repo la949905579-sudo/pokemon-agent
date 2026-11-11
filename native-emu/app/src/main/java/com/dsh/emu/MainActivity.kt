@@ -232,13 +232,17 @@ fun AppScreen(activity: MainActivity) {
                         Modifier.weight(1f).fillMaxWidth()
                             .onGloballyPositioned { areaOrigin = it.localToWindow(androidx.compose.ui.geometry.Offset.Zero) }
                             .pointerInteropFilter { ev ->
-                                if (ev.actionMasked == android.view.MotionEvent.ACTION_UP ||
-                                    ev.actionMasked == android.view.MotionEvent.ACTION_CANCEL) {
+                                val action = ev.actionMasked
+                                if (action == android.view.MotionEvent.ACTION_UP ||
+                                    action == android.view.MotionEvent.ACTION_CANCEL) {
                                     if (keys != 0) { keys = 0; EmuCore.setKeys(0) }
                                     return@pointerInteropFilter true
                                 }
+                                // ACTION_POINTER_UP：抬起的是 actionIndex 那根，跳过它重算
+                                val skip = if (action == android.view.MotionEvent.ACTION_POINTER_UP) ev.actionIndex else -1
                                 var mask = 0
                                 for (i in 0 until ev.pointerCount) {
+                                    if (i == skip) continue
                                     val px = ev.getX(i) + areaOrigin.x
                                     val py = ev.getY(i) + areaOrigin.y
                                     for (p in pads) {
