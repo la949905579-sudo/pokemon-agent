@@ -183,8 +183,8 @@ fun AppScreen(activity: MainActivity) {
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
     var showRoms by remember { mutableStateOf(false) }
-    var areaW by remember { mutableStateOf(1f) }
-    var areaH by remember { mutableStateOf(1f) }
+    var areaOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val pads = remember { mutableStateListOf<PadPos>() }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
     val status = activity.statusText.value
@@ -230,14 +230,22 @@ fun AppScreen(activity: MainActivity) {
                     // 整块区域接管触摸：多指分别命中按键
                     Box(
                         Modifier.weight(1f).fillMaxWidth()
-                            .onGloballyPositioned {
-                                areaW = it.size.width.toFloat()
-                                areaH = it.size.height.toFloat()
-                            }
+                            .onGloballyPositioned { areaOrigin = it.localToWindow(androidx.compose.ui.geometry.Offset.Zero) }
                             .pointerInteropFilter { ev ->
+                                if (ev.actionMasked == android.view.MotionEvent.ACTION_UP ||
+                                    ev.actionMasked == android.view.MotionEvent.ACTION_CANCEL) {
+                                    if (keys != 0) { keys = 0; EmuCore.setKeys(0) }
+                                    return@pointerInteropFilter true
+                                }
                                 var mask = 0
                                 for (i in 0 until ev.pointerCount) {
-                                    mask = mask or hitKey(ev.getX(i), ev.getY(i), areaW, areaH)
+                                    val px = ev.getX(i) + areaOrigin.x
+                                    val py = ev.getY(i) + areaOrigin.y
+                                    for (p in pads) {
+                                        val dx = px - p.cx
+                                        val dy = py - p.cy
+                                        if (dx * dx + dy * dy <= p.r * p.r) { mask = mask or p.mask; break }
+                                    }
                                 }
                                 if (mask != keys) { keys = mask; EmuCore.setKeys(mask) }
                                 true
@@ -246,10 +254,12 @@ fun AppScreen(activity: MainActivity) {
                         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                PadLabel("▲"); Row { PadLabel("◀"); Spacer(Modifier.width(24.dp)); PadLabel("▶") }; PadLabel("▼")
+                                PadLabel("▲", EmuCore.KEY_UP, pads)
+                                Row { PadLabel("◀", EmuCore.KEY_LEFT, pads); Spacer(Modifier.width(24.dp)); PadLabel("▶", EmuCore.KEY_RIGHT, pads) }
+                                PadLabel("▼", EmuCore.KEY_DOWN, pads)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                PadLabel("B", 54.dp); Spacer(Modifier.width(10.dp)); PadLabel("A", 54.dp)
+                                PadLabel("B", EmuCore.KEY_B, pads, 54.dp); Spacer(Modifier.width(10.dp)); PadLabel("A", EmuCore.KEY_A, pads, 54.dp)
                             }
                         }
                     }
@@ -284,11 +294,22 @@ fun AppScreen(activity: MainActivity) {
     }
 }
 
-/** 只负责显示，触摸由整块区域的 hitKey 处理 */
+data class PadPos(val mask: Int, val cx: Float, val cy: Float, val r: Float)
+
+/** 显示按钮，并把真实中心坐标登记给命中测试 */
 @Composable
-fun PadLabel(label: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
+fun PadLabel(label: String, mask: Int, pads: MutableList<PadPos>, size: androidx.compose.ui.unit.Dp = 44.dp) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val radiusPx = with(density) { size.toPx() / 2f } * 1.15f
     Box(
-        Modifier.size(size).background(Color(0xFF333333), CircleShape),
+        Modifier.size(size)
+            .background(Color(0xFF333333), CircleShape)
+            .onGloballyPositioned {
+                val c = it.localToWindow(androidx.compose.ui.geometry.Offset(
+                    it.size.width / 2f, it.size.height / 2f))
+                pads.removeAll { it.mask == mask }
+                pads.add(PadPos(mask, c.x, c.y, radiusPx))
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(label, color = Color.White, fontSize = 15.sp, textAlign = TextAlign.Center)
