@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
+    val speedState = mutableStateOf(1)
     var emuView: EmuView? = null
     private val bridge = BridgeServer(55401)
 
@@ -104,6 +105,7 @@ class MainActivity : ComponentActivity() {
 class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     @Volatile private var running = false
     @Volatile private var shouldRun = false
+    @Volatile var speed = 1   # 1x / 2x / 4x：每帧跑几次 runFrame
     @Volatile private var surfaceReady = false
     private var thread: Thread? = null
     private var bmp: Bitmap? = null
@@ -133,7 +135,8 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
         val targetNs = (1_000_000_000L / 59.7275).toLong()
         var nextNs = System.nanoTime()
         while (running) {
-            val f = EmuCore.runFrame()
+            var f = 0L
+            repeat(speed) { f = EmuCore.runFrame() }
             if (f == 0L) { Thread.sleep(16); continue }
             val px = EmuCore.frameBuffer() ?: continue
             if (surfaceReady) {
@@ -245,6 +248,12 @@ fun AppScreen(activity: MainActivity) {
                     }
                     page == Page.MINIMAP -> MinimapPage(status)
                     page == Page.MENU -> MenuPage(
+                        speed = activity.speedState.value,
+                        onSpeed = {
+                            val next = when (activity.speedState.value) { 1 -> 2; 2 -> 4; else -> 1 }
+                            activity.speedState.value = next
+                            emuView.speed = next
+                        },
                         onRom = { activity.refreshRoms(); showRoms = true },
                         onSave = {
                             if (romReady) activity.statusText.value =
@@ -319,6 +328,8 @@ private fun MinimapPage(s: EmuStatus) {
 
 @Composable
 private fun MenuPage(
+    speed: Int,
+    onSpeed: () -> Unit,
     onRom: () -> Unit, onSave: () -> Unit, onLoad: () -> Unit,
     onKeys: () -> Unit, onLog: () -> Unit, onMap: () -> Unit,
     onUpdate: () -> Unit,
@@ -326,7 +337,7 @@ private fun MenuPage(
     val items = listOf(
         "ROM" to onRom, "存档" to onSave, "读档" to onLoad,
         "按键" to onKeys, "日志" to onLog, "地图" to onMap,
-        "更新" to onUpdate,
+        "更新" to onUpdate, "${speed}x" to onSpeed,
     )
     Column(Modifier.fillMaxSize()) {
         for (row in items.chunked(3)) {
