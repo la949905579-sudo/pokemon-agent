@@ -62,6 +62,8 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     core_->opts.skipBios = true;
     core_->opts.useBios = false;
 
+    { char b[80]; snprintf(b, sizeof(b), "init: bytesPerPixel=%d sizeof(mColor)=%zu",
+        BYTES_PER_PIXEL, sizeof(mColor)); nlog(b); }
     nlog("init: video buffer");
     video_.assign(VIDEO_W * VIDEO_H, 0);
     core_->setVideoBuffer(core_, (mColor*) video_.data(), VIDEO_W);
