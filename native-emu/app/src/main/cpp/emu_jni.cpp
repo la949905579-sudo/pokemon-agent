@@ -92,9 +92,10 @@ Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
         const uint16_t* p16 = (const uint16_t*) buf;
         for (int i = 0; i < w * h; i++) {
             uint32_t c = p16[i];
-            uint32_t r = (c & 0x1F) << 3;
-            uint32_t g = ((c >> 5) & 0x3F) << 2;
-            uint32_t b = ((c >> 11) & 0x1F) << 3;
+            // 与 mGBA 的 M_R8/M_G8/M_B8 一致：(v * 0x21) >> 2
+            uint32_t r = (((c & 0x1F) * 0x21) >> 2);
+            uint32_t g = ((((c >> 5) & 0x3F) * 0x21) >> 2);
+            uint32_t b = ((((c >> 11) & 0x1F) * 0x21) >> 2);
             tmp[i] = (jint)(0xFF000000u | (r << 16) | (g << 8) | b);
         }
     } else {
