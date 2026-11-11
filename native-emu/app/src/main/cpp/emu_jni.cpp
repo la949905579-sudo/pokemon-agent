@@ -110,3 +110,15 @@ extern "C" JNIEXPORT jint JNICALL
 Java_com_dsh_emu_EmuCore_videoHeight(JNIEnv*, jobject) {
     return emu::Emu::get().videoHeight();
 }
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_dsh_emu_EmuCore_saveState(JNIEnv* env, jobject, jstring path) {
+    auto p = jstr(env, path);
+    return emu::Emu::get().saveState(p.c_str()) ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_dsh_emu_EmuCore_loadState(JNIEnv* env, jobject, jstring path) {
+    auto p = jstr(env, path);
+    return emu::Emu::get().loadState(p.c_str()) ? JNI_TRUE : JNI_FALSE;
+}

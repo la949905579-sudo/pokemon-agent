@@ -19,7 +19,8 @@ static void nlog(const char* msg) {
 #include <mgba/core/config.h>
 #include <mgba/core/version.h>
 #include <mgba/gba/core.h>
-#include <mgba-util/image.h>   // mColor
+#include <mgba-util/image.h>
+#include <mgba-util/vfs.h>   // mColor
 
 namespace emu {
 
@@ -149,6 +150,26 @@ int Emu::videoHeight() { return VIDEO_H; }
 uint64_t Emu::frameCount() {
     std::lock_guard<std::mutex> lk(mu_);
     return frames_;
+}
+
+bool Emu::saveState(const char* path) {
+    std::lock_guard<std::mutex> lk(mu_);
+    if (!core_ || !core_->saveState) return false;
+    struct VFile* vf = VFileOpen(path, O_WRONLY | O_CREAT | O_TRUNC);
+    if (!vf) return false;
+    bool ok = core_->saveState(core_, vf);
+    vf->close(vf);
+    return ok;
+}
+
+bool Emu::loadState(const char* path) {
+    std::lock_guard<std::mutex> lk(mu_);
+    if (!core_ || !core_->loadState) return false;
+    struct VFile* vf = VFileOpen(path, O_RDONLY);
+    if (!vf) return false;
+    bool ok = core_->loadState(core_, vf);
+    vf->close(vf);
+    return ok;
 }
 
 void Emu::setSpeed(int num, int den) {

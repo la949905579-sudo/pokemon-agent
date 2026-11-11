@@ -37,6 +37,9 @@ public:
     uint64_t frameCount();
     void setSpeed(int num, int den);
 
+    bool saveState(const char* path);
+    bool loadState(const char* path);
+
     static constexpr int VIDEO_W = 240;
     static constexpr int VIDEO_H = 160;
 

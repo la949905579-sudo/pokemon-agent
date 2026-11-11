@@ -21,6 +21,8 @@ object EmuCore {
     external fun writeMemory(addr: Int, data: ByteArray): Boolean
     external fun frameCount(): Long
     external fun setSpeed(num: Int, den: Int)
+    external fun saveState(path: String): Boolean
+    external fun loadState(path: String): Boolean
     external fun frameBuffer(): IntArray?
     external fun videoWidth(): Int
     external fun videoHeight(): Int
