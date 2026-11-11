@@ -102,6 +102,9 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 | `docs/STRUCTURE.md` | 目标目录结构、依赖规则、迁移分期 | 动文件位置/拆分模块前 |
 | `docs/OBSERVABILITY.md` | 日志格式与关键节点清单 | 加日志、排查问题时 |
 | `docs/FILES.md` | **每个文件**的用途与状态（自动生成） | 找不到某个文件干嘛用 |
+| `docs/TEAM.md` | 团队编制与重建步骤 | 新会话第一件事 |
+| `docs/HANDOVER.md` | 交接阈值、前置检查、反模式 | 想换会话之前 |
+| `docs/roles/*.md` | 三个角色的提示词（builder/verifier/auditor） | 重建团队时复制 |
 | `docs/INCIDENTS.md` | 事故复盘：现象/根因/固化 | 出事后 24 小时内写一条 |
 | `docs/WORKPLAN.md` | 11-10 的工作计划（部分已被 P1 取代） | 仅追溯历史 |
 
