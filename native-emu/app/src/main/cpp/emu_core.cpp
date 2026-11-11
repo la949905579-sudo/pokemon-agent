@@ -1,6 +1,7 @@
 #include "emu_core.h"
 
 #include <cstring>
+#include <cstdio>
 #include <vector>
 #include <fcntl.h>
 #include <unistd.h>
@@ -42,8 +43,8 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
     core_ = mCoreFind(rom_path);
     if (!core_) { nlog("init: core null"); return false; }
     mCoreInitConfig(core_, nullptr);
-    nlog(core_->init ? "init: fn ptr ok" : "init: fn ptr NULL");
-    nlog(core_->runFrame ? "init: runFrame ok" : "init: runFrame NULL");
+    { char b[160]; snprintf(b, sizeof(b), "init: core=%p init=%p runFrame=%p platform=%p",
+        (void*)core_, (void*)core_->init, (void*)core_->runFrame, (void*)core_->platform); nlog(b); }
     if (!core_->init) { nlog("init: abort null init"); return false; }
     if (!core_->init(core_)) { nlog("init: core init failed"); return false; }
     nlog("init: core ready");
