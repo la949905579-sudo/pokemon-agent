@@ -148,6 +148,35 @@ class GameStateTest {
     }
 
     @Test
+    fun mapWalkerFindsPath() {
+        // 3x3 全通行，从 (0,0) 到 (2,2) 应 4 步
+        val tiles = List(3) { List(3) { 1 } }
+        val p = com.dsh.emu.game.MapWalker.path(tiles, com.dsh.emu.game.MapWalker.Point(0, 0),
+            com.dsh.emu.game.MapWalker.Point(2, 2))
+        assertEquals(4, p!!.size)
+    }
+
+    @Test
+    fun mapWalkerBlocked() {
+        // 中间一堵墙
+        val tiles = listOf(
+            listOf(1, 0, 1),
+            listOf(1, 0, 1),
+            listOf(1, 0, 1),
+        )
+        assertNull(com.dsh.emu.game.MapWalker.path(tiles,
+            com.dsh.emu.game.MapWalker.Point(0, 0), com.dsh.emu.game.MapWalker.Point(2, 0)))
+    }
+
+    @Test
+    fun mapWalkerSamePoint() {
+        val tiles = List(3) { List(3) { 1 } }
+        val p = com.dsh.emu.game.MapWalker.path(tiles,
+            com.dsh.emu.game.MapWalker.Point(1, 1), com.dsh.emu.game.MapWalker.Point(1, 1))
+        assertEquals(0, p!!.size)
+    }
+
+    @Test
     fun coordsNullWhenShortRead() {
         Memo.reader = { _, n -> null }
         assertNull(GameState.coords())
