@@ -163,6 +163,53 @@ kind 白名单：prolong / no_kill / flee / only_class；ttl=None 表示本场�
 - 数据回归：`test_moves.py` 锁定 26 条招式 + 8 个物种属性
 - 观测产物：`logs/rounds-*.jsonl`，`probe.Recorder.summary()` 给一致性
 
+## 八、NativeEmu（原生双屏 GBA 模拟器）
+
+与上面的 Pokemon 自动化是**两个独立部分**，通过 TCP 桥连接。
+
+```
+┌──────────────────────────────────────────────┐
+│ NativeEmu（Android App，native-emu/）         │
+│  Kotlin + Compose + NDK                      │
+│  ├─ libemu.so（JNI）── mGBA 内核（libmgba）   │
+│  ├─ EmuView：SurfaceView 渲染 240×160，60fps  │
+│  ├─ 下屏：小地图 / 六宫格 / 日志 / 按键页      │
+│  ├─ BridgeServer：TCP :55401（read/write/     │
+│  │   press/frame/status）                     │
+│  ├─ EmuService：前台保活 + WakeLock           │
+│  └─ Updater：GitHub Releases OTA              │
+└──────────────────┬───────────────────────────┘
+                   │ 127.0.0.1:55401（TCP，行协议）
+┌──────────────────┴───────────────────────────┐
+│ Python 侧                                     │
+│  emu_bridge.py   ── rd/wr/press/frame/ping   │
+│  memory.py / ra.py ── EMU_BACKEND=native 切换 │
+│  push_status.py  ── 把游戏状态推给下屏        │
+└──────────────────────────────────────────────┘
+```
+
+**通道对比**：
+
+| 通道 | 旧（RetroArch） | 新（NativeEmu） |
+|---|---|---|
+| 读内存 | UDP 55355 | TCP 55401 `read` |
+| 按键 | UDP 55400 | TCP 55401 `press` |
+| 状态显示 | state_server 网页 8080 | 下屏 `status` 推送 |
+
+**切换方式**：`EMU_BACKEND=native python3 farm.py ...`（不设置就还是走 RetroArch）。
+
+## 九、未来分层（PROJECT_PLAN.md）
+
+```
+平台层：NativeEmu + emu_bridge + 下屏 UI（与游戏无关）
+   ↑
+游戏插件层：games/<game_id>/（地址表/状态解码/决策）
+   ↑
+自动化层：runner.py（读状态→决策→执行→推送）
+```
+
+Pokemon 火红就是第一个插件；后续其他游戏只实现插件接口，不改平台。
+
 ## 七、已知问题（按优先级）
 
 1. `bridge.py`/`handlers.py` 是场景裁剪（信息流），未接入主链路；AI 指令流由 `intent.py` 承担 → README 需修
