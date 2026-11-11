@@ -61,22 +61,8 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    override fun onPause() {
-        super.onPause()
-        EmuCore.pause()
-        runningState.value = false
-        emuView?.stop()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 回前台自动恢复（只有已载入 ROM 才恢复）
-        if (romReadyState.value) {
-            EmuCore.resume()
-            runningState.value = true
-            emuView?.start()
-        }
-    }
+    // 按用户要求：切后台不暂停、回前台不自动恢复（自动化需要后台持续运行）。
+    // surface 生命周期里会自动重启渲染线程，无需在这里干预。
 
     fun scanRoms(): List<File> {
         if (!hasAllFiles()) return emptyList()
