@@ -46,6 +46,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            startForegroundService(android.content.Intent(this, EmuService::class.java))
+        } catch (e: Throwable) {
+            android.util.Log.w("NativeEmu", "foreground service failed", e)
+        }
         val bridgeOk = bridge.start()
         statusText.value = if (bridgeOk) "TCP 桥 :55401 已启动" else "未载入 ROM"
         setContent { AppScreen(this) }

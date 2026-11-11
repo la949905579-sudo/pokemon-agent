@@ -4,11 +4,20 @@
     <!-- Python 桥接（localhost TCP） -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="NativeEmu"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
+        <service
+            android:name=".EmuService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
