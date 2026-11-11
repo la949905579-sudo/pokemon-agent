@@ -223,17 +223,16 @@ fun AppScreen(activity: MainActivity) {
         if (romReady) emuView.start()
     }
 
-    // 统计帧率
+    // 统计帧率：按 frameCount 每秒增量（之前误把循环次数当帧率）
     LaunchedEffect(running) {
         if (!running) return@LaunchedEffect
-        var last = System.currentTimeMillis()
-        var cnt = 0
+        var lastFrames = EmuCore.frameCount()
         while (true) {
-            frame = EmuCore.frameCount()
-            cnt++
-            val now = System.currentTimeMillis()
-            if (now - last >= 1000) { fps = cnt; cnt = 0; last = now }
-            kotlinx.coroutines.delay(100)
+            kotlinx.coroutines.delay(1000)
+            val now = EmuCore.frameCount()
+            frame = now
+            fps = (now - lastFrames).toInt()
+            lastFrames = now
         }
     }
 
