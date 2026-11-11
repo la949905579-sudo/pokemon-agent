@@ -1,5 +1,14 @@
-"""内存读写基础：UDP 连 RetroArch。"""
+"""内存读写基础。
+
+默认走 RetroArch UDP；设置环境变量 EMU_BACKEND=native 后改用
+NativeEmu 的 TCP 桥（emu_bridge）。
+"""
+import os
 import socket, struct, time
+
+NATIVE = os.environ.get("EMU_BACKEND", "") == "native"
+if NATIVE:
+    import emu_bridge
 
 HOST, PORT = "127.0.0.1", 55355
 
@@ -7,6 +16,8 @@ MAX_CHUNK = 0x1000   # 单次 UDP 读上限（hex 文本约 12KB < 16KB 缓冲�
 
 
 def rd(addr, n, retries=2):
+    if NATIVE:
+        return emu_bridge.rd(addr, n, retries)
     if n > MAX_CHUNK:
         out = b""
         for off in range(0, n, MAX_CHUNK):

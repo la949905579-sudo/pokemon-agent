@@ -1,4 +1,9 @@
+import os
 import socket, struct, time, sys, signal, atexit
+
+NATIVE = os.environ.get("EMU_BACKEND", "") == "native"
+if NATIVE:
+    import emu_bridge
 PORT=55400
 IDS={"b":0,"y":1,"select":2,"start":3,"up":4,"down":5,"left":6,"right":7,
      "a":8,"x":9,"l":10,"r":11,"l2":12,"r2":13,"l3":14,"r3":15}
@@ -17,6 +22,10 @@ def release_all():
             pass
 
 def press(name,dur=0.35):
+    if NATIVE:
+        emu_bridge.press(name.upper(), dur)
+        time.sleep(0.15)
+        return
     bid=IDS[name]
     try:
         send(bid,1); time.sleep(dur)

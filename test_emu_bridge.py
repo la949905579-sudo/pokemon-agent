@@ -79,4 +79,10 @@ class EmuBridgeTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    import sys
+    suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
+    res = unittest.TextTestRunner(verbosity=1).run(suite)
+    if res.wasSuccessful():
+        print("全部通过")
+    else:
+        sys.exit(1)
