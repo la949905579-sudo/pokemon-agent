@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
+    var emuView: EmuView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         EmuCore.pause()
         runningState.value = false
+        emuView?.stop()
     }
 
     override fun onResume() {
@@ -57,6 +59,7 @@ class MainActivity : ComponentActivity() {
         if (romReadyState.value) {
             EmuCore.resume()
             runningState.value = true
+            emuView?.start()
         }
     }
 
@@ -113,17 +116,32 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
 
     init { holder.addCallback(this) }
 
+    @Volatile private var shouldRun = false
+
     fun start() {
+        shouldRun = true
         if (running) return
         running = true
         thread = Thread(this).also { it.start() }
     }
 
-    fun stop() { running = false }
+    fun stop() {
+        shouldRun = false
+        running = false
+    }
 
-    override fun surfaceCreated(h: SurfaceHolder) {}
+    override fun surfaceCreated(h: SurfaceHolder) {
+        // 从后台回来时 surface 重建，需要重启渲染线程
+        if (shouldRun && !running) {
+            running = true
+            thread = Thread(this).also { it.start() }
+        }
+    }
+
     override fun surfaceChanged(h: SurfaceHolder, f: Int, w: Int, hgt: Int) {}
-    override fun surfaceDestroyed(h: SurfaceHolder) { running = false }
+    override fun surfaceDestroyed(h: SurfaceHolder) {
+        running = false   // 线程退出，但保留 shouldRun 以便重建时恢复
+    }
 
     override fun run() {
         val gw = EmuCore.videoWidth().coerceAtLeast(240)
@@ -162,7 +180,7 @@ fun AppScreen(activity: MainActivity) {
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
     var showRoms by remember { mutableStateOf(false) }
-    val emuView = remember { EmuView(activity) }
+    val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
     val status = activity.statusText.value
     val running = activity.runningState.value
