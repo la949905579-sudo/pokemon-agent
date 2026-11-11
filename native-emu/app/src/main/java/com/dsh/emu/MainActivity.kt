@@ -119,6 +119,7 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
     init { holder.addCallback(this) }
 
     @Volatile private var shouldRun = false
+    @Volatile private var surfaceReady = false
 
     fun start() {
         shouldRun = true
@@ -133,16 +134,18 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
     }
 
     override fun surfaceCreated(h: SurfaceHolder) {
-        // 从后台回来时 surface 重建，需要重启渲染线程
+        surfaceReady = true
+        // 线程可能还在跑（后台模拟），这里只保证它存在
         if (shouldRun && !running) {
             running = true
             thread = Thread(this).also { it.start() }
         }
     }
 
-    override fun surfaceChanged(h: SurfaceHolder, f: Int, w: Int, hgt: Int) {}
+    override fun surfaceChanged(h: SurfaceHolder, f: Int, w: Int, hgt: Int) { surfaceReady = true }
     override fun surfaceDestroyed(h: SurfaceHolder) {
-        running = false   // 线程退出，但保留 shouldRun 以便重建时恢复
+        // 只标记不可绘制，模拟线程继续跑（后台自动化需要）
+        surfaceReady = false
     }
 
     override fun run() {
@@ -160,8 +163,16 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
                 bmp = b
             }
             b.setPixels(px, 0, gw, 0, 0, gw, gh)
-            val c: Canvas = (if (android.os.Build.VERSION.SDK_INT >= 26)
-                holder.lockHardwareCanvas() else holder.lockCanvas()) ?: continue
+            if (!surfaceReady) {
+                // 后台：不绘制，只推进模拟
+                nextNs += targetNs
+                val nowBg = System.nanoTime()
+                if (nextNs > nowBg) { try { Thread.sleep((nextNs - nowBg) / 1_000_000) } catch (_: InterruptedException) {} } else nextNs = nowBg
+                continue
+            }
+            val c: Canvas = try {
+                (if (android.os.Build.VERSION.SDK_INT >= 26) holder.lockHardwareCanvas() else holder.lockCanvas())
+            } catch (e: Throwable) { null } ?: continue
             try {
                 c.drawColor(AndroidColor.BLACK)
                 val vw = c.width; val vh = c.height
