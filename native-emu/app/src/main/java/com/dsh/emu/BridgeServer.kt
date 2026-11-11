@@ -25,10 +25,11 @@ class BridgeServer(private val port: Int = 55401) {
     fun start(): Boolean {
         if (running) return true
         return try {
-            server = ServerSocket(port, 8, InetAddress.getLoopbackAddress())
+            val bindAddr = InetAddress.getByName("127.0.0.1")
+            server = ServerSocket(port, 8, bindAddr)
             running = true
             Thread { acceptLoop() }.apply { isDaemon = true; start() }
-            log("bridge: listening on ${InetAddress.getLoopbackAddress().hostAddress}:$port")
+            log("bridge: listening on ${bindAddr.hostAddress}:$port")
             true
         } catch (e: IOException) {
             log("bridge: bind failed ${e.javaClass.simpleName}: ${e.message}")
