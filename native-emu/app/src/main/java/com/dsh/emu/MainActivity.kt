@@ -245,11 +245,14 @@ fun AppScreen(activity: MainActivity) {
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
 
-    // 检测到战斗自动切战斗页，战斗结束回小地图（手动在 KEYS/MENU 时不抢）
-    LaunchedEffect(status.battle) {
-        if (status.battle.isNotBlank() && page != Page.KEYS && page != Page.MENU) {
-            page = Page.BATTLE
-        } else if (status.battle.isBlank() && page == Page.BATTLE) {
+    // 战斗期间以战斗页为主：不在 KEYS/MENU 就切 BATTLE（关掉 KEYS 后也会回来）
+    // 战斗结束回小地图
+    LaunchedEffect(status.battle, page) {
+        if (status.battle.isNotBlank()) {
+            if (page != Page.KEYS && page != Page.MENU && page != Page.BATTLE) {
+                page = Page.BATTLE
+            }
+        } else if (page == Page.BATTLE) {
             page = Page.MINIMAP
         }
     }
