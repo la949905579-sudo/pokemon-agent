@@ -75,9 +75,15 @@ def main():
         rel = api(f"/repos/{OWNER}/{REPO}/releases/tags/{tag}")
         print("release 已存在:", rel["id"])
     except Exception:
+        body = "自动发布：commit " + sha
+        try:
+            c = api(f"/repos/{OWNER}/{REPO}/commits/{sha}")
+            body = c["commit"]["message"]
+        except Exception:
+            pass
         rel = api(f"/repos/{OWNER}/{REPO}/releases", "POST", {
             "tag_name": tag, "name": "NativeEmu " + tag,
-            "body": f"自动发布：commit {sha}", "draft": False, "prerelease": False,
+            "body": body, "draft": False, "prerelease": False,
         })
         print("release 创建:", rel["id"])
 
