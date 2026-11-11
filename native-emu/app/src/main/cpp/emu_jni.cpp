@@ -86,7 +86,18 @@ Java_com_dsh_emu_EmuCore_frameBuffer(JNIEnv* env, jobject) {
     if (!buf) return nullptr;
     jintArray arr = env->NewIntArray(w * h);
     if (!arr) return nullptr;
-    env->SetIntArrayRegion(arr, 0, w * h, (const jint*) buf);
+    // mGBA 32 位像素是 ABGR（0xAABBGGRR），Android Bitmap 要 ARGB（0xAARRGGBB）
+    std::vector<jint> tmp((size_t)(w * h));
+    for (int i = 0; i < w * h; i++) {
+        uint32_t c = buf[i];
+        uint32_t a = (c >> 24) & 0xFF;
+        uint32_t b = (c >> 16) & 0xFF;
+        uint32_t g = (c >> 8) & 0xFF;
+        uint32_t r = c & 0xFF;
+        if (a == 0) a = 0xFF;
+        tmp[i] = (jint)((a << 24) | (r << 16) | (g << 8) | b);
+    }
+    env->SetIntArrayRegion(arr, 0, w * h, tmp.data());
     return arr;
 }
 
