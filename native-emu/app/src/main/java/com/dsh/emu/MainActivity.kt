@@ -257,6 +257,22 @@ fun AppScreen(activity: MainActivity) {
                         onKeys = { page = Page.KEYS },
                         onLog = { page = Page.LOG },
                         onMap = { page = Page.MINIMAP },
+                        onUpdate = {
+                            Thread {
+                                val rel = Updater.latest()
+                                if (rel == null) {
+                                    activity.statusText.value = "检查更新失败"
+                                    return@Thread
+                                }
+                                activity.statusText.value = "下载 ${rel.tag}..."
+                                val f = File(activity.cacheDir, "update.apk")
+                                if (Updater.download(rel.url, f)) {
+                                    activity.runOnUiThread { Updater.install(activity, f) }
+                                } else {
+                                    activity.statusText.value = "下载失败"
+                                }
+                            }.start()
+                        },
                     )
                     page == Page.LOG -> LazyColumn(Modifier.fillMaxSize()) {
                         items(logs) { Text(it, color = TXT, fontSize = 11.sp) }
@@ -319,10 +335,12 @@ private fun MinimapPage(s: EmuStatus) {
 private fun MenuPage(
     onRom: () -> Unit, onSave: () -> Unit, onLoad: () -> Unit,
     onKeys: () -> Unit, onLog: () -> Unit, onMap: () -> Unit,
+    onUpdate: () -> Unit,
 ) {
     val items = listOf(
         "ROM" to onRom, "存档" to onSave, "读档" to onLoad,
         "按键" to onKeys, "日志" to onLog, "地图" to onMap,
+        "更新" to onUpdate,
     )
     Column(Modifier.fillMaxSize()) {
         for (row in items.chunked(3)) {
