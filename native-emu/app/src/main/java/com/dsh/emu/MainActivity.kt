@@ -183,6 +183,8 @@ data class EmuStatus(
     val foeLv: Int = 0, val foeHp: Int = 0, val foeMax: Int = 0,
     val meLv: Int = 0, val meHp: Int = 0, val meMax: Int = 0,
     val moves: List<String> = emptyList(),
+    val mmW: Int = 0, val mmH: Int = 0, val mmPx: Int = 0, val mmPy: Int = 0,
+    val mmTiles: List<List<Int>>? = null,
 )
 
 private fun parseStatus(json: String): EmuStatus {
@@ -196,6 +198,18 @@ private fun parseStatus(json: String): EmuStatus {
                 team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max")))
             }
         }
+        val mm = o.optJSONObject("minimap")
+        var mmTiles: List<List<Int>>? = null
+        mm?.optJSONArray("tiles")?.let { arr ->
+            val rows = mutableListOf<List<Int>>()
+            for (y in 0 until arr.length()) {
+                val row = arr.optJSONArray(y) ?: continue
+                val cells = mutableListOf<Int>()
+                for (x in 0 until row.length()) cells.add(row.optInt(x))
+                rows.add(cells)
+            }
+            if (rows.isNotEmpty()) mmTiles = rows
+        }
         val d = o.optJSONObject("battle_detail")
         val foe = d?.optJSONObject("foe")
         val me = d?.optJSONObject("me")
@@ -208,6 +222,8 @@ private fun parseStatus(json: String): EmuStatus {
             foe?.optInt("lv") ?: 0, foe?.optInt("hp") ?: 0, foe?.optInt("mhp") ?: 0,
             me?.optInt("lv") ?: 0, me?.optInt("hp") ?: 0, me?.optInt("mhp") ?: 0,
             moves,
+            mm?.optInt("w") ?: 0, mm?.optInt("h") ?: 0, mm?.optInt("px") ?: 0, mm?.optInt("py") ?: 0,
+            mmTiles,
         )
     } catch (e: Exception) { EmuStatus() }
 }
@@ -331,12 +347,26 @@ private fun BarButton(label: String, active: Boolean, onClick: () -> Unit) {
 @Composable
 private fun MinimapPage(s: EmuStatus) {
     Column(Modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxWidth().weight(1f).background(Color(0xFF1E321E), RoundedCornerShape(12.dp))) {
-            for (i in 0 until 6) {
-                Box(Modifier.offset((20 + i * 52).dp, 20.dp).size(40.dp, 30.dp).background(Color(0xFF325032)))
-            }
-            if (s.x != 0 || s.y != 0) {
-                Box(Modifier.offset((20 + (s.x % 6) * 52).dp, (20 + (s.y % 3) * 34).dp).size(10.dp).background(Color(0xFFFF5050), CircleShape))
+        Box(Modifier.fillMaxWidth().weight(1f).background(Color(0xFF14200F), RoundedCornerShape(12.dp))) {
+            androidx.compose.foundation.Canvas(Modifier.fillMaxSize().padding(6.dp)) {
+                val w = s.mmW.coerceAtLeast(1)
+                val h = s.mmH.coerceAtLeast(1)
+                val cw = size.width / w
+                val ch = size.height / h
+                val tiles = s.mmTiles
+                for (y in 0 until h) for (x in 0 until w) {
+                    val pass = tiles?.getOrNull(y)?.getOrNull(x)?.let { it == 1 } ?: true
+                    drawRect(
+                        color = if (pass) Color(0xFF2E4B2A) else Color(0xFF0D0D0D),
+                        topLeft = androidx.compose.ui.geometry.Offset(x * cw, y * ch),
+                        size = androidx.compose.ui.geometry.Size(cw - 0.5f, ch - 0.5f),
+                    )
+                }
+                // 玩家位置（按比例映射到格子）
+                val px = (s.mmPx.toFloat() / w).coerceIn(0f, 0.999f)
+                val py = (s.mmPy.toFloat() / h).coerceIn(0f, 0.999f)
+                drawCircle(Color(0xFFFF4040), radius = minOf(cw, ch) * 0.45f,
+                    center = androidx.compose.ui.geometry.Offset(px * size.width + cw / 2, py * size.height + ch / 2))
             }
         }
         Spacer(Modifier.height(6.dp))

@@ -1,7 +1,11 @@
 """口袋妖怪 火红 插件：包装现有 info/state 模块，不改动它们。"""
+import json
+import os
+
 import bdata
 import info
 import state
+import terrain
 
 
 class PokemonFireRedPlugin:
@@ -35,6 +39,7 @@ class PokemonFireRedPlugin:
         detail = {}
         if battle:
             detail = self._battle_detail()
+        minimap = self._minimap(int(ctx.get("x", 0) or 0), int(ctx.get("y", 0) or 0))
         return {
             "map": scene,
             "x": int(ctx.get("x", 0) or 0),
@@ -42,8 +47,26 @@ class PokemonFireRedPlugin:
             "team": team,
             "battle": battle,
             "battle_detail": detail,
+            "minimap": minimap,
             "log": list(self._log[-20:]),
         }
+
+    def _minimap(self, px, py):
+        """当前地图的格子布局（从 maps/ 缓存读），供下屏画小地图。"""
+        try:
+            addr, w, h = terrain.locate_map()
+            if not addr or not w or not h:
+                return {}
+            path = os.path.join(os.path.dirname(__file__), "..", "..", "maps",
+                                "map_%x.json" % addr)
+            path = os.path.normpath(path)
+            tiles = None
+            if os.path.exists(path):
+                with open(path) as f:
+                    tiles = json.load(f).get("tiles")
+            return {"w": w, "h": h, "px": px, "py": py, "tiles": tiles}
+        except Exception:
+            return {}
 
     def _battle_detail(self):
         out = {}
