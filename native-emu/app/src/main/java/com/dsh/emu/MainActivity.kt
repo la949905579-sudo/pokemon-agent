@@ -310,10 +310,10 @@ fun AppScreen(activity: MainActivity) {
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
-                        TabButton(label, page == p2) { showRoms = false; page = p2 }
+                        TabButton(label, page == p2, Modifier.weight(1f)) { showRoms = false; page = p2 }
                     }
                     Spacer(Modifier.height(4.dp))
-                    TabButton("按键", page == Page.KEYS) { showRoms = false; page = Page.KEYS }
+                    TabButton("按键", page == Page.KEYS, Modifier.weight(1f)) { showRoms = false; page = Page.KEYS }
                 }
             }
         }
@@ -585,9 +585,9 @@ private fun BattlePage(s: EmuStatus, onKeys: () -> Unit) {
 
 
 @Composable
-private fun TabButton(label: String, active: Boolean, onClick: () -> Unit) {
+private fun TabButton(label: String, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
-        Modifier.fillMaxWidth().weight(1f).padding(vertical = 2.dp)
+        modifier.fillMaxWidth().padding(vertical = 2.dp)
             .background(if (active) ACCENT else CARD, RoundedCornerShape(8.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
