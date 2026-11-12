@@ -9,6 +9,7 @@
 
 ```bash
 node tools/session_health.mjs        # 轮次 / 压缩次数 / 连续空回合；exit 1 = 该交接
+python3 tools/metrics.py --check     # CI 首过率 / 复发率；exit 1 = T4 红，强制启动审查（每周一次）
 ```
 
 **多久查一次**（三条线）：
@@ -59,6 +60,8 @@ node tools/session_health.mjs        # 轮次 / 压缩次数 / 连续空回合�
 6. `python3 tools/gen_files_index.py` 重新生成，`--check` 返回 0
 7. `docs/HANDOFF.md` 更新：当前状态、阻塞、下一步、**不要做什么**
 8. 没有未结束的后台任务（job）或未完成的子代理
+9. `tools/precommit_check.sh --push` 通过（远端未被 amend 改写、待推提交非空/非空信息）
+10. 若有 Kotlin UI 改动：`python3 tools/check_ui_state.py` 无“只写不读”的状态（INC-006）
 
 ## 三、交接内容模板
 
