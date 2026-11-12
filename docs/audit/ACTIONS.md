@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|
 | A-1 | 装机械闸门：`tools/precommit_check.sh --install-hooks`（pre-commit + pre-push） | `.git/hooks` 只有 `*.sample`；REPORT 整改 1 | 执行主管 | 下一 push 前 | 待办 |
 | A-2 | 测试数改引用 `tools/test_results.json`，禁止写死 | `HANDOFF.md:17,58,67`；`HANDOVER.md:58,98,131` | 执行主管 | 2026-11-13 | 待办 |
-| A-3 | 同步 TODO/HANDOFF 待办（行走路径已做、存档三槽、插件测试 29），删退役 `verifier` 引用 | `NATIVE_EMU_TODO.md:15,59`；`STRUCTURE.md:44,62,68` | 执行主管 | 下一批次首提交 | 待办 |
+| A-3 | 同步 TODO/HANDOFF 待办（行走路径已做、存档三槽、插件测试 29），删退役 `verifier` 引用；**并删 `docs/TEAM.md` §一 的「督导」行**（A 队裁定 2026-11-12，督导属 B 队） | `NATIVE_EMU_TODO.md:15,59`；`STRUCTURE.md:44,62,68`；`docs/TEAM.md:44` | 执行主管 | 下一批次首提交 | 待办 |
 | A-4 | 重生成 METRICS（当时 HEAD `3decf36`）；`--check` 红时 exit≠0 | `METRICS.md:45,51` 过期 | 执行主管 | 下一批次前 | 待办 |
 | A-5 | `REQUEST.md` 增必填「T4 结果」；窗口起点先 `git cat-file` 验、写实际提交数 | `REQUEST.md:12` 的 `ccdc130` 不可解析 | A 队主持 + 督导主持 | 下次请求前 | 待办 |
 
@@ -22,6 +22,9 @@
 | A-7 | 主会话压缩/换执行主管时**新开会话**，单会话别超 ~130 轮 | `COST-20261112.md`：单会话占全体 59.7% | A 队主持 | 建议采纳 |
 | A-8 | 重活排闲时（工作日 9–12、14–18 之外），同量 token 价减半 | `TEAM.md` 第十节单价表 | A 队主持 | 可议 |
 | A-9 | 修 METRICS 脚本两处：§六时间戳统一本地时区；重复读合计与明细不符（30 vs 32，漏列 2 文件各 1 次） | `COST-20261112.md` 首份巡检发现 | 执行主管 | 待办 |
+| A-10 | 机械化文档过期检查：`precommit_check.sh` 加 grep（「57 个 / 28/28 / verifier」=0）、`metrics.py --check` 加窗口 `cat-file` 验真 | A-3/A-5 靠人记必复发（上轮 b/c 即崩在此） | 执行主管 | 待办（A 队裁定并入 F 首提交） |
+| A-11 | `PROJECT_PLAN.md:3` 阶段更新，或标「历史规划，进度以 TODO 为准」 | 与 `NATIVE_EMU_TODO` / `HANDOFF.md:14-20` 差一个阶段（P0 vs P1） | 架构师 | 待办 |
+| A-12 | `docs/AUDIT.md:64`「8 条前置检查」→ 实为 **10 条**（`HANDOVER.md:54-64`）；与 `auditor.md:47` 的「10 条」对齐 | 督导自查发现（2026-11-12） | 架构师 / A 队主持 | 待办 |
 
 ## 预警（还没坏，但会坏）
 
