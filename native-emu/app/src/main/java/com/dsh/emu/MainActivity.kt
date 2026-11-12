@@ -14,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,7 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
 import java.io.File
 
-enum class Page { MAP, TEAM, BAG, NICK, DEX, SAVE, OPTION, BATTLE, KEYS, UPDATE }
+enum class Page { MAP, TEAM, BAG, NICK, DEX, SAVE, OPTION, BATTLE, UPDATE }
 
 class MainActivity : ComponentActivity() {
     val statusText = mutableStateOf("")
@@ -263,7 +264,15 @@ fun AppScreen(activity: MainActivity) {
     var frame by remember { mutableStateOf(0L) }
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
+    var keysOpen by remember { mutableStateOf(false) }
     var showRoms by remember { mutableStateOf(false) }
+    // 统一收起按键面板：必须同时清按键掩码。
+    // 否则手指正按在面板上时切页/载入 ROM，面板关了但 setKeys 还留着旧掩码，角色会一直走。
+    val closeKeys = {
+        keysOpen = false
+        keys = 0
+        EmuCore.setKeys(0)
+    }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
     val running = activity.runningState.value
@@ -289,9 +298,10 @@ fun AppScreen(activity: MainActivity) {
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
 
-    // 战斗期间以战斗页为主：不在 KEYS/MENU 就切 BATTLE（关掉 KEYS 后也会回来）
-    // 战斗结束回小地图
-    LaunchedEffect(status.battle, page) {
+    // 战斗期间以战斗页为主；战斗结束回地图。
+    // 按键面板展开时不要抢页——这就是「战斗页出现后按键打不开」的根因。
+    LaunchedEffect(status.battle, page, keysOpen) {
+        if (keysOpen) return@LaunchedEffect
         if (status.battle.isNotBlank()) {
             if (page != Page.BATTLE) page = Page.BATTLE
         } else if (page == Page.BATTLE) {
@@ -316,18 +326,21 @@ fun AppScreen(activity: MainActivity) {
             if (!romReady) Text("点 MENU → ROM 选择游戏", color = DIM, fontSize = 12.sp)
         }
 
-        // 下屏：左侧内容 + 右侧竖排 Tab
+        // 下屏：左侧内容 + 右侧竖排 Tab + 最底边常驻按键折叠条
         Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
             Text("${if (status.map.isNotBlank()) status.map else "—"}  (${status.x}, ${status.y})   帧 $frame  FPS $fps",
                 color = DIM, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-            Row(Modifier.weight(1f).fillMaxWidth().padding(6.dp)) {
+            Row(Modifier.weight(1f).fillMaxWidth().padding(start = 6.dp, top = 6.dp, end = 6.dp, bottom = 4.dp)) {
                 Box(Modifier.weight(1f).fillMaxHeight()) {
                     when {
+                        // 按键面板：展开时替换内容区（不是浮层叠加）
+                        keysOpen -> KeyPadArea(keys) { k -> keys = k; EmuCore.setKeys(k) }
                         showRoms -> LazyColumn(Modifier.fillMaxSize()) {
                             items(roms) { f ->
                                 Text(f.name, color = Color(0xFF9AD0FF), fontSize = 12.sp,
                                     modifier = Modifier.fillMaxWidth().clickable {
                                         showRoms = false
+                                        closeKeys()
                                         activity.loadRom(f)
                                     }.padding(vertical = 6.dp))
                             }
@@ -343,8 +356,7 @@ fun AppScreen(activity: MainActivity) {
                         page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE },
                             onRom = { activity.refreshRoms(); showRoms = true })
                         page == Page.UPDATE -> UpdatePage(activity)
-                        page == Page.BATTLE -> BattlePage(status, keys, { k -> keys = k; EmuCore.setKeys(k) })
-                        else -> KeyPadArea(keys) { keys = it; EmuCore.setKeys(it) }
+                        else -> BattlePage(status)
                     }
                 }
                 Column(Modifier.width(80.dp).fillMaxHeight().padding(start = 4.dp)) {
@@ -354,13 +366,40 @@ fun AppScreen(activity: MainActivity) {
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
-                        TabButton(label, page == p2, Modifier.weight(1f)) { showRoms = false; page = p2 }
+                        TabButton(label, page == p2, Modifier.weight(1f)) {
+                            showRoms = false
+                            closeKeys()
+                            page = p2
+                        }
                     }
-                    Spacer(Modifier.height(4.dp))
-                    TabButton("按键", page == Page.KEYS, Modifier.weight(1f)) { showRoms = false; page = Page.KEYS }
                 }
             }
+            // 常驻折叠条：任何页面（包括战斗中）都能打开按键面板
+            KeyBar(keysOpen) {
+                if (keysOpen) closeKeys() else keysOpen = true
+            }
         }
+    }
+}
+
+/** 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 */
+@Composable
+private fun KeyBar(open: Boolean, onToggle: () -> Unit) {
+    var dragDown by remember { mutableStateOf(0f) }
+    Box(
+        Modifier.fillMaxWidth().height(32.dp)
+            .background(if (open) ACCENT else CARD, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .pointerInput(open) {
+                detectVerticalDragGestures(
+                    onDragStart = { dragDown = 0f },
+                    onDragEnd = { if (open && dragDown > 24f) onToggle() },
+                    onDragCancel = { dragDown = 0f },
+                ) { _, dy -> dragDown += dy }
+            }
+            .clickable { onToggle() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(if (open) "▼ 收起按键" else "▲ 按键", color = if (open) Color.White else DIM, fontSize = 12.sp)
     }
 }
 
@@ -417,34 +456,6 @@ private fun MinimapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit = { _, _ -> }) 
             }
         }
         if (s.team.isEmpty()) Text("等待 Python 推送状态…", color = DIM, fontSize = 11.sp)
-    }
-}
-
-@Composable
-private fun MenuPage(
-    speed: Int,
-    onSpeed: () -> Unit,
-    onRom: () -> Unit, onSave: () -> Unit, onLoad: () -> Unit,
-    onKeys: () -> Unit, onLog: () -> Unit, onMap: () -> Unit,
-    onUpdate: () -> Unit,
-) {
-    val items = listOf(
-        "ROM" to onRom, "存档" to onSave, "读档" to onLoad,
-        "按键" to onKeys, "日志" to onLog, "地图" to onMap,
-        "更新" to onUpdate, "${speed}x" to onSpeed,
-    )
-    Column(Modifier.fillMaxSize()) {
-        for (row in items.chunked(3)) {
-            Row(Modifier.fillMaxWidth().weight(1f)) {
-                for ((label, action) in row) {
-                    Box(Modifier.weight(1f).fillMaxHeight().padding(4.dp)
-                        .background(CARD, RoundedCornerShape(12.dp))
-                        .clickable { action() }, contentAlignment = Alignment.Center) {
-                        Text(label, color = TXT, fontSize = 14.sp)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -627,7 +638,7 @@ private fun UpdatePage(activity: MainActivity) {
 
 
 @Composable
-private fun BattlePage(s: EmuStatus, keysState: Int, onChange: (Int) -> Unit) {
+private fun BattlePage(s: EmuStatus) {
     Column(Modifier.fillMaxSize().padding(4.dp)) {
         // 敌方
         Text("敌方  Lv${s.foeLv}   ${s.foeHp}/${s.foeMax}", color = Color(0xFFFF9090), fontSize = 12.sp)
@@ -656,10 +667,6 @@ private fun BattlePage(s: EmuStatus, keysState: Int, onChange: (Int) -> Unit) {
                     }
                 }
             }
-        }
-        // 战斗中也要能按键：把按键区嵌进来
-        Box(Modifier.fillMaxWidth().height(120.dp)) {
-            KeyPadArea(keysState, onChange)
         }
     }
 }
