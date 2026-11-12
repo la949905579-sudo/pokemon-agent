@@ -172,6 +172,6 @@
 ## 十三、迁移与改名记录
 
 - **2026-11-13 P1（M2 剩余）**：B 队三张卡已 `git mv` 入 `docs/roles/b/`（`audit-lead.md`、`audit-cost.md`、`auditor.md`，git 识别为 rename、历史保留）；B 队侧引用同步更新（`docs/audit/AUDIT.md:4,132`、本手册、`ACTIONS.md`、卡内互引）。历史台账（`AUDIT_LOG.md`、`REPORT-*`、`COST-*`）**不回改**。
-- **2026-11-13 M6（审查件归并）**：`docs/audit/AUDIT.md` / `docs/audit/AUDIT_LOG.md` → `docs/audit/`：**独立督导同意**，但**单开一批、排在 P1 之后**，同批改约 70 处引用并过验收四连。理由：审查件是 B 队文件，归并后 B 队文档单一目录；但引用面大，不与卡迁移同批。
+- **2026-11-13 M6（审查件归并）**：**已落地**（`ab402fa`，06:0x）：`AUDIT.md` / `AUDIT_LOG.md` 已迁入 `docs/audit/` 并同步引用。⚠️ 观察：该批由 A 队侧执行，**连带改了 B 队文件**（`ACTIONS.md`、本手册、`docs/roles/b/audit-lead.md`、`auditor.md`），违「单文件单写入者」→ 记元审查一条；内容经逐项验收无误，**不追改**，但跨队批须各 owner 各改各的。
 - **改名词表（会话级职位）**：督导主持→独立督导、主持→统筹主持、组织架构师→组织规划、执行主管→助理（A 队手册自 2026-11-13 起为「助理」）；成员职位与英文实例名不变。
 

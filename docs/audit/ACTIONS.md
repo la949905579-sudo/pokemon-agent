@@ -3,16 +3,17 @@
 > **B 队维护，A 队只读**。来源：本轮审查报告（`REPORT-20261112.md`）+ 成本巡检（`COST-20261112.md`）+ 独立督导裁定。
 > A 队在自己 TODO 里跟进，**不必回执**（约定第 4 项：A 队不主动汇报）；B 队下次审查按本表逐条核仓库并更新状态。
 > 新增上限：每轮 ≤5 条（对齐 `AUDIT.md` 三「超 5 条说明流程崩了」）。
+> **状态口径**：状态由 B 队核仓库后更新，不采信口头完成；本轮回填依据见各条「依据」列的实测。
 > **2026-11-12 按用户改名计划统一会话级职位称呼**（统筹主持 / 独立督导 / 组织规划）；**历史台账（`AUDIT_LOG.md`、`REPORT-*`、`COST-*`）不回改**。
 
 ## 待办（有期限）
 
 | # | 整改建议 | 依据（文件:行号） | owner | 期限 | 状态 |
 |---|---|---|---|---|---|
-| A-1 | 装机械闸门：`tools/precommit_check.sh --install-hooks`（pre-commit + pre-push） | `.git/hooks` 只有 `*.sample`；REPORT 整改 1 | 助理 | 下一 push 前 | 待办 |
-| A-2 | 测试数改引用 `tools/test_results.json`，禁止写死 | `HANDOFF.md:17,58,67`；`HANDOVER.md:58,98,131` | 助理 | 2026-11-13 | 待办 |
-| A-3 | 同步 TODO/HANDOFF 待办（行走路径已做、存档三槽、插件测试 29），删退役 `verifier` 引用；**并删 `docs/TEAM.md` §一 的「督导」行**（A 队裁定 2026-11-12，独立督导属 B 队） | `NATIVE_EMU_TODO.md:15,59`；`STRUCTURE.md:44,62,68`；`docs/TEAM.md:44` | 助理 | 下一批次首提交 | 待办 |
-| A-4 | 重生成 METRICS（当时 HEAD `3decf36`）；`--check` 红时 exit≠0 | `METRICS.md:45,51` 过期 | 助理 | 下一批次前 | 待办 |
+| A-1 | 装机械闸门：`pre-commit` + `pre-push` | `.git/hooks` 实测两钩子已在；2026-11-13 推送被其检查 | 助理 | 下一 push 前 | **已落地** |
+| A-2 | 测试数改引用 `tools/test_results.json`，禁止写死 | 实测 HANDOFF / HANDOVER 各 3 处引用，无写死数字 | 助理 | 2026-11-13 | **已落地** |
+| A-3 | 同步 TODO/HANDOFF 待办、删退役 `verifier` 引用、删 `docs/TEAM.md` §一「督导」行 | 实测 `state1.sav` / `verifier` / 「28 项」grep 均为 **0**；`docs/TEAM.md` 已无「督导（按需）」行 | 助理 | 下一批次首提交 | **已落地** |
+| A-4 | 重生成 METRICS；`--check` 红时 exit≠0 | 实测 `docs/generated/METRICS.md` 05:49 重生成（HEAD `6841960`），含首过率；`metrics.py --check` exit=0 | 助理 | 下一批次前 | **已落地** |
 | A-5 | `REQUEST.md` 增必填「T4 结果」；窗口起点先 `git cat-file` 验、写实际提交数 | `REQUEST.md:12` 的 `ccdc130` 不可解析 | A 队统筹主持 + 独立督导 | 下次请求前 | 待办 |
 
 ## 已立项 / 建议（无硬期限）
@@ -20,13 +21,13 @@
 | # | 建议 | 依据 | owner | 状态 |
 |---|---|---|---|---|
 | A-6 | ~~`tools/token_report.mjs` 加 `--by-session`~~ → **结案**：`--json` 输出已含 `sessions[]`（id / role / turns / start / end / usage），按 id + 时间窗即可核算 | 实测 `--json`（2026-11-12 23:2x）；独立督导此前「脚本无按会话单列」的判断**有误** | 独立督导 | **已结案** |
-| A-7 | 主会话**已过线，应交接**：实测 133 轮 / total 3.149 亿 / 占全体 59.0%（阈值 ~130 轮，`-json` 可复算） | `node tools/token_report.mjs --json`（2026-11-12 23:2x）；A 队统筹主持 23:22 判定 | A 队统筹主持 | **已过线，应交接**（T5，见下注） |
+| A-7 | 主会话**已过线，应交接** | 实测 **142 轮**（2026-11-13 巡检，阈值 100；此前 133 轮），会话 `b3505b33` | A 队统筹主持 | **已过线，应交接**（T5，见下注） |
 | A-8 | 重活排闲时（工作日 9–12、14–18 之外），同量 token 价减半 | `TEAM.md` 第十节单价表 | A 队统筹主持 | 可议 |
-| A-9 | 修 METRICS 脚本两处：§六时间戳统一本地时区；重复读合计与明细不符（30 vs 32，漏列 2 文件各 1 次） | `COST-20261112.md` 首份巡检发现 | 助理 | 待办 |
+| A-9 | 修 METRICS 脚本两处（时区 / 重复读合计） | 实测生成物时区已 `Asia/Shanghai`；重复读合计 41 = 明细合计 41，已一致 | 助理 | **已落地** |
 | A-10 | 机械化文档过期检查：`precommit_check.sh` 加 grep（「57 个 / 28/28 / verifier」=0）、`metrics.py --check` 加窗口 `cat-file` 验真 | A-3/A-5 靠人记必复发（上轮 b/c 即崩在此） | 助理 | 待办（A 队裁定并入 F 首提交） |
-| A-11 | `PROJECT_PLAN.md:3` 阶段更新，或标「历史规划，进度以 TODO 为准」 | 与 `NATIVE_EMU_TODO` / `HANDOFF.md:14-20` 差一个阶段（P0 vs P1） | 组织规划 | 待办 |
-| A-12 | `docs/audit/AUDIT.md:64`「8 条前置检查」→ 实为 **10 条**（`HANDOVER.md:54-64`）；与 `docs/roles/b/auditor.md:47` 的「10 条」对齐 | 独立督导自查发现（2026-11-12） | 组织规划 / A 队统筹主持 | 待办 |
-| A-13 | `docs/audit/AUDIT.md:110`「auditor 只读」、`:132`「改提示词 docs/roles/b/auditor.md」仍用旧名 → 统一为 `audit-inspector`（`:4` 已按授权改） | 修 `:4` 时连带发现 | 组织规划 / A 队统筹主持 | 待办 |
+| A-11 | `PROJECT_PLAN.md:3` 阶段更新 | 实测 :3 已改「P0 完成、P1 插件化完成」，与 HANDOFF 一致 | 组织规划 | **已落地**（组织规划） |
+| A-12 | `docs/audit/AUDIT.md:64` 前置检查条数 | 实测已改「**11 条**（§二）」；`docs/HANDOVER.md` §二 实为 11 条，与 `auditor.md` 一致 | 独立督导 | **已落地**（M6 批 `ab402fa`） |
+| A-13 | `docs/audit/AUDIT.md:110/132` 旧名 `auditor` | 实测已改「审查员 `audit-inspector` 只读」，路径 `docs/roles/b/auditor.md` | 独立督导 | **已落地**（M6 批 `ab402fa`） |
 | A-14 | `docs/roles/b/auditor.md:88` 语义修正：改为「改进项由**独立督导**裁定、助理落盘；**是否发版与优先级由统筹主持拍板**」 | 用户 2026-11-12 裁定（`docs/org/PLAN-20261112.md` §九-5） | 独立督导 | **已落地**（2026-11-13） |
 | A-15 | 巡检工具覆盖不全：`session_health.mjs` 只认 `session.v4.jsonl.zstd`，11 个会话目录中 6 个无该文件（只有 `session.lock`）→ 巡检只判 5 个，其余记「无数据」。建议加 `--all` 并兼容旧格式/清理空日志目录 | 2026-11-13 首轮巡检实测 | 助理 | 待办 |
 
@@ -37,8 +38,8 @@
 ## 预警（还没坏，但会坏）
 
 1. `CHANGELOG.md:3` 的 `vYYYY.MM.DD-N` tag 规则与实际 0 个同类 tag 冲突 → 二选一。
-2. `HANDOFF.md:121` 旧 Release 对象已实测不存在 → 安全债可结案。
+2. ~~`HANDOFF.md:121` 旧 Release 对象~~ → HANDOFF 重写后已无该表述，**可结案**。
 3. 批次 A–E 无真机记录 → HANDOFF 增「真机已验证」字段，避免 D 类证据永远只有两项。
 
 ---
-- 更新人：独立督导 ｜ 更新于 2026-11-13 00:2x ｜ 下次核对：随下次审查（冷却至 2026-11-19，或 P0/T6 即时）
+- 更新人：独立督导 ｜ 更新于 2026-11-13 06:3x（状态回填：A-1~A-4、A-9、A-11~A-14 已落地；余 A-5、A-10、A-15）｜ 下次核对：随下次审查（冷却至 2026-11-19，或 P0/T6 即时）
