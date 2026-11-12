@@ -3,9 +3,7 @@ package com.dsh.emu.ui
 import com.dsh.emu.EmuCore
 import com.dsh.emu.MainActivity
 import com.dsh.emu.Nlog
-import com.dsh.emu.game.Addresses
-import com.dsh.emu.game.GameState
-import com.dsh.emu.game.Memo
+import com.dsh.emu.game.BattleMoveMenu
 import com.dsh.emu.game.MoveCaster
 
 /**
@@ -40,13 +38,13 @@ object BattleMoveAction {
             var res: MoveCaster.Result? = null
             try {
                 val io = object : MoveCaster.Io {
-                    override fun readTurn(): Int = GameState.turnFlag()
-
-                    // 适配层直接读光标地址：按任务卡边界 GameState 不改；
+                    // 内存读取全部经 game/BattleMoveMenu 适配层；
                     // Compose 层仍只消费 EmuStatus，不碰内存。
-                    override fun readMainCursor(): Int = Memo.u8(Addresses.MAIN_CURSOR)
-                    override fun readMoveCursor(): Int = Memo.u8(Addresses.MOVE_CURSOR)
-                    override fun pressDir(dir: MoveCaster.Dir, ms: Long) = press(maskOf(dir), ms, myGen)
+                    override fun readTurn(): Int = BattleMoveMenu.readTurn()
+                    override fun readMainCursor(): Int = BattleMoveMenu.readMainCursor()
+                    override fun readMoveCursor(): Int = BattleMoveMenu.readMoveCursor()
+                    override fun pressDir(dir: MoveCaster.Dir, ms: Long) =
+                        press(MoveCastThread.maskOf(dir), ms, myGen)
                     override fun pressA(ms: Long) = press(EmuCore.KEY_A, ms, myGen)
                     override fun sleep(ms: Long) { interruptibleSleep(ms, myGen) }
                     override fun cancelled(): Boolean = myGen != generation
@@ -75,36 +73,17 @@ object BattleMoveAction {
 
     /** 按住 keys 掩码 ms 毫秒；取消后尽快松开（统一在 finally 清键）。 */
     private fun press(keys: Int, ms: Long, myGen: Int) {
-        if (myGen != generation) return
-        try {
-            EmuCore.setKeys(keys)
-            interruptibleSleep(ms, myGen)
-        } finally {
-            EmuCore.setKeys(0)
-        }
-    }
-
-    private fun maskOf(dir: MoveCaster.Dir): Int = when (dir) {
-        MoveCaster.Dir.UP -> EmuCore.KEY_UP
-        MoveCaster.Dir.DOWN -> EmuCore.KEY_DOWN
-        MoveCaster.Dir.LEFT -> EmuCore.KEY_LEFT
-        MoveCaster.Dir.RIGHT -> EmuCore.KEY_RIGHT
+        MoveCastThread.press(
+            keys, ms,
+            isCancelled = { myGen != generation },
+            setKeys = { mask -> EmuCore.setKeys(mask) },
+            sleep = { chunk -> Thread.sleep(chunk) },
+        )
     }
 
     /** 可中断 sleep：每 20ms 看一次代际，取消后尽快停。 */
-    private fun interruptibleSleep(ms: Long, myGen: Int): Boolean {
-        var left = ms
-        while (left > 0) {
-            if (myGen != generation) return false
-            val chunk = if (left < 20L) left else 20L
-            try {
-                Thread.sleep(chunk)
-            } catch (_: InterruptedException) {
-                return false
-            }
-            left -= chunk
-        }
-        return myGen == generation
+    private fun interruptibleSleep(ms: Long, myGen: Int) {
+        MoveCastThread.sleepInterruptibly(ms, { myGen != generation }) { chunk -> Thread.sleep(chunk) }
     }
 
     private fun logResult(r: MoveCaster.Result) {

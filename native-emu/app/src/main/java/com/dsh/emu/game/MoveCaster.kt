@@ -48,7 +48,11 @@ object MoveCaster {
         /** TURN_FLAG：1=主菜单 2=招式 4=动画 0=开场；读不到返回 -1。 */
         fun readTurn(): Int
 
-        /** MAIN_CURSOR：子菜单里保留「从主菜单哪个选项打开」，0=招式。读不到返回 -1。 */
+        /**
+         * MAIN_CURSOR：主菜单光标——0=战斗 1=背包 2=宝可梦 3=逃跑（单一真源 `addresses.py:9`）。
+         * 打开招式菜单后保留「从战斗项进入」的值 0，所以守卫用 0 判断当前是招式菜单入口。
+         * 读不到返回 -1。
+         */
         fun readMainCursor(): Int
 
         /** MOVE_CURSOR：0..3；读不到返回 -1。 */
@@ -154,7 +158,10 @@ object MoveCaster {
         if (turnAfter == -1) return result(false, Reason.TURN_READ_FAIL, turnAfter)
         if (turnAfter != TURN_MOVES_MENU) return result(true, Reason.OK, turnAfter)
         repeat(POLL_TIMES) {
+            // 取消（切页/收面板/载 ROM）后立即退出：不再空转轮询、不把正常取消记成 WARN。
+            if (io.cancelled()) return result(false, Reason.CANCELLED, turnAfter)
             io.sleep(POLL_MS)
+            if (io.cancelled()) return result(false, Reason.CANCELLED, turnAfter)
             val t = io.readTurn()
             if (t == -1) return result(false, Reason.TURN_READ_FAIL, t)
             turnAfter = t

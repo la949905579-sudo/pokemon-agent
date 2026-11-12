@@ -25,9 +25,20 @@ class MoveCasterTest {
         var turnReadFailAfterA: Boolean = false,
         var wrongConfirm: Boolean = false,
         var cancelledNow: Boolean = false,
+        /** sleep(CONFIRM_MS) 之后把 TURN 改掉，模拟执行前被动画/对话框顶掉。 */
+        var turnAfterConfirm: Int? = null,
+        /** sleep(CONFIRM_MS) 之后把 MAIN_CURSOR 改掉，模拟执行前被顶掉。 */
+        var mainAfterConfirm: Int? = null,
+        /** 按 A 之后立刻进入取消状态（模拟按 A 瞬间用户切页/收面板）。 */
+        var cancelOnA: Boolean = false,
+        /** 第 N 次 A 后轮询 sleep 时进入取消状态；-1 = 不自动取消。 */
+        var cancelAfterPollSleeps: Int = -1,
     ) : MoveCaster.Io {
         val dirs = mutableListOf<MoveCaster.Dir>()
         var aPresses = 0
+
+        /** A 后轮询的 sleep 次数（验证取消后不空转）。 */
+        var pollSleeps = 0
 
         /** sleep(CONFIRM_MS) 之后第一次读光标故意读错，模拟二次确认时滞后/不一致。 */
         private var wrongNextRead = false
@@ -61,10 +72,21 @@ class MoveCasterTest {
         override fun pressA(ms: Long) {
             aPresses++
             if (changeTurnOnA) turn = turnAfterA
+            if (cancelOnA) cancelledNow = true
         }
 
         override fun sleep(ms: Long) {
-            if (ms == MoveCaster.CONFIRM_MS && wrongConfirm) wrongNextRead = true
+            if (ms == MoveCaster.CONFIRM_MS) {
+                if (wrongConfirm) wrongNextRead = true
+                turnAfterConfirm?.let { turn = it }
+                mainAfterConfirm?.let { main = it }
+            }
+            if (ms == MoveCaster.POLL_MS) {
+                pollSleeps++
+                if (cancelAfterPollSleeps >= 0 && pollSleeps >= cancelAfterPollSleeps) {
+                    cancelledNow = true
+                }
+            }
         }
 
         override fun cancelled(): Boolean = cancelledNow
@@ -168,6 +190,48 @@ class MoveCasterTest {
         assertFalse(r.ok)
         assertEquals(MoveCaster.Reason.CANCELLED, r.reason)
         assertEquals(0, io.aPresses)
+    }
+
+    // ---------- A 前最后一次 TURN/MAIN 复核（窗口内被顶掉就不按 A） ----------
+
+    @Test
+    fun rejectsWhenTurnChangesRightBeforeA() {
+        val io = FakeIo(cursor = 0, turnAfterConfirm = 4)   // 确认等待期间进入动画
+        val r = MoveCaster.cast(0, io)
+        assertFalse(r.ok)
+        assertEquals(MoveCaster.Reason.TURN_NOT_MOVES, r.reason)
+        assertNoKeys(io)
+    }
+
+    @Test
+    fun rejectsWhenMainCursorChangesRightBeforeA() {
+        val io = FakeIo(cursor = 0, mainAfterConfirm = 2)   // 确认等待期间子菜单换成宝可梦
+        val r = MoveCaster.cast(0, io)
+        assertFalse(r.ok)
+        assertEquals(MoveCaster.Reason.MAIN_NOT_MOVES, r.reason)
+        assertEquals(0, io.aPresses)
+    }
+
+    // ---------- A 后轮询：取消即退出，不空转记 WARN ----------
+
+    @Test
+    fun cancelRightAfterAExitsWithoutPolling() {
+        val io = FakeIo(cursor = 0, changeTurnOnA = false, cancelOnA = true)
+        val r = MoveCaster.cast(0, io)
+        assertFalse(r.ok)
+        assertEquals(MoveCaster.Reason.CANCELLED, r.reason)
+        assertEquals("取消后一次都不轮询", 0, io.pollSleeps)
+        assertEquals("也不补按 A", 1, io.aPresses)
+    }
+
+    @Test
+    fun cancelDuringPostAPollExitsWithoutSpinning() {
+        val io = FakeIo(cursor = 0, changeTurnOnA = false, cancelAfterPollSleeps = 1)
+        val r = MoveCaster.cast(0, io)
+        assertFalse(r.ok)
+        assertEquals(MoveCaster.Reason.CANCELLED, r.reason)
+        assertEquals("只轮询 1 次就退出（不空转 8 次）", 1, io.pollSleeps)
+        assertEquals(1, io.aPresses)
     }
 
     // ---------- 参数/边界 ----------
