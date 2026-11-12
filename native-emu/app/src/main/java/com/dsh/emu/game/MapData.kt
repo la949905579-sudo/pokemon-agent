@@ -158,9 +158,15 @@ object MapData {
         val fromAssets = assetTiles[addr]
         val tiles = fromAssets ?: fromMemory(addr, w, h)?.also {
             // assets 没这张图才走内存：留痕，方便以后排查「这张图为什么没有」
-            Nlog.info("map.fallback", "source" to "memory", "addr" to "0x%x".format(addr), "ok" to true)
+            Nlog.warnThrottled(
+                "map.fallback:ok", "map.fallback",
+                "source" to "memory", "addr" to "0x%x".format(addr), "ok" to true,
+            )
         } ?: run {
-            Nlog.warn("map.fallback", "source" to "memory", "addr" to "0x%x".format(addr), "ok" to false)
+            Nlog.warnThrottled(
+                "map.fallback:fail", "map.fallback",
+                "source" to "memory", "addr" to "0x%x".format(addr), "ok" to false,
+            )
             null
         }
         val layer = tiles?.let { Layer(addr, w, h, it, fromAssets != null) }

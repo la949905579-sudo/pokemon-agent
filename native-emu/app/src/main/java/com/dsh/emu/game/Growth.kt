@@ -69,7 +69,7 @@ object Growth {
                 rates[i] = if (off < bytes.size) bytes[off] else 0
             }
             romRates = rates
-            Nlog.info(
+            Nlog.warn(
                 "growth.rom", "stage" to "locate", "ok" to true,
                 "base" to "0x%x".format(base),
                 "bulbasaur" to rates[0].toInt(), "pikachu" to rates[24].toInt(),

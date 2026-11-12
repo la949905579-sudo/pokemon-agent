@@ -135,8 +135,13 @@ object Updater {
     /** logger 自己的兜底日志：只进 logcat，不写文件（写文件失败再写文件会递归）。 */
     private fun logWarn(stage: String, e: Throwable) {
         try {
-            Log.println(Log.WARN, LOG_TAG,
-                "${nowIso()} WARN  ota.log stage=$stage code=${errCode(e)} msg=${sanitize(e.message)}")
+            val line = Nlog.buildLine(
+                Nlog.Level.WARN,
+                "ota.log",
+                listOf("stage" to stage, "code" to errCode(e), "msg" to sanitize(e.message)),
+                nowIso(),
+            )
+            Log.println(Log.WARN, LOG_TAG, line)
         } catch (_: Throwable) {}
     }
 
