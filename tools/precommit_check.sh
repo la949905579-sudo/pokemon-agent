@@ -10,7 +10,10 @@
 #   2. 提交信息为空 / 太短 / 占位（wip、test、build trigger…）→ 拒绝
 #   3. `git add -A` 卷入未声明改动：给了 --scope 时，暂存文件越界 → 拒绝
 #   4. 调试残留 / 凭据入暂存（*.log、*.jks、keystore-info*、*.bak）→ 拒绝
-#   5. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
+#   5. 过期文档文案（A-10）：活文档出现旧文件数/旧测试数/退役实例名 → 拒绝
+#      （豁免：docs/history/**、docs/audit/**、docs/generated/**、docs/org/PLAN-*、B 队卡、
+#       「永久禁用/退役名/旧名」所在行、git 历史）
+#   6. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
 #
 # 检查项（推送模式）：
 #   1. 远端有本地没有的提交（被 amend/rebase/强推改写过）→ 拒绝
@@ -189,7 +192,27 @@ commit_checks() {
         ok "没有调试日志 / 密钥库进暂存"
     fi
 
-    # 5. 工作区漂移（警告）
+    # 5. 过期文档文案（A-10）：旧文件数 / 旧测试数 / 退役实例名不再靠人记
+    #    豁免：history/audit/generated/org-PLAN/B 队卡、「永久禁用/退役名/旧名」行、git 历史
+    local stale=() f hit
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        while IFS= read -r hit; do
+            [ -n "$hit" ] && stale+=("$hit")
+        done < <(grep -nE '57 个|28/28|verifier' "$f" 2>/dev/null \
+                    | grep -vE '永久禁用|退役名|旧名' \
+                    | sed "s|^|${f}:|")
+    done < <(git ls-files -- 'docs/*.md' 'docs/roles/*.md' 'docs/roles/*/*.md' 'docs/org/*.md' 'README.md' 'AGENTS.md' \
+                 | grep -vE '^docs/(history/|audit/|generated/|roles/b/|org/PLAN-)')
+    if [ "${#stale[@]}" -gt 0 ]; then
+        err "活文档过期文案 ${#stale[@]} 处（A-10：旧文件数/旧测试数/退役实例名）："
+        printf '      %s\n' "${stale[@]}"
+        echo "      改源头文档；历史记录/旧规划豁免（见脚本头注释）"
+    else
+        ok "活文档无过期文案（A-10）"
+    fi
+
+    # 6. 工作区漂移（警告）
     local dirty
     dirty="$(git status --porcelain | awk 'substr($0,1,1)==" " || substr($0,1,2)=="??"' | wc -l | tr -d ' ')"
     if [ "$dirty" -gt 0 ]; then

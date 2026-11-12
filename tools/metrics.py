@@ -12,6 +12,7 @@
     python3 tools/metrics.py              # 生成 docs/generated/METRICS.md
     python3 tools/metrics.py --check      # 只打印摘要，不写文件
     python3 tools/metrics.py --offline    # 不查 GitHub API（CI 数据标“未知”）
+    python3 tools/metrics.py --check --window <rev>  # A-10：窗口起点 cat-file 验真 + 报实际提交数
 
 数据来源：
 - 远端 tag：`git ls-remote --tags origin`（远端是唯一真源，本地可能有历史重写残留）
@@ -38,6 +39,35 @@ def sh(*args, check=False):
     if check and r.returncode != 0:
         raise RuntimeError(f"命令失败：{' '.join(args)}\n{r.stderr.strip()}")
     return r.stdout
+
+
+def parse_window_arg(argv):
+    """取 --window <rev> / --window=<rev>；未给返回 None，给了没值返回空串。"""
+    for i, a in enumerate(argv):
+        if a == "--window":
+            return argv[i + 1] if i + 1 < len(argv) else ""
+        if a.startswith("--window="):
+            return a.split("=", 1)[1]
+    return None
+
+
+def verify_window(rev):
+    """A-10/A-5：窗口起点必须能 git cat-file 解析，并报窗口内实际提交数。
+
+    返回 0=通过；2=窗口参数缺失或起点不可解析（按红处理，调用方直接退出）。
+    """
+    if not rev:
+        print("✗ --window 缺少提交号（用法：--window <rev>）", file=sys.stderr)
+        return 2
+    r = subprocess.run(["git", "cat-file", "-e", f"{rev}^{{commit}}"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"✗ 窗口起点不可解析：{rev}（git cat-file 失败：笔误或该提交不存在）", file=sys.stderr)
+        return 2
+    sha = sh("git", "rev-parse", "--short", f"{rev}^{{commit}}").strip()
+    count = sh("git", "rev-list", "--count", f"{sha}..HEAD").strip()
+    print(f"✓ 窗口起点已验证：{sha}（入参 {rev}）；{sha}..HEAD 实际 {count} 个提交")
+    return 0
 
 
 def get_json(url):
@@ -472,6 +502,11 @@ def local_stale_tags(remote_tags):
 def main():
     offline = "--offline" in sys.argv
     check = "--check" in sys.argv
+    window = parse_window_arg(sys.argv[1:])
+    if window is not None:
+        rc = verify_window(window)
+        if rc:
+            return rc
 
     tags = remote_build_tags()
     if not tags:
