@@ -170,7 +170,9 @@
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
+| `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
 | `docs/org/README.md` | docs/org/ — 组织架构师接口 | 保留 |
+| `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
 | `docs/roles/architect.md` | 组织架构师（architect）启动提示词 | 保留 |
 | `docs/roles/artisan.md` | 工匠提示词 | 保留 |
 | `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
@@ -285,4 +287,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 221 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 223 个文件（不含 `native-emu/third_party/` 第三方源码）。
