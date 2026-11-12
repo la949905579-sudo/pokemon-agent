@@ -1,0 +1,219 @@
+package com.dsh.emu.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.dsh.emu.BuildConfig
+import com.dsh.emu.EmuCore
+import com.dsh.emu.EmuView
+import com.dsh.emu.MainActivity
+import com.dsh.emu.TeamMon
+import com.dsh.emu.Updater
+import java.io.File
+import com.dsh.emu.EmuStatus
+
+@Composable
+internal fun BarButton(label: String, active: Boolean, onClick: () -> Unit) {
+    Text(label, color = if (active) Color.White else DIM, fontSize = 12.sp,
+        modifier = Modifier.clickable { onClick() }
+            .background(if (active) ACCENT else CARD, RoundedCornerShape(8.dp))
+            .padding(horizontal = 22.dp, vertical = 6.dp))
+}
+
+@Composable
+internal fun UpdatePage(activity: MainActivity) {
+    var checking by remember { mutableStateOf(false) }
+    val latest = activity.updateLatest.value
+    val error = activity.updateError.value
+    val progress = activity.downloadProgress.value
+    val bodyScroll = rememberScrollState()
+    val buildTime = remember {
+        try {
+            java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
+                .format(java.util.Date(BuildConfig.BUILD_TIME.toLong()))
+        } catch (e: Exception) { "?" }
+    }
+    Column(Modifier.fillMaxSize().padding(4.dp)) {
+        Text("版本 ${BuildConfig.VERSION_NAME} (${BuildConfig.GIT_SHA})", color = TXT, fontSize = 12.sp)
+        Text("构建 $buildTime", color = DIM, fontSize = 11.sp)
+        Spacer(Modifier.height(8.dp))
+        Box(Modifier.background(if (checking) CARD else ACCENT, RoundedCornerShape(10.dp))
+            .clickable {
+                if (checking) return@clickable
+                checking = true
+                activity.updateError.value = ""
+                Thread {
+                    val r = Updater.latest()
+                    activity.runOnUiThread {
+                        checking = false
+                        if (r == null) activity.updateError.value = "检查失败（网络或没有 release）"
+                        else activity.updateLatest.value = r
+                    }
+                }.start()
+            }.padding(horizontal = 18.dp, vertical = 8.dp)) {
+            Text(if (checking) "检查中…" else "检查更新", color = Color.White, fontSize = 12.sp)
+        }
+        if (error.isNotBlank()) Text(error, color = Color(0xFFFF8080), fontSize = 11.sp)
+        latest?.let { r ->
+            Spacer(Modifier.height(8.dp))
+            Text("最新: ${r.tag}", color = TXT, fontSize = 12.sp)
+            // 更新说明：保留换行，最多显示约 8 行高度，超出可滚动（别整段压成一行）
+            Box(Modifier.fillMaxWidth().heightIn(max = 128.dp).verticalScroll(bodyScroll)) {
+                Text(r.body, color = DIM, fontSize = 11.sp, modifier = Modifier.fillMaxWidth())
+            }
+            Spacer(Modifier.height(6.dp))
+            Box(Modifier.background(if (progress >= 0) CARD else ACCENT, RoundedCornerShape(10.dp)).clickable {
+                if (activity.downloadProgress.value >= 0) return@clickable
+                activity.downloadProgress.value = 0
+                Thread {
+                    val f = File(activity.cacheDir, "update.apk")
+                    val ok = Updater.download(r.url, f) { pct ->
+                        activity.runOnUiThread { activity.downloadProgress.value = pct }
+                    }
+                    activity.runOnUiThread {
+                        activity.downloadProgress.value = -1
+                        if (ok) {
+                            if (!Updater.install(activity, f)) {
+                                if (!Updater.canInstall(activity)) {
+                                    activity.statusText.value = "请在设置里允许「安装未知应用」后重试"
+                                } else {
+                                    activity.statusText.value = "安装失败，详见 ota.log"
+                                }
+                            }
+                        } else {
+                            activity.statusText.value = "下载失败"
+                        }
+                    }
+                }.start()
+            }.padding(horizontal = 18.dp, vertical = 8.dp)) {
+                Text(if (progress >= 0) "下载中 $progress%" else "下载并安装", color = Color.White, fontSize = 12.sp)
+            }
+            if (progress >= 0) {
+                Spacer(Modifier.height(6.dp))
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { progress / 100f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = ACCENT,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun PlaceholderPage(title: String, hint: String) {
+    Box(Modifier.fillMaxSize().background(CARD, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(title, color = TXT, fontSize = 14.sp)
+            Text(hint, color = DIM, fontSize = 11.sp)
+        }
+    }
+}
+
+@Composable
+internal fun TeamPage(s: EmuStatus) {
+    var detail by remember { mutableStateOf<TeamMon?>(null) }
+    if (detail != null) {
+        val m = detail!!
+        Column(Modifier.fillMaxSize()) {
+            Text(m.name, color = TXT, fontSize = 16.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(if (m.types.isEmpty()) "属性 --" else "属性 ${m.types.joinToString(" / ")}", color = TXT, fontSize = 13.sp)
+            Text("等级 ${m.lv}", color = TXT, fontSize = 13.sp)
+            Text("HP ${m.hp}/${m.max}", color = TXT, fontSize = 13.sp)
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
+                modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
+            // 经验进度：满级单独显示；阈值数据不够（未知物种/ROM 没读到）显示 --，不崩
+            if (m.expMax) {
+                Text(if (m.exp >= 0) "经验 ${m.exp}（已满级）" else "已满级", color = TXT, fontSize = 12.sp)
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { 1f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp), color = Color(0xFF6FA8FF))
+            } else if (m.exp >= 0 && m.expCur >= 0 && m.expNext > m.expCur) {
+                val remain = (m.expNext - m.exp).coerceAtLeast(0)
+                Text("经验 ${m.exp} / ${m.expNext}（还差 $remain 升级）", color = TXT, fontSize = 12.sp)
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = {
+                        ((m.exp - m.expCur).toFloat() / (m.expNext - m.expCur)).coerceIn(0f, 1f)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(6.dp), color = Color(0xFF6FA8FF))
+            } else {
+                Text(if (m.exp >= 0) "经验 ${m.exp}（升级阈值 --）" else "经验 --", color = TXT, fontSize = 12.sp)
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("招式", color = DIM, fontSize = 11.sp)
+            for (i in 0 until 4) {
+                val mv = m.moves.getOrNull(i)
+                val name = mv?.name?.takeIf { it.isNotEmpty() } ?: "--"
+                val ppText = if (mv != null && mv.pp >= 0) mv.pp.toString() else "--"
+                val maxText = mv?.maxPp?.toString() ?: "--"
+                val color = if (mv != null && mv.pp == 0) Color(0xFFFF6060) else TXT
+                Text("${i + 1}. $name   PP $ppText/$maxText", color = color, fontSize = 12.sp)
+            }
+            Spacer(Modifier.weight(1f))
+            BarButton("返回", true) { detail = null }
+        }
+        return
+    }
+    Column(Modifier.fillMaxSize()) {
+        if (s.team.isEmpty()) {
+            PlaceholderPage("队伍", "等待推送（或还没拿到宝可梦）")
+        } else {
+            for (m in s.team) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp).clickable { detail = m },
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(m.name, color = TXT, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Text("Lv${m.lv}", color = DIM, fontSize = 11.sp, modifier = Modifier.width(42.dp))
+                    Text("${m.hp}/${m.max}", color = if (m.max > 0 && m.hp * 3 < m.max) Color(0xFFFF6060) else TXT, fontSize = 11.sp)
+                }
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
+                    modifier = Modifier.fillMaxWidth().height(4.dp), color = GREEN)
+            }
+            Text("点名字看详情", color = DIM, fontSize = 10.sp)
+        }
+    }
+}
+
+@Composable
+internal fun SavePage(activity: MainActivity, romReady: Boolean) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            if (romReady) activity.statusText.value =
+                if (EmuCore.saveState(File(activity.filesDir, "state1.sav").absolutePath)) "已存档" else "存档失败"
+        }, contentAlignment = Alignment.Center) { Text("即时存档", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            if (romReady) activity.statusText.value =
+                if (EmuCore.loadState(File(activity.filesDir, "state1.sav").absolutePath)) "已读档" else "读档失败"
+        }, contentAlignment = Alignment.Center) { Text("读取存档", color = TXT, fontSize = 14.sp) }
+    }
+}
+
+@Composable
+internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -> Unit, onRom: () -> Unit) {
+    val speed = activity.speedState.value
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            val next = when (activity.speedState.value) { 1 -> 2; 2 -> 4; else -> 1 }
+            activity.speedState.value = next
+            emuView.speed = next
+        }, contentAlignment = Alignment.Center) { Text("速度 ${speed}x", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
+            onRom()
+        }, contentAlignment = Alignment.Center) { Text("载入 ROM", color = TXT, fontSize = 14.sp) }
+        Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
+            onUpdate()
+        }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
+    }
+}
