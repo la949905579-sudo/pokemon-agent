@@ -1,7 +1,9 @@
 """战斗数据与选招：招式表、PP、敌方血量、简单克制。"""
 import sys, struct
 sys.path.insert(0, "/root/workspace")
-from state import rd, PARTY_ADDR
+from memory import rd          # 只依赖内存层，不再从 state 转一手（消循环依赖）
+from addresses import PARTY_ADDR
+from bdata_shared import PARTY_MON_SIZE, mon_from_bytes
 
 # 招式: id -> (名字, 属性, 威力, 是否变化招)
 
@@ -119,32 +121,13 @@ PREVENT_ESCAPE_SPECIES = {81, 82, 50, 51}
 
 
 def my_mon(slot=0):
-    """读队伍第 slot 只的 等级/HP/maxHP/招式/PP/属性(特攻)。"""
-    base = PARTY_ADDR + slot * 100
-    d = rd(base, 100)
-    if len(d) < 100:
+    """读队伍第 slot 只的 等级/HP/maxHP/招式/PP/物种/属性（解码在 bdata_shared）。"""
+    d = rd(PARTY_ADDR + slot * PARTY_MON_SIZE, PARTY_MON_SIZE)
+    m = mon_from_bytes(slot, d)
+    if m is None:
         return None
-    lv = d[0x54]
-    hp, mhp = struct.unpack_from("<HH", d, 0x56)
-    pid = struct.unpack_from("<I", d, 0)[0]
-    otid = struct.unpack_from("<I", d, 4)[0]
-    key = pid ^ otid
-    raw = d[0x20:0x20 + 48]
-    words = [struct.unpack_from("<I", raw, i)[0] ^ key for i in range(0, 48, 4)]
-    sb = b"".join(struct.pack("<I", w) for w in words)
-    TABLE = ["GAEM","GAME","GEAM","GEMA","GMAE","GMEA","AGEM","AGME","AEGM","AEMG","AMGE","AMEG",
-             "EGAM","EGMA","EAGM","EAMG","EMGA","EMAG","MGAE","MGEA","MAGE","MAEG","MEGA","MEAG"]
-    seq = TABLE[pid % 24]
-    i = seq.index("A")
-    att = sb[i*12:(i+1)*12]
-    moves = [struct.unpack_from("<H", att, j*2)[0] for j in range(4)]
-    pp = list(att[8:12])
-    # growth substruct 的第 1 个 u16 是 species
-    gi = seq.index("G")
-    growth = sb[gi*12:(gi+1)*12]
-    species = struct.unpack_from("<H", growth, 0)[0]
-    return {"slot": slot, "lv": lv, "hp": hp, "mhp": mhp, "moves": moves, "pp": pp,
-            "species": species, "types": SPECIES_TYPES.get(species, ())}
+    m["types"] = SPECIES_TYPES.get(m["species"], ())
+    return m
 
 
 def move_effect(mid, enemy_types):

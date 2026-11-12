@@ -29,8 +29,7 @@ def to_raw(tile):
     return (tile[0] + TILE_OFF, tile[1] + TILE_OFF)
 
 
-PARTY_ADDR = 0x02024284            # 真·队伍数据（FireRed gPlayerParty）
-PARTY_RANGE = (0x24000, 0x28000)
+PARTY_RANGE = (0x24000, 0x28000)   # PARTY_ADDR 从 addresses.py 取（唯一真源）
 
 def find_party(buf):
     """返回 (offset, [(lv,hp,maxhp)...]) 或 (None, [])。
@@ -266,10 +265,8 @@ def status1(slot=0):
     # 物种校验：必须是我方队伍里任意一只（不依赖 party_order，避免不同步误判）
     if slot == 0:
         try:
-            import bdata
-            species = {m.get("species") for m in
-                       (bdata.my_mon(i) for i in range(6)) if m}
-            if sp not in species:
+            from bdata_shared import party_species
+            if sp not in party_species(rd, PARTY_ADDR):
                 return None
         except Exception:
             pass
