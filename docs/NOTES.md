@@ -539,3 +539,41 @@ python3 logq.py --grep got=2 --json
 - 退出：点了之后 App 立即消失，`ps` 查不到进程，重启 App 正常。✅
 - **刷盘已严格验证（18:12）**：游戏 内存档 → 立刻退出 → `.sav` mtime 从 17:01 变为 18:12、
   大小仍 131072、进程已不在；重开可「继续」。说明 `deinit → unmap → msync` 这条链有效。
+
+## 招式点击施放（F2，2026-11-13，`9c2fc63`）
+
+- 实现分层：`game/MoveCaster.kt` 纯逻辑（注入 `Io`：readTurn/readMainCursor/readMoveCursor/press/sleep/cancelled），
+  `ui/BattleMoveAction.kt` 负责线程、按键、`Nlog`、取消；`MoveCasterTest` 11 条离线单测（不加载 native 库）。
+- 内存地址（与 `addresses.py` 一致，Python 侧实测过）：`TURN_FLAG=0x02023E82`（2=招式菜单）、
+  `MAIN_CURSOR=0x02023FF8`（主菜单光标，0=战斗/Fight；进入子菜单后保留来源）、`MOVE_CURSOR=0x02023FFC`。
+- 光标映射：**0 左上 / 1 右上 / 2 左下 / 3 右下**（与 Python `action.use_move` 一致）；
+  移动规则同 Python：先横向对齐列、再纵向对齐行；每步短按 80ms、稳定 280ms、每步回读。
+- 防护（fail-closed）：只有 `TURN_FLAG==2` 且 `MAIN_CURSOR==0` 才动作，否则 0 按键只提示；
+  光标二次回读==目标才按 A（300ms）；按 A 后 `TURN_FLAG` 离开 2 判成功，未变→停止不重按、不重试。
+  限制（主持 2026-11-13 拍板）：**需先按 A 展开招式菜单**，不做自动开菜单。
+- 日志：`/sdcard/Download/emu_native.log` 的 `battle.move`，字段 `idx/ok/reason/turn_before/turn_after/
+  cursor_start/cursor_end/steps/ms`；取消属正常收尾记 INFO，失败记 WARN。
+
+### 实机验证（F2）
+
+- 单测条件：2026-11-13 01:09 本机实跑 `gradle :app:testDebugUnitTest`，82 tests / 0 failure（`MoveCasterTest` 11/11）。
+- 真机（2026-11-13 01:30–01:32，`build-9c2fc63`；更新页「版本 0.2 (9c2fc63) / 构建 11-13 01:11」）：
+  2 场野生战凑齐 4 招，逐格点击均成功，4 条 `battle.move`（`/sdcard/Download/emu_native.log`，UTC 17:30–17:32）：
+  - `idx=1 ok=true reason=ok turn_before=2 turn_after=4 cursor_start=0 cursor_end=1 steps=1 ms=794`
+  - `idx=0 ok=true reason=ok turn_before=2 turn_after=4 cursor_start=1 cursor_end=0 steps=1 ms=788`
+  - `idx=3 ok=true reason=ok turn_before=2 turn_after=4 cursor_start=0 cursor_end=3 steps=2 ms=1163`
+  - `idx=2 ok=true reason=ok turn_before=2 turn_after=4 cursor_start=0 cursor_end=2 steps=1 ms=790`
+  - 无 `ok=false`、未重试、未盲按；游戏内实际出招（敌 HP 归零/回合推进）。
+- 光标映射实证：0→1 右移 1 步、1→0 左移 1 步、0→3 先右后下 2 步、0→2 下移 1 步
+  → **0 左上 / 1 右上 / 2 左下 / 3 右下** 与 Python `action.use_move` 一致。
+- 未验项（如实记）：真机未触发「切页/收面板中断取消」与「按 A 后 turn 未变即停」两条异常路径
+  （单测覆盖；留待后续真机或下一批补测）。
+
+### 已知遗留（考官 2026-11-13 记，不阻断）
+
+- 中：`ui/BattleMoveAction.kt:47-48` 直接 `Memo.u8` 读内存，突破「ui 不碰内存」意图（非 Composable，字面不违 STRUCTURE）；
+  建议下沉 `game/` 适配层或补规范例外。
+- 中：A 前最后一次 TURN/MAIN 复核（`MoveCaster.kt:146-148`）与线程层清键/取消无单测；真机重点验「切页/收面板中断」「A 后未推进即停」。
+- 轻：A 后轮询未查 cancelled（`MoveCaster.kt:156-163`）；取消后不再按键，但可能空转 8 次记 WARN。
+- 轻：`MoveCaster.kt:51` 注释「MAIN_CURSOR 0=招式」与 `addresses.py:9`「0=战斗」措辞不一致（取值/逻辑正确）。
+- 轻：`MainActivity.kt` 现 710 行 > `STRUCTURE.md` 500 行上限（既有债）。

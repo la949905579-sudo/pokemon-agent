@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-12 20:44",
+  "updated": "2026-11-13 01:11",
   "kotlin": {
-    "tests": 71,
+    "tests": 82,
     "result": "PASS（0 failure / 0 error）",
-    "at": "2026-11-12 20:44",
+    "at": "2026-11-13 01:09",
     "command": "cd native-emu && gradle :app:testDebugUnitTest --no-daemon -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2",
-    "note": "考官本机实跑 :app:testDebugUnitTest BUILD SUCCESSFUL；批次 E 新增 TabsTest 1 条"
+    "note": "执行主管实跑 :app:testDebugUnitTest BUILD SUCCESSFUL（F2）；新增 MoveCasterTest 11 条（3 条 fail-closed 拒绝 + 成功/失败即停/取消/边界）"
   },
   "python": {
     "tests": 29,
     "result": "PASS（29/29）",
-    "at": "2026-11-12 20:11",
+    "at": "2026-11-13 01:10",
     "command": "python3 run_tests.py",
-    "note": "批次 C 新增 test_bdata_shared.py（循环依赖修复）"
+    "note": "执行主管实跑；F2 未改 Python 侧，数量不变（批次 C 新增 test_bdata_shared.py）"
   }
 }

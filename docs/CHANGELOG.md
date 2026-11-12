@@ -3,6 +3,27 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.13-1（NativeEmu v0.4.2 · 批次 F2 招式点击施放）
+### 新增
+- 下屏战斗页 4 个招式格**可点击施放**：逐格短按方向键、每步回读光标，二次确认后才按 A 出招；
+  成功/失败/取消都写 `battle.move` 结构化日志（idx / turn / cursor / steps / ms）
+- 防护 fail-closed：只有招式菜单已展开（`TURN_FLAG==2` 且 `MAIN_CURSOR==0`）才动作；
+  任一前置不满足 / 光标没到位 / 按 A 后回合没推进 → **不按键、不重试**，状态行提示
+- 关闭按键面板 / 切页 / 载 ROM 会取消施放并清空按键；单线程忽略连点（`BattleMoveAction`）
+
+### 变更
+- 招式名表未覆盖（P3 待补全，现 55/354）的招在战斗页显示 `#id` 而不是「—」，保证仍可点；
+  0 号空槽仍显示「—」并禁用（考官 2026-11-13 复核确认属配套改动）
+
+### 限制
+- **需先按 A 展开招式菜单再点击**；本期不做「主菜单→自动开招式菜单」（主持 2026-11-13 拍板的最小范围）
+
+### 测试
+- Kotlin 82/82（F2 新增 `MoveCasterTest` 11 条：3 条 fail-closed 拒绝 + 成功/失败即停/取消/边界）；Python 29/29 不变
+- 真机：`build-9c2fc63` 装机实测 4 招全部通过（2 场野生战，4 条 `battle.move` 均
+  `ok=true/turn_before=2/turn_after=4/cursor_end==idx`，无 `ok=false`，未重试）；
+  证据 `/sdcard/Download/emu_native.log`（本地 01:30–01:32），见 `HANDOFF.md` §二·七
+
 ## v2026.11.12-8（NativeEmu v0.4.2 · 批次 E 地图交换）
 ### 变更
 - **非战斗常驻页改成整张城镇图**（原来是以玩家为中心的 15×9 只读视口）：

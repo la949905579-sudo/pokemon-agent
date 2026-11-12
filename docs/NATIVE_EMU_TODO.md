@@ -1,6 +1,6 @@
 # NativeEmu 待办
 
-> 更新：2026-11-13（F1 文档整改后；最近代码批次 A `8082f89`–E `188bbe9`，见 `CHANGELOG v2026.11.12-4/-8`；当前待办 = F2 招式点击施放）
+> 更新：2026-11-13（F2 招式点击施放已实现 `9c2fc63`、待真机结果；最近代码批次 A `8082f89`–E `188bbe9` + F2；见 `CHANGELOG v2026.11.12-4/-8`、`v2026.11.13-1`）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
@@ -64,9 +64,10 @@
 - [x] 设置页「重置/退出」小屏可读性：改成整行按钮（沿用 BarButton）—— `8082f89`
 
 ### P1 · 战斗
-- [ ] **招式点击施放**（风险最高，方案已定）：
-      `MOVE_CURSOR`(0x02023FFC，0左上/1右上/2左下/3右下) → 方向键序列 → 回读光标确认
-      防护：执行前二次确认（`TURN_FLAG==2` 且光标读数一致），不一致就停
+- [x] **招式点击施放**（风险最高）：`MOVE_CURSOR`(0x02023FFC，0左上/1右上/2左下/3右下) → 方向键序列
+      → 每步回读 + 二次确认 → 按 A；防护 fail-closed（`TURN_FLAG==2` 且 `MAIN_CURSOR==0`，任一不满足
+      不按键；按 A 后回合未推进即停不重试）—— `9c2fc63`（F2）；限制：**需先按 A 展开招式菜单再点**
+      （不做自动开菜单，主持 2026-11-13 拍板）；真机见 `HANDOFF.md` §二·七
 
 ### P1 · 可观测性（按 docs/OBSERVABILITY.md 落地）
 - [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `aa126e0`
@@ -127,13 +128,25 @@
 - [ ] 常驻页与 MAP Tab 两处 TownMapPage 参数块重复约 6 行 → 抽小组件减少漂移
 - [x] ~~`TabsTest` 只覆盖 `isPageTabEnabled`~~ → 无 Compose 测试环境，接受；仅记录（主持裁定）
 
+## 批次 F2 遗留（2026-11-13，`9c2fc63`；考官复核 2026-11-13）
+
+- [ ] 结构债（中）：`ui/BattleMoveAction.kt:47-48` 直接 `Memo.u8` 读内存——字面不违 STRUCTURE（非 Composable），
+      但突破「ui 不碰内存」意图；建议下沉到 `game/` 适配层，或补规范例外
+- [ ] 单测缺口（中）：A 前最后一次 TURN/MAIN 复核（`MoveCaster.kt:146-148`）与线程层清键/取消无单测；
+      真机重点验「切页/收面板中断」「A 后未推进即停」
+- [ ] `MainActivity.kt` 现 **710 行**，超 `STRUCTURE.md` 500 行上限（既有债，F2 净 +6）
+- [ ] 轻：A 后轮询未查 cancelled（`MoveCaster.kt:156-163`，不再按键、无泄露，但取消后可能空转 8 次记 WARN）
+- [ ] 轻：`MoveCaster.kt:51` 注释「MAIN_CURSOR 0=招式」与 `addresses.py:9`「0=战斗」措辞不一致（取值/逻辑正确）
+- [ ] P3 招式名表只有 55 条：本轮真机第 4 招 id=**232** 未收录（战斗页显示 `#232`），补全名表时一并补
+- 真机：**2026-11-13 通过**（`build-9c2fc63`，2 场野生战凑齐 4 招、逐格 ok=true、无 ok=false；证据见 `HANDOFF.md` §二·七）
+
 ## 结构债（考官 2026-11-12 发现）
 
 - [x] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4` 循环依赖 → 抽出 `bdata_shared.py`
       （纯解码 `mon_from_bytes`/`party_species`，地址只从 `addresses.py` 取）；`state`/`bdata` 都不再互相 import，
       新增 `test_bdata_shared.py`，Python 测试 29/29 —— `81cfb2b`（批次 C）
 - [x] `MainActivity.kt` 拆分：963 → **536 行**，已拆出 `ui/KeyPad`、`ui/BattlePage`、`ui/MapPage`、`ui/Tabs`、`ui/Theme`、`ui/Pages`、`ui/SaveSlots`
-      （剩 `EmuView`/`parseStatus`/`walkTo` 可继续迁，未做）
+      （剩 `EmuView`/`parseStatus`/`walkTo` 可继续迁，未做；**F2 后现 710 行，仍超 500 行上限**，见上「批次 F2 遗留」）
 - [x] 按键状态清理统一走 `closeKeys()`（`keysOpen=false` 同时 `keys=0; EmuCore.setKeys(0)` 并取消
       `WalkControl` 代际）：点 Tab / 载入 ROM / 收按键面板三条路径都已走它（MainActivity.kt:392/424/453）
 

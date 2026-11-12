@@ -258,9 +258,11 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/MapData.kt` | 当前地图数据（tile 级），给下屏「当前地图页 / 大地图」用。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/MapWalker.kt` | 同图 BFS 寻路，输出方向序列 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Memo.kt` | 内存读取的小封装（u8/u16/块读） | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/MoveCaster.kt` | 招式菜单「点击施放」的纯逻辑。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/PartyCrypto.kt` | 队伍数据解密（PortablePokemon） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Species.kt` | 关东 1-151 中文名表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/SwitchDecider.kt` | 换人决策 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/BattleMoveAction.kt` | 战斗页「点击招式」的运行时适配：把 [MoveCaster] 的注入接口接到 JNI 内存/按键， | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/KeyPad.kt` | 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
@@ -271,6 +273,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/MoveCasterTest.kt` | MoveCaster 离线单测：全部用假 Io，不加载 native 库、不碰实机。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
@@ -287,4 +290,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 223 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 226 个文件（不含 `native-emu/third_party/` 第三方源码）。
