@@ -12,6 +12,9 @@
 - `MainActivity.kt` 拆分：963 → 536 行，界面代码移到 `ui/`（KeyPad/BattlePage/MapPage/Tabs/Pages/Theme/SaveSlots）
 - 纯搬移，无行为变更；单测 47 → 52（新增存档槽位用例）
 
+### 修复
+- 下屏内容区底部新增临时状态行（2.8 秒自动消失）：`statusText` 此前只写不读，所有提示用户看不到（INC-006）
+
 ## v2026.11.12-2（NativeEmu v0.4）
 ### 新增
 - 下屏底部常驻「按键」折叠条（点击开合/下滑收起），战斗中也可见；按键面板是唯一入口
