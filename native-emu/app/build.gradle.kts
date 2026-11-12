@@ -7,10 +7,11 @@ plugins {
 android {
     signingConfigs {
         create("fixed") {
-            storeFile = file("keystore.jks")
-            storePassword = "emu123456"
-            keyAlias = "emu"
-            keyPassword = "emu123456"
+            // 密钥库与口令都不进仓库：CI 由 secret 解码/注入，本地放 keystore.jks 并导出环境变量
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "keystore.jks")
+            storePassword = System.getenv("STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: "emu"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
     buildFeatures {

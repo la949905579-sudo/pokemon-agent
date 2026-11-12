@@ -23,8 +23,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      # 签名密钥不进仓库：从 Actions secret 解码到工作区（每次构建都是临时的）
+      - name: decode keystore
+        working-directory: native-emu/app
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "缺少 secret ANDROID_KEYSTORE_B64，无法签名构建" >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > keystore.jks
       - name: build
         working-directory: native-emu
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: emu
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --console=plain

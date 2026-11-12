@@ -10,3 +10,4 @@ map_cache.txt
 *.log
 route_log.txt
 faint*.txt
+*.jks
