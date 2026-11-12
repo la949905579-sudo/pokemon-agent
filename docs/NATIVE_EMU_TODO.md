@@ -41,11 +41,19 @@
 - [x] B 方案数据/决策层 Kotlin 化（`native-emu/.../game/`：GameState / BattleDecider / SwitchDecider / MapWalker）
 - [x] CI 跑 `:app:testDebugUnitTest`（Kotlin 单测 3 个文件）
 
+## 2026-11-12 下屏重构（已完成）
+
+- [x] A 按键改成底边常驻折叠条，战斗中也能开；`closeKeys()` 统一清掩码（`7a722ad`）
+- [x] E OTA 更新说明保留换行、最多 8 行可滚动（`ad32231`）
+- [x] B 常驻「当前地图」页 + 13 张地图打包进 assets + 战斗/地图自动切换（`37e6abd`）
+- [x] C Tab 点两次关闭；「地图」Tab 换成整张城镇图（`6c824b8`）
+- [x] D 队伍详情经验/升级阈值/进度条，成长类型从 ROM BaseStats 读（`0ac6009`）
+
 ## 待办（按优先级）
 
 ### P1 · 下屏
-- [ ] **存档卡槽**（方案已定）：3 个槽位，显示保存时间 + 存档/读档/删除；文件 `state1-3.sav`；点存档直接写当前槽
-- [ ] **队伍详情字段补全**：属性（`SPECIES_TYPES` 生成到 Kotlin）、4 招式 + PP、经验
+- [ ] **存档卡槽**（方案已定，未做）：3 个槽位，显示保存时间 + 存档/读档/删除；文件 `state1-3.sav`；点存档直接写当前槽
+- [x] **队伍详情字段补全**：属性、4 招式 + PP、经验与升级进度（`0ac6009`）
 - [ ] **行走路径提示**：点地图先画路线（黄线 + 终点）+ 显示步数 +「开始走」按钮，替代现在点了就走
 
 ### P1 · 战斗
@@ -55,8 +63,8 @@
 
 ### P1 · 可观测性（按 docs/OBSERVABILITY.md 落地）
 - [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `aa126e0`
-- [ ] 安装结果回调日志（`PACKAGE_ADDED` / `PackageInstaller`），现在只到“拉起安装器”
-- [ ] 日志写入改异步（当前在 UI 线程同步写 `/sdcard`，StrictMode 有抖动风险）
+- [x] 安装结果回调日志（`PACKAGE_ADDED` / `REPLACED`，超时/失败也记）
+- [x] 日志写入改异步（单线程队列，失败降级 logcat）
 - [ ] 桥（connect/cmd 失败）与帧循环异常按规范补日志
 
 ### P2 · 寻路
@@ -72,7 +80,7 @@
 
 - [ ] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4 from state import ...` —— 循环依赖，
       STRUCTURE §三 判定违规；现在靠延迟导入不炸，重构时必须拆（把共享常量提到 `platform/`）
-- [ ] `MainActivity.kt` 874 行 > 500 行上限：B/C/D（当前地图/战斗/Tab/经验）做完后必须拆成
+- [ ] `MainActivity.kt` **963 行**（B/C/D 已完成，必须拆了）：拆成
       `ui/KeyPad.kt`、`ui/BattlePage.kt`、`ui/MapPage.kt`、`ui/SideTabs.kt`（P2）
 - [ ] 按键状态清理统一走一个函数（`keysOpen=false` 时必须同时 `keys=0; EmuCore.setKeys(0)`），
       已在 A 提交里发现 Tab 路径漏清 → 见 INC-005

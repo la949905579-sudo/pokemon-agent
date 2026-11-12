@@ -116,6 +116,19 @@
 | `maps/map_8320d18.json` | 数据/样例文件 | 保留 |
 | `maps/override_82de3e8.json` | 数据/样例文件 | 保留 |
 | `maps/override_82fc730.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82d5844.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82df30c.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82e0614.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82e833c.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82e9260.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_82ec3d4.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_83192f0.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_831a3a0.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_831e8d8.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_831eb98.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_8320d18.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/override_82de3e8.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/override_82fc730.json` | 数据/样例文件 | 保留 |
 
 ## 文档
 
@@ -215,6 +228,8 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/BattleDecider.kt` | 战斗决策（选招/换人评分） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameData.kt` | 静态数据：属性表、招式表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameState.kt` | 读内存解码场景/坐标/队伍/敌方信息（Kotlin 版） | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/Growth.kt` | 升级经验阈值（Gen III）。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/MapData.kt` | 当前地图数据（tile 级），给下屏「当前地图页 / 大地图」用。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/MapWalker.kt` | 同图 BFS 寻路，输出方向序列 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Memo.kt` | 内存读取的小封装（u8/u16/块读） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/PartyCrypto.kt` | 队伍数据解密（PortablePokemon） | 保留 |
@@ -222,6 +237,8 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/SwitchDecider.kt` | 换人决策 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 
 ## 界面
@@ -231,4 +248,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 167 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 184 个文件（不含 `native-emu/third_party/` 第三方源码）。
