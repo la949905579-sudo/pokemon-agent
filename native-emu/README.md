@@ -39,7 +39,22 @@ native-emu/
 
 ## 构建
 
-**必须用 CI**（x86_64 runner）：本地 arm64 + proot 无法跑 NDK 的 x86_64 工具链（qemu 嵌套 exec 不可用）。
+**分工**：Kotlin 编译 + 单测可以在本机跑；**APK/NDK 必须走 CI**（NDK 的 clang 是 x86_64，proot 下 qemu 嵌套 exec 不可用）。
+
+### 本机跑 Kotlin 单测（2026-11-12 实测可用）
+
+```bash
+mkdir -p /root/android-emu-local
+ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2   # 必须叫 aapt2
+cd /root/workspace/native-emu
+export PATH=/opt/gradle-8.9/bin:$PATH
+gradle :app:testDebugUnitTest --no-daemon --console=plain \
+  -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2
+```
+
+- 首次要联网拉 junit/hamcrest（之后可加 `--offline`）；首次约 2 分钟，热跑约 1 分钟
+- `local.properties` 需 `sdk.dir=/root/android-sdk`（已 gitignore）
+- 依赖两块本机资源（不在仓库里，换机要重建）：`/opt/aapt2-x86_64/aapt2` 与 `/opt/amd64-root/`
 
 ```bash
 # 推送即触发 .github/workflows/build-native-emu.yml

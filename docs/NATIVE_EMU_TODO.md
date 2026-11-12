@@ -6,7 +6,7 @@
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
 
 - [x] CI 编译失败：缺 `detectTapGestures` import + `KeyPadArea` 残留重复布局块（多一个 `}`）
-- [x] Release 旧包：已删 `build-d0bd1c3`，新发 `build-4c76a5b`（CI run 43103245820 的产物）
+- [x] Release 旧包：已删 `build-c7996e9`，新发 `build-cc9d0ad`（CI run 43103245820 的产物）
 
 ## 已完成
 
@@ -54,7 +54,7 @@
       防护：执行前二次确认（`TURN_FLAG==2` 且光标读数一致），不一致就停
 
 ### P1 · 可观测性（按 docs/OBSERVABILITY.md 落地）
-- [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `2fc5ad8`
+- [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `aa126e0`
 - [ ] 安装结果回调日志（`PACKAGE_ADDED` / `PackageInstaller`），现在只到“拉起安装器”
 - [ ] 日志写入改异步（当前在 UI 线程同步写 `/sdcard`，StrictMode 有抖动风险）
 - [ ] 桥（connect/cmd 失败）与帧循环异常按规范补日志
@@ -79,4 +79,4 @@
 - [x] `MainActivity.kt` 补上 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
 - [x] 删掉 `GameState.kt` 末尾 `// build trigger 2026-11-12` 临时注释
 - [x] `map_cache.txt` 移出版本库（已加 `.gitignore`，仍保留在本地）
-- 空提交 `87c3323`（chore 触发构建）还在历史里，不影响功能，不必处理
+- 空提交 `ff2cd3e`（chore 触发构建）还在历史里，不影响功能，不必处理

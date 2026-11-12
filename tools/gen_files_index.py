@@ -124,6 +124,14 @@ def describe(f):
             return ("测试", f"离线测试：{name[5:-3]}")
         d = py_doc(p)
         return ("平台", d or "")
+    if ext == ".mjs":
+        txt = open(p, encoding="utf-8", errors="ignore").read()
+        m = re.search(r"/\*\*(.*?)\*/", txt, re.S)
+        if m:
+            line = [l.strip(" *") for l in m.group(1).splitlines() if l.strip(" *")]
+            if line:
+                return ("工具", line[0])
+        return ("工具", "")
     if ext == ".kt":
         return ("界面" if "res/" in f else "游戏", kt_doc(p))
     if ext == ".md":

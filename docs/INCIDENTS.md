@@ -17,7 +17,7 @@
 ---
 
 ## INC-004 Lead 的 `git add -A` 卷走了队友的未提交改动（2026-11-12）
-- 现象：`1ba8bc5`「feat: 会话健康检查脚本…」实际含 docs + `session_health.mjs` +
+- 现象：`66940b2`「feat: 会话健康检查脚本…」实际含 docs + `session_health.mjs` +
   两支 Kotlin 改动（队伍详情、OTA 日志/回调），提交信息与内容不符。
 - 根因：队友 `artisan` 同时在工作区改文件（尚未 commit），Lead 执行了 `git add -A` 一并打包；
   CI 自动发版时把这条 message 当成了 OTA 更新说明。
@@ -35,9 +35,9 @@
 
 ## INC-002 CI 连红 8 次（2026-11-12 03:51–05:26）
 - 现象：CI 连续失败，期间用空提交和往源码塞 `// build trigger` 触发构建。
-- 根因：① `MainActivity.kt` 缺 `detectTapGestures` 的 import；② `KeyPadArea` 残留重复布局块，多一个右花括号（`2b5d3ca` 插入新布局没删旧块）。
-- 影响：两小时无可用构建；Release 一度发出旧包（`build-d0bd1c3`）。
-- 处置：补 import、删 23 行重复代码、重发 `build-4c76a5b`、删除错包。
+- 根因：① `MainActivity.kt` 缺 `detectTapGestures` 的 import；② `KeyPadArea` 残留重复布局块，多一个右花括号（`51cb162` 插入新布局没删旧块）。
+- 影响：两小时无可用构建；Release 一度发出旧包（`build-c7996e9`）。
+- 处置：补 import、删 23 行重复代码、重发 `build-cc9d0ad`、删除错包。
 - 固化：`NATIVE_EMU_TODO.md` 写入自检三条（grep import / 数花括号 / 说明预期 CI）；`auditor` 提示词把“空提交触发构建”列为卫生问题。
 
 ## INC-001 长会话空回复（2026-11-12 04:08）

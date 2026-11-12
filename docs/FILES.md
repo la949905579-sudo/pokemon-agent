@@ -20,6 +20,12 @@
 | `native-emu/app/src/main/java/com/dsh/emu/EmuCore.kt` | JNI 声明与按键位掩码 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/EmuService.kt` | 前台服务 + WakeLock 保活 | 保留 |
 
+## 工具
+
+| 文件 | 用途 | 状态 |
+|---|---|---|
+| `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
+
 ## 平台
 
 | 文件 | 用途 | 状态 |
@@ -225,4 +231,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 166 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 167 个文件（不含 `native-emu/third_party/` 第三方源码）。

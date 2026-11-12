@@ -20,14 +20,14 @@
 
 ## 二·五、构建与发布现状（2026-11-12 05:35 实测）
 
-- HEAD = `ccdc130`（代码树 = `4c76a5b`）；CI 已在 `4c76a5b` 通过（run 43103245820，05:30），
-  APK 已发到 Release `build-4c76a5b`。之后的提交只改 `docs/`，不触发构建。
+- HEAD = `6c3c13e`（代码树 = `cc9d0ad`）；CI 已在 `cc9d0ad` 通过（run 43103245820，05:30），
+  APK 已发到 Release `build-cc9d0ad`。之后的提交只改 `docs/`，不触发构建。
 - 之前 03:51–05:26 连续失败的两层原因，都已修掉：
   1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
   2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
-     `Expecting a top level declaration`（`2b5d3ca` 插入新布局时没删旧块）
-- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`（当前 `build-dabb301`）；构建失败不会发。
-  旧错包 `build-d0bd1c3` 已删除。
+     `Expecting a top level declaration`（`51cb162` 插入新布局时没删旧块）
+- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`（当前 `build-fab1535`）；构建失败不会发。
+  旧错包 `build-c7996e9` 已删除。
 - Python 测试：`python3 run_tests.py` → **28/28 通过**。
 - 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
 - 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
@@ -42,7 +42,16 @@
 
 详见 `NATIVE_EMU_TODO.md`。
 
-## 四、关键命令
+## 四、关键命令（本机可跑 Kotlin 单测，APK 仍走 CI）
+
+```bash
+# Kotlin 单测（32 个，实测 ~1 分钟）
+ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
+cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --no-daemon \
+  -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2
+```
+
+## 四·一、关键命令
 
 ```bash
 # Python 测试（28 项）
@@ -88,9 +97,17 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
   权限 600、均已被 `.gitignore` 忽略）。**不进仓库。**
 - ⚠️ 本机这两份文件是**唯一可恢复副本**：GitHub secret 只写不读。丢了就只能换密钥 → 再卸载重装一次。
   建议尽快把口令抄进密码管理器，并把 `keystore.jks` 另存一份。
-- **旧包签名不兼容**：从 `build-dabb301` 起是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
+- **旧包签名不兼容**：从 `build-fab1535` 起是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
 - 构建成功自动发 Release，不会再把失败构建的旧包发出去。
 - 仍然成立的老规矩：凭据/私钥不进仓库、不进文档、不进聊天。
+
+## 六·五·补：2026-11-12 重写过一次历史
+
+- 原因：旧签名私钥 `native-emu/app/keystore.jks` 曾进过公开仓库，已用 `git filter-repo` 从**全部历史**中删除，
+  并强推、删除了指向旧提交的 21 个 `build-*` tag。
+- **副作用：所有 commit hash 变了**，文档里的 hash 已按映射批量替换；如果你在别处有克隆，必须重新拉。
+- 重写前的完整备份：`/root/backups/pokemon-agent-preclean-1112-0944.bundle`（仅在手机上）。
+- 未被清理的：GitHub 上旧的 Release 对象可能仍指向已删 tag（网页上还能点到），需要时可手动删。
 
 ## 六·六、GitHub 资源 CDN 在手机上不通
 
