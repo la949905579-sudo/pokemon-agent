@@ -27,6 +27,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -55,6 +56,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 地图数据打包在 APK assets 里（13 张，~70KB），不再依赖 /sdcard 与 Python 推送
+        try { com.dsh.emu.game.MapData.loadAssets(this) } catch (_: Throwable) {}
         try {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
         } catch (_: Throwable) {}
@@ -262,7 +265,8 @@ private fun parseStatus(json: String): EmuStatus {
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun AppScreen(activity: MainActivity) {
-    var page by remember { mutableStateOf(Page.MAP) }
+    // null = 用户没手动打开 Tab：内容区显示常驻页（战斗中→战斗页，否则→当前地图页）
+    var tabPage by remember { mutableStateOf<Page?>(null) }
     var frame by remember { mutableStateOf(0L) }
     var fps by remember { mutableStateOf(0) }
     var keys by remember { mutableStateOf(0) }
@@ -290,26 +294,18 @@ fun AppScreen(activity: MainActivity) {
     val pushed = parseStatus(UiState.statusJson.value)
     val status = if (localJson.isNotBlank()) {
         val local = parseStatus(localJson)
-        // 地图数据暂时还用推送的（Kotlin 侧没做地图缓存解析）
-        if (pushed.mmTiles != null || pushed.mmW > 0) {
+        // 地图数据以本地（assets/内存）为准；本地完全没有时才用 Python 推送兜底
+        if (local.mmTiles == null && (pushed.mmTiles != null || pushed.mmW > 0)) {
             local.copy(mmW = pushed.mmW, mmH = pushed.mmH, mmPx = pushed.mmPx,
                 mmPy = pushed.mmPy, mmTiles = pushed.mmTiles)
         } else local
     } else pushed
     val logs = UiState.logs.value
+    // 常驻页自动切换：战斗中 → 战斗页，否则 → 当前地图页。
+    // 手动打开 Tab 时保留 Tab，不会被战斗开始/结束顶掉（旧版「抢页」问题的根因）。
+    val inBattle = status.battle.isNotBlank()
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
-
-    // 战斗期间以战斗页为主；战斗结束回地图。
-    // 按键面板展开时不要抢页——这就是「战斗页出现后按键打不开」的根因。
-    LaunchedEffect(status.battle, page, keysOpen) {
-        if (keysOpen) return@LaunchedEffect
-        if (status.battle.isNotBlank()) {
-            if (page != Page.BATTLE) page = Page.BATTLE
-        } else if (page == Page.BATTLE) {
-            page = Page.MAP
-        }
-    }
 
     LaunchedEffect(running) {
         if (!running) return@LaunchedEffect
@@ -347,18 +343,19 @@ fun AppScreen(activity: MainActivity) {
                                     }.padding(vertical = 6.dp))
                             }
                         }
-                        page == Page.MAP -> MinimapPage(status) { tx, ty ->
+                        tabPage == Page.MAP -> MinimapPage(status) { tx, ty ->
                             walkTo(activity, status, tx, ty)
                         }
-                        page == Page.TEAM -> TeamPage(status)
-                        page == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
-                        page == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
-                        page == Page.DEX -> PlaceholderPage("图鉴", "需要图鉴内存结构")
-                        page == Page.SAVE -> SavePage(activity, romReady)
-                        page == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { page = Page.UPDATE },
+                        tabPage == Page.TEAM -> TeamPage(status)
+                        tabPage == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
+                        tabPage == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
+                        tabPage == Page.DEX -> PlaceholderPage("图鉴", "需要图鉴内存结构")
+                        tabPage == Page.SAVE -> SavePage(activity, romReady)
+                        tabPage == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { tabPage = Page.UPDATE },
                             onRom = { activity.refreshRoms(); showRoms = true })
-                        page == Page.UPDATE -> UpdatePage(activity)
-                        else -> BattlePage(status)
+                        tabPage == Page.UPDATE -> UpdatePage(activity)
+                        // 没手动开 Tab：常驻页自动切换（战斗中战斗页 / 否则当前地图页）
+                        else -> if (inBattle) BattlePage(status) else CurrentMapPage(status)
                     }
                 }
                 Column(Modifier.width(80.dp).fillMaxHeight().padding(start = 4.dp)) {
@@ -368,10 +365,10 @@ fun AppScreen(activity: MainActivity) {
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
-                        TabButton(label, page == p2, Modifier.weight(1f)) {
+                        TabButton(label, tabPage == p2, Modifier.weight(1f)) {
                             showRoms = false
                             closeKeys()
-                            page = p2
+                            tabPage = p2
                         }
                     }
                 }
@@ -386,8 +383,7 @@ fun AppScreen(activity: MainActivity) {
 
 /** 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 */
 @Composable
-private fun KeyBar(open: Boolean, onToggle: () -> Unit) {
-    var dragDown by remember { mutableStateOf(0f) }
+private fun KeyBar(open: Boolean, onToggle: () -> Unit) {    var dragDown by remember { mutableStateOf(0f) }
     Box(
         Modifier.fillMaxWidth().height(32.dp)
             .background(if (open) ACCENT else CARD, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
@@ -402,6 +398,45 @@ private fun KeyBar(open: Boolean, onToggle: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(if (open) "▼ 收起按键" else "▲ 按键", color = if (open) Color.White else DIM, fontSize = 12.sp)
+    }
+}
+
+/**
+ * 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。
+ * 注意：和右侧 Tab 的「大地图」（整张当前地图、可点走）是两个独立组件，不共用。
+ */
+@Composable
+private fun CurrentMapPage(s: EmuStatus) {
+    val tiles = s.mmTiles
+    if (tiles == null || s.mmW <= 0 || s.mmH <= 0) {
+        PlaceholderPage("当前地图", "等待地图数据…")
+        return
+    }
+    val viewW = 15
+    val viewH = 9
+    val px = s.mmPx
+    val py = s.mmPy
+    Box(Modifier.fillMaxSize().background(Color(0xFF14200F), RoundedCornerShape(12.dp))) {
+        androidx.compose.foundation.Canvas(Modifier.fillMaxSize().padding(4.dp)) {
+            val cw = size.width / viewW
+            val ch = size.height / viewH
+            val x0 = px - viewW / 2
+            val y0 = py - viewH / 2
+            for (vy in 0 until viewH) for (vx in 0 until viewW) {
+                val pass = tiles.getOrNull(y0 + vy)?.getOrNull(x0 + vx) == 1
+                drawRect(
+                    color = if (pass) Color(0xFF2E4B2A) else Color(0xFF0D0D0D),
+                    topLeft = Offset(vx * cw, vy * ch),
+                    size = Size(cw - 0.5f, ch - 0.5f),
+                )
+            }
+            // 玩家固定在视口中心
+            drawCircle(
+                color = Color(0xFFFF4040),
+                radius = minOf(cw, ch) * 0.45f,
+                center = Offset((viewW / 2 + 0.5f) * cw, (viewH / 2 + 0.5f) * ch),
+            )
+        }
     }
 }
 
@@ -794,6 +829,23 @@ private fun buildLocalStatusJson(): String {
         o.put("x", c?.x ?: 0)
         o.put("y", c?.y ?: 0)
         o.put("battle", battle)
+        // 当前地图 tiles：优先 assets/maps，缺图回退模拟器内存（MapData 里打 WARN）
+        val mapLayer = com.dsh.emu.game.MapData.current()
+        if (mapLayer != null) {
+            val mm = org.json.JSONObject()
+            mm.put("w", mapLayer.w)
+            mm.put("h", mapLayer.h)
+            mm.put("px", c?.x ?: 0)
+            mm.put("py", c?.y ?: 0)
+            val tiles = org.json.JSONArray()
+            for (row in mapLayer.tiles) {
+                val r = org.json.JSONArray()
+                for (v in row) r.put(v)
+                tiles.put(r)
+            }
+            mm.put("tiles", tiles)
+            o.put("minimap", mm)
+        }
         val team = org.json.JSONArray()
         for (m in party) {
             val t = org.json.JSONObject()
