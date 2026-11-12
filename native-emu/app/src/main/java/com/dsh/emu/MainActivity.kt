@@ -32,8 +32,10 @@ import java.io.File
 class MainActivity : ComponentActivity() {
     /** 操作反馈（临时行）：存档失败/空槽/先载入 ROM 等，显示 2.8s 后自动消失。 */
     val statusText = mutableStateOf("")
-    /** 常驻状态（顶部状态栏）：TCP 桥状态 + 当前 ROM 名，一直显示。 */
-    val statusBarState = mutableStateOf("")
+    /** 常驻状态①（顶部状态栏）：TCP 桥状态，一直显示。 */
+    val bridgeState = mutableStateOf("")
+    /** 常驻状态②（顶部状态栏）：当前 ROM 名，一直显示。 */
+    val romState = mutableStateOf("")
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
@@ -52,8 +54,8 @@ class MainActivity : ComponentActivity() {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
         } catch (_: Throwable) {}
         val ok = bridge.start()
-        // 启动状态是常驻信息，放 statusBarState；不写 statusText（否则启动会闪一条临时行）
-        statusBarState.value = if (ok) "TCP :55401" else "TCP 未启动"
+        // 启动状态是常驻信息，放 bridgeState；不写 statusText（否则启动会闪一条临时行）
+        bridgeState.value = if (ok) "TCP :55401" else "TCP 未启动"
         setContent { AppScreen(this) }
     }
 
@@ -99,7 +101,7 @@ class MainActivity : ComponentActivity() {
             try { Thread.sleep(120) } catch (_: InterruptedException) {}
         }
         romReadyState.value = ok
-        statusBarState.value = if (ok) rom.name.take(24) else "未载入"
+        romState.value = if (ok) rom.name.take(24) else "未载入"
         if (!ok) statusText.value = "初始化失败（重试 4 次）"
         if (ok) {
             EmuCore.start()
@@ -156,17 +158,17 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
             var f = 0L
             repeat(sp) { f = EmuCore.runFrame() }
             if (f == 0L) {
-                // 卡帧：只在「进入」时记一次，恢复时再记一次，别每帧刷
+                // 卡帧：进入/恢复共用同一个限流 key，0/非 0 抖动最多 1 条/10s；正常帧不记日志
                 if (!stalled) {
                     stalled = true
-                    Nlog.warn("emu.frame.stall", "stage" to "enter")
+                    Nlog.warnThrottled("emu.frame.stall", "emu.frame.stall", "stage" to "enter")
                 }
                 try { Thread.sleep(16) } catch (_: InterruptedException) {}
                 continue
             }
             if (stalled) {
                 stalled = false
-                Nlog.info("emu.frame.stall", "stage" to "recover")
+                Nlog.infoThrottled("emu.frame.stall", "emu.frame.stall", "stage" to "recover")
             }
             val px = EmuCore.frameBuffer() ?: continue
             if (surfaceReady) {
@@ -191,8 +193,9 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
             nextNs += targetNs
             val now = System.nanoTime()
             if (nextNs > now) { try { Thread.sleep((nextNs - now) / 1_000_000) } catch (_: InterruptedException) {} } else nextNs = now
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 // 渲染线程不能因为一帧异常就崩：记录（同一错误 10s 内一条）后继续下一帧
+                // 只接 Exception，OOM 之类 Error 不吞
                 Nlog.errorThrottled(
                     "frame:" + e.javaClass.simpleName,
                     "emu.frame.error",
@@ -358,11 +361,17 @@ fun AppScreen(activity: MainActivity) {
 
         // 下屏：左侧内容 + 右侧竖排 Tab + 最底边常驻按键折叠条
         Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
-            // 顶部常驻状态行：桥状态/ROM 名（statusBarState）+ 地图坐标 + 帧率
-            val statusBar = activity.statusBarState.value
+            // 顶部常驻状态行：桥状态 + ROM 名（两个独立通道，互不覆盖）+ 地图坐标 + 帧率
+            val bridgeState = activity.bridgeState.value
+            val romState = activity.romState.value
             Text(
                 buildString {
-                    if (statusBar.isNotBlank()) append(statusBar).append("    ")
+                    if (bridgeState.isNotBlank()) append(bridgeState)
+                    if (romState.isNotBlank()) {
+                        if (bridgeState.isNotBlank()) append("  ·  ")
+                        append(romState)
+                    }
+                    if (bridgeState.isNotBlank() || romState.isNotBlank()) append("    ")
                     append(if (status.map.isNotBlank()) status.map else "—")
                     append("  (").append(status.x).append(", ").append(status.y).append(")")
                     append("   帧 ").append(frame).append("  FPS ").append(fps)

@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CyclicBarrier
 
 /** 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 */
 class NlogTest {
@@ -70,5 +71,32 @@ class NlogTest {
         assertTrue(Nlog.shouldEmit(Nlog.Level.INFO, Nlog.Level.INFO))
         assertTrue(Nlog.shouldEmit(Nlog.Level.ERROR, Nlog.Level.INFO))
         assertFalse(Nlog.shouldEmit(Nlog.Level.DEBUG, Nlog.Level.INFO))
+    }
+
+    @Test
+    fun throttlePassSequentialWindow() {
+        val key = "seq-" + System.nanoTime()
+        assertTrue(Nlog.throttlePass(key, 1_000))
+        assertFalse(Nlog.throttlePass(key, 5_000))
+        assertTrue(Nlog.throttlePass(key, 11_000))
+        assertFalse(Nlog.throttlePass(key, 12_000))
+    }
+
+    @Test
+    fun throttlePassIsAtomicUnderConcurrency() {
+        // 16 个线程同时抢同一个 key：同一个窗口内只能有一个 true（旧 get→put 实现可能多个）
+        val key = "atomic-" + System.nanoTime()
+        val n = 16
+        val barrier = CyclicBarrier(n)
+        val results = BooleanArray(n)
+        val threads = (0 until n).map { i ->
+            Thread {
+                try { barrier.await() } catch (_: Throwable) {}
+                results[i] = Nlog.throttlePass(key, 5_000)
+            }
+        }
+        threads.forEach { it.start() }
+        threads.forEach { it.join(5_000) }
+        assertEquals(1, results.count { it })
     }
 }

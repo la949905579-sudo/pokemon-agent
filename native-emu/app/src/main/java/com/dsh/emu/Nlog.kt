@@ -64,17 +64,32 @@ object Nlog {
         if (throttlePass(key)) error(event, *fields)
     }
 
-    /** 限流放行：key 首次或距上次 ≥ window 时返回 true 并记下时间。 */
+    fun infoThrottled(key: String, event: String, vararg fields: Pair<String, Any?>) {
+        if (throttlePass(key)) info(event, *fields)
+    }
+
+    /**
+     * 限流放行：key 首次或距上次 ≥ window 时返回 true 并记下时间。
+     *
+     * 用 ConcurrentHashMap.compute 做 get→put 原子化：并发下同一 key 在一个窗口内
+     * 只有一个调用线程能拿到 true（旧实现 get 和 put 分开，两个线程可能同时放行）。
+     */
     fun throttlePass(key: String, nowMs: Long = System.currentTimeMillis()): Boolean {
-        val last = throttleAt[key]
-        if (!shouldLogThrottled(last, nowMs)) return false
-        throttleAt[key] = nowMs
-        if (throttleAt.size > 128) {
+        var allowed = false
+        throttleAt.compute(key) { _, last ->
+            if (shouldLogThrottled(last, nowMs)) {
+                allowed = true
+                nowMs
+            } else {
+                last
+            }
+        }
+        if (allowed && throttleAt.size > 128) {
             // 简单防涨：只保留最近一小时内的
             val cutoff = nowMs - 3_600_000L
             throttleAt.entries.removeIf { it.value < cutoff }
         }
-        return true
+        return allowed
     }
 
     // ---------- 纯函数（单测覆盖） ----------
