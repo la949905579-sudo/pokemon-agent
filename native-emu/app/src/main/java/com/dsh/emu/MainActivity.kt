@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
     val bridgeState = mutableStateOf("")
     /** 常驻状态②（顶部状态栏）：当前 ROM 名，一直显示。 */
     val romState = mutableStateOf("")
+    /** 「地图」Tab 的行走预览（点格子只算路、不执行）；null=没有预览。 */
+    val walkPlanState = mutableStateOf<WalkPlan?>(null)
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
@@ -224,6 +226,17 @@ data class TeamMon(
     /** 已满级（100 级没有下一级阈值，UI 显示「已满级」而不是 --） */
     val expMax: Boolean = false,
 )
+/**
+ * 「地图」Tab 的行走预览：起点/终点/tile 方向序列，加上预览时的地图身份
+ * （地图数组地址；用于「开始走」前判断是不是已经换图了）。
+ */
+data class WalkPlan(
+    val fromX: Int, val fromY: Int,
+    val toX: Int, val toY: Int,
+    val steps: List<String>,
+    val mapName: String,
+)
+
 data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
     val team: List<TeamMon> = emptyList(),
@@ -313,6 +326,8 @@ fun AppScreen(activity: MainActivity) {
         EmuCore.setKeys(0)
         // 同时取消正在进行的「点击前往」，否则角色会把剩余步数走完
         WalkControl.generation++
+        // 行走预览也一起清（点 Tab / 载入 ROM / 收面板都算离开地图操作）
+        activity.walkPlanState.value = null
     }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
@@ -394,9 +409,13 @@ fun AppScreen(activity: MainActivity) {
                                     }.padding(vertical = 6.dp))
                             }
                         }
-                        tabPage == Page.MAP -> TownMapPage(status) { tx, ty ->
-                            walkTo(activity, status, tx, ty)
-                        }
+                        tabPage == Page.MAP -> TownMapPage(
+                            s = status,
+                            preview = activity.walkPlanState.value,
+                            onPick = { tx, ty -> planWalk(activity, status, tx, ty) },
+                            onStart = { startWalk(activity, status) },
+                            onCancel = { cancelWalk(activity) },
+                        )
                         tabPage == Page.TEAM -> TeamPage(status)
                         tabPage == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
                         tabPage == Page.NICK -> PlaceholderPage("名字", "玩家名（需要文本地址）")
@@ -423,7 +442,10 @@ fun AppScreen(activity: MainActivity) {
                             showRoms = false
                             closeKeys()
                             // 再点同一个 Tab = 关闭，回到常驻页；点别的 Tab = 直接切换
-                            tabPage = if (tabPage == p2) null else p2
+                            val next = if (tabPage == p2) null else p2
+                            tabPage = next
+                            // 离开「地图」Tab 就清掉行走预览（路线已经不再显示）
+                            if (next != Page.MAP) activity.walkPlanState.value = null
                         }
                     }
                 }
@@ -453,6 +475,7 @@ fun AppScreen(activity: MainActivity) {
                     closeKeys()
                 } else {
                     WalkControl.generation++   // 打开面板也算离开地图操作，先停掉正在走的路线
+                    activity.walkPlanState.value = null   // 路线预览也要清掉
                     keysOpen = true
                 }
             }
@@ -557,7 +580,7 @@ private fun buildLocalStatusJson(): String {
  * 「点击前往」的取消代际：closeKeys()（点 Tab / 载入 ROM / 收按键面板）会把 generation +1，
  * 后台线程每走一步都检查代际；不一致就立刻停，不会把剩余步数走完。
  */
-private object WalkControl {
+internal object WalkControl {
     @Volatile
     var generation = 0
 }
@@ -572,6 +595,58 @@ private fun interruptibleSleep(ms: Long, myGen: Int): Boolean {
         left -= chunk
     }
     return myGen == WalkControl.generation
+}
+
+/** 当前地图身份（地图数组地址）；读不到返回 "?"，用于判断预览后是否换图。 */
+private fun currentMapId(): String {
+    val addr = com.dsh.emu.game.MapData.currentMapAddr()
+    return if (addr == 0) "?" else "0x%x".format(addr)
+}
+
+/** 「地图」Tab 点格子：只算路径存预览，不执行移动。 */
+private fun planWalk(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
+    val tiles = s.mmTiles ?: run {
+        activity.walkPlanState.value = null
+        activity.statusText.value = "没有地图数据"
+        return
+    }
+    val from = com.dsh.emu.game.MapWalker.Point(s.mmPx, s.mmPy)
+    val to = com.dsh.emu.game.MapWalker.Point(tx, ty)
+    val steps = com.dsh.emu.game.MapWalker.path(tiles, from, to)
+    if (steps == null) {
+        activity.walkPlanState.value = null
+        activity.statusText.value = "走不到这里"
+        return
+    }
+    if (steps.isEmpty()) {
+        activity.walkPlanState.value = null
+        activity.statusText.value = "已经在这里"
+        return
+    }
+    activity.walkPlanState.value = WalkPlan(s.mmPx, s.mmPy, tx, ty, steps, currentMapId())
+}
+
+/** 「开始走」：校验地图没换，再复用 walkTo 真按方向键；先清预览。 */
+private fun startWalk(activity: MainActivity, s: EmuStatus) {
+    val plan = activity.walkPlanState.value ?: return
+    if (s.mmTiles == null) {
+        activity.walkPlanState.value = null
+        activity.statusText.value = "没有地图数据"
+        return
+    }
+    if (plan.mapName != currentMapId()) {
+        activity.walkPlanState.value = null
+        activity.statusText.value = "需要换图，暂不支持"
+        return
+    }
+    activity.walkPlanState.value = null
+    walkTo(activity, s, plan.toX, plan.toY)
+}
+
+/** 取消预览：清状态，并让可能在走的路线立刻停（代际 +1）。 */
+private fun cancelWalk(activity: MainActivity) {
+    activity.walkPlanState.value = null
+    WalkControl.generation++
 }
 
 /** 点击小地图走到目标格：BFS 算方向序列，再逐个按键。 */

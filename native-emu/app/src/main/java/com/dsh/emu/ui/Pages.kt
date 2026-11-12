@@ -20,6 +20,7 @@ import com.dsh.emu.EmuView
 import com.dsh.emu.MainActivity
 import com.dsh.emu.TeamMon
 import com.dsh.emu.Updater
+import com.dsh.emu.WalkControl
 import java.io.File
 import com.dsh.emu.EmuStatus
 
@@ -303,6 +304,8 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
         }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
         // 重置 / 退出：整行各一个，样式沿用 BarButton
         BarButton("重置", active = false, modifier = Modifier.fillMaxWidth()) {
+            WalkControl.generation++              // 先停掉可能在走的路线
+            activity.walkPlanState.value = null   // 行走预览也清掉
             val romReady = activity.romReadyState.value
             val ok = romReady && EmuCore.resetGame()
             activity.statusText.value = ActionHints.reset(romReady, ok)
@@ -321,8 +324,10 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
 private fun exitApp(activity: MainActivity, emuView: EmuView) {
     // 1) 刷盘：deinit core（含 savedata unmap + msync）
     try { EmuCore.stop() } catch (_: Throwable) {}
-    // 2) 停渲染线程 / 状态
+    // 2) 停渲染线程 / 状态（行走代际 +1 让后台线程立刻退）
     try { emuView.stop() } catch (_: Throwable) {}
+    WalkControl.generation++
+    activity.walkPlanState.value = null
     activity.romReadyState.value = false
     activity.runningState.value = false
     // 3) 停前台服务
