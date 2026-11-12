@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -370,6 +371,25 @@ fun AppScreen(activity: MainActivity) {
                             tabPage = if (tabPage == p2) null else p2
                         }
                     }
+                }
+            }
+            // 临时状态行：存档/读档失败、空槽、先载入 ROM 这类提示只写进 statusText，
+            // 之前没有地方渲染（写了等于没写）；这里显示 ~2.8 秒后自动清空。
+            val statusMsg = activity.statusText.value
+            LaunchedEffect(statusMsg) {
+                if (statusMsg.isNotBlank()) {
+                    kotlinx.coroutines.delay(2800)
+                    // 期间没有更新成别的提示才清空；同一句话重复写不会重新计时
+                    if (activity.statusText.value == statusMsg) activity.statusText.value = ""
+                }
+            }
+            if (statusMsg.isNotBlank()) {
+                Box(
+                    Modifier.fillMaxWidth().height(18.dp).padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Text(statusMsg, color = DIM, fontSize = 11.sp, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
                 }
             }
             // 常驻折叠条：任何页面（包括战斗中）都能打开按键面板
