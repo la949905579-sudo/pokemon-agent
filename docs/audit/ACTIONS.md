@@ -9,10 +9,10 @@
 
 | # | 整改建议 | 依据（文件:行号） | owner | 期限 | 状态 |
 |---|---|---|---|---|---|
-| A-1 | 装机械闸门：`tools/precommit_check.sh --install-hooks`（pre-commit + pre-push） | `.git/hooks` 只有 `*.sample`；REPORT 整改 1 | 执行主管 | 下一 push 前 | 待办 |
-| A-2 | 测试数改引用 `tools/test_results.json`，禁止写死 | `HANDOFF.md:17,58,67`；`HANDOVER.md:58,98,131` | 执行主管 | 2026-11-13 | 待办 |
-| A-3 | 同步 TODO/HANDOFF 待办（行走路径已做、存档三槽、插件测试 29），删退役 `verifier` 引用；**并删 `docs/TEAM.md` §一 的「督导」行**（A 队裁定 2026-11-12，独立督导属 B 队） | `NATIVE_EMU_TODO.md:15,59`；`STRUCTURE.md:44,62,68`；`docs/TEAM.md:44` | 执行主管 | 下一批次首提交 | 待办 |
-| A-4 | 重生成 METRICS（当时 HEAD `3decf36`）；`--check` 红时 exit≠0 | `METRICS.md:45,51` 过期 | 执行主管 | 下一批次前 | 待办 |
+| A-1 | 装机械闸门：`tools/precommit_check.sh --install-hooks`（pre-commit + pre-push） | `.git/hooks` 只有 `*.sample`；REPORT 整改 1 | 助理 | 下一 push 前 | 待办 |
+| A-2 | 测试数改引用 `tools/test_results.json`，禁止写死 | `HANDOFF.md:17,58,67`；`HANDOVER.md:58,98,131` | 助理 | 2026-11-13 | 待办 |
+| A-3 | 同步 TODO/HANDOFF 待办（行走路径已做、存档三槽、插件测试 29），删退役 `verifier` 引用；**并删 `docs/TEAM.md` §一 的「督导」行**（A 队裁定 2026-11-12，独立督导属 B 队） | `NATIVE_EMU_TODO.md:15,59`；`STRUCTURE.md:44,62,68`；`docs/TEAM.md:44` | 助理 | 下一批次首提交 | 待办 |
+| A-4 | 重生成 METRICS（当时 HEAD `3decf36`）；`--check` 红时 exit≠0 | `METRICS.md:45,51` 过期 | 助理 | 下一批次前 | 待办 |
 | A-5 | `REQUEST.md` 增必填「T4 结果」；窗口起点先 `git cat-file` 验、写实际提交数 | `REQUEST.md:12` 的 `ccdc130` 不可解析 | A 队统筹主持 + 独立督导 | 下次请求前 | 待办 |
 
 ## 已立项 / 建议（无硬期限）
@@ -22,12 +22,13 @@
 | A-6 | ~~`tools/token_report.mjs` 加 `--by-session`~~ → **结案**：`--json` 输出已含 `sessions[]`（id / role / turns / start / end / usage），按 id + 时间窗即可核算 | 实测 `--json`（2026-11-12 23:2x）；独立督导此前「脚本无按会话单列」的判断**有误** | 独立督导 | **已结案** |
 | A-7 | 主会话**已过线，应交接**：实测 133 轮 / total 3.149 亿 / 占全体 59.0%（阈值 ~130 轮，`-json` 可复算） | `node tools/token_report.mjs --json`（2026-11-12 23:2x）；A 队统筹主持 23:22 判定 | A 队统筹主持 | **已过线，应交接**（T5，见下注） |
 | A-8 | 重活排闲时（工作日 9–12、14–18 之外），同量 token 价减半 | `TEAM.md` 第十节单价表 | A 队统筹主持 | 可议 |
-| A-9 | 修 METRICS 脚本两处：§六时间戳统一本地时区；重复读合计与明细不符（30 vs 32，漏列 2 文件各 1 次） | `COST-20261112.md` 首份巡检发现 | 执行主管 | 待办 |
-| A-10 | 机械化文档过期检查：`precommit_check.sh` 加 grep（「57 个 / 28/28 / verifier」=0）、`metrics.py --check` 加窗口 `cat-file` 验真 | A-3/A-5 靠人记必复发（上轮 b/c 即崩在此） | 执行主管 | 待办（A 队裁定并入 F 首提交） |
+| A-9 | 修 METRICS 脚本两处：§六时间戳统一本地时区；重复读合计与明细不符（30 vs 32，漏列 2 文件各 1 次） | `COST-20261112.md` 首份巡检发现 | 助理 | 待办 |
+| A-10 | 机械化文档过期检查：`precommit_check.sh` 加 grep（「57 个 / 28/28 / verifier」=0）、`metrics.py --check` 加窗口 `cat-file` 验真 | A-3/A-5 靠人记必复发（上轮 b/c 即崩在此） | 助理 | 待办（A 队裁定并入 F 首提交） |
 | A-11 | `PROJECT_PLAN.md:3` 阶段更新，或标「历史规划，进度以 TODO 为准」 | 与 `NATIVE_EMU_TODO` / `HANDOFF.md:14-20` 差一个阶段（P0 vs P1） | 组织规划 | 待办 |
-| A-12 | `docs/AUDIT.md:64`「8 条前置检查」→ 实为 **10 条**（`HANDOVER.md:54-64`）；与 `auditor.md:47` 的「10 条」对齐 | 独立督导自查发现（2026-11-12） | 组织规划 / A 队统筹主持 | 待办 |
-| A-13 | `docs/AUDIT.md:110`「auditor 只读」、`:132`「改提示词 docs/roles/auditor.md」仍用旧名 → 统一为 `audit-inspector`（`:4` 已按授权改） | 修 `:4` 时连带发现 | 组织规划 / A 队统筹主持 | 待办 |
-| A-14 | `docs/roles/auditor.md:88` 语义修正：改为「改进项由**独立督导**裁定、执行主管落盘；**是否发版与优先级由统筹主持拍板**」 | 用户 2026-11-12 裁定（`docs/org/PLAN-20261112.md` §九-5） | 独立督导 | **已落地**（2026-11-13） |
+| A-12 | `docs/AUDIT.md:64`「8 条前置检查」→ 实为 **10 条**（`HANDOVER.md:54-64`）；与 `docs/roles/b/auditor.md:47` 的「10 条」对齐 | 独立督导自查发现（2026-11-12） | 组织规划 / A 队统筹主持 | 待办 |
+| A-13 | `docs/AUDIT.md:110`「auditor 只读」、`:132`「改提示词 docs/roles/b/auditor.md」仍用旧名 → 统一为 `audit-inspector`（`:4` 已按授权改） | 修 `:4` 时连带发现 | 组织规划 / A 队统筹主持 | 待办 |
+| A-14 | `docs/roles/b/auditor.md:88` 语义修正：改为「改进项由**独立督导**裁定、助理落盘；**是否发版与优先级由统筹主持拍板**」 | 用户 2026-11-12 裁定（`docs/org/PLAN-20261112.md` §九-5） | 独立督导 | **已落地**（2026-11-13） |
+| A-15 | 巡检工具覆盖不全：`session_health.mjs` 只认 `session.v4.jsonl.zstd`，11 个会话目录中 6 个无该文件（只有 `session.lock`）→ 巡检只判 5 个，其余记「无数据」。建议加 `--all` 并兼容旧格式/清理空日志目录 | 2026-11-13 首轮巡检实测 | 助理 | 待办 |
 
 > **A-7 交接注意事项（B 队提示，不代 A 队决定）**：交接属 `docs/AUDIT.md` **T5**（交接前须有审查），
 > 且 HANDOFF 必须记录审查状态；但 T5 与「两次审查间隔 ≥7 天」冲突（冷却至 2026-11-19）——
