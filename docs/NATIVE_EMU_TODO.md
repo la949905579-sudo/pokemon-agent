@@ -1,6 +1,6 @@
 # NativeEmu 待办
 
-> 更新：2026-11-12 20:44（批次 A `8082f89`、B `fdbf448`、C `2a0fbc7`/`81cfb2b`、D `cbbd1f9`/`ea576e9`、E `b6e8db3`/`188bbe9`；见 `CHANGELOG v2026.11.12-4/-8`）
+> 更新：2026-11-13（F1 文档整改后；最近代码批次 A `8082f89`–E `188bbe9`，见 `CHANGELOG v2026.11.12-4/-8`；当前待办 = F2 招式点击施放）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
@@ -39,7 +39,7 @@
 ### 架构
 - [x] P1 插件化（`framework/GamePlugin` + `games/pokemon_firered` + `run_game.py`；离线测试数量/结果见 `tools/test_results.json`）
 - [x] B 方案数据/决策层 Kotlin 化（`native-emu/.../game/`：GameState / BattleDecider / SwitchDecider / MapWalker）
-- [x] CI 跑 `:app:testDebugUnitTest`（Kotlin 单测 3 个文件）
+- [x] CI 跑 `:app:testDebugUnitTest`（Kotlin 单测 **10 个文件**；用例数与结果见 `tools/test_results.json`）
 
 ## 2026-11-12 下屏重构（已完成）
 
@@ -60,7 +60,7 @@
       批次 E 起非战斗常驻页直接是整张城镇图、地图 Tab 置灰（`188bbe9`）；「停止条」用户决定不做
 
 ### P1 · 交互细节
-- [x] `hintText` 通道：把「操作提示」和「常驻状态」（TCP/ROM 名）分开，避免启动时刷屏 —— `8082f89`
+- [x] 状态通道拆分：常驻状态（TCP/ROM 名）走 `statusBarState`，临时操作提示走 `statusText`（2.8 秒后消失），启动不再闪临时行 —— `8082f89`
 - [x] 设置页「重置/退出」小屏可读性：改成整行按钮（沿用 BarButton）—— `8082f89`
 
 ### P1 · 战斗
