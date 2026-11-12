@@ -425,8 +425,15 @@ fun AppScreen(activity: MainActivity) {
                         tabPage == Page.OPTION -> OptionPage(activity, emuView, onUpdate = { tabPage = Page.UPDATE },
                             onRom = { activity.refreshRoms(); showRoms = true })
                         tabPage == Page.UPDATE -> UpdatePage(activity)
-                        // 没手动开 Tab：常驻页自动切换（战斗中战斗页 / 否则当前地图页）
-                        else -> if (inBattle) BattlePage(status) else CurrentMapPage(status)
+                        // 没手动开 Tab：常驻页自动切换（战斗中战斗页 / 否则整张城镇图）
+                        else -> if (inBattle) BattlePage(status) else TownMapPage(
+                            s = status,
+                            preview = activity.walkPlanState.value,
+                            mapId = currentMapId(),
+                            onPick = { tx, ty -> planWalk(activity, status, tx, ty) },
+                            onStart = { startWalk(activity, status) },
+                            onCancel = { cancelWalk(activity) },
+                        )
                     }
                 }
                 Column(Modifier.width(80.dp).fillMaxHeight().padding(start = 4.dp)) {
@@ -436,10 +443,13 @@ fun AppScreen(activity: MainActivity) {
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
+                        // 「地图」Tab 暂置灰不可点（常驻页已经是整张城镇图，以后重做）
+                        val enabled = isPageTabEnabled(p2)
                         // 设置页里的「更新」子页也算设置 Tab 处于打开状态
-                        val active = tabPage == p2 ||
-                            (p2 == Page.OPTION && tabPage == Page.UPDATE)
-                        TabButton(label, active, Modifier.weight(1f)) {
+                        val active = enabled && (tabPage == p2 ||
+                            (p2 == Page.OPTION && tabPage == Page.UPDATE))
+                        TabButton(label, active, Modifier.weight(1f), enabled = enabled) {
+                            if (!enabled) return@TabButton   // 不可点的 Tab 点了没反应
                             showRoms = false
                             closeKeys()
                             // 再点同一个 Tab = 关闭，回到常驻页；点别的 Tab = 直接切换
