@@ -102,3 +102,30 @@
 - **成本巡检的定时任务由 B 队主持自己创建**（它才是那个会话的主持），A 队主持不得代建
 - 频率：每天（用户 2026-11-12 定）；时间由 B 队主持定，建议日终（如 23:30）
 - 每次巡检**开新会话**，不要复用；历史靠 `COST-*.md` 传递
+- ⚠️ 但 2026-11-12 最终确认「**暂不建定时任务**」，见第八节第 3 项；本节频率仅作将来恢复时的默认值
+
+## 十、成员 token 核算（用户 2026-11-12 追加，每次成员工作结束必做）
+
+- **谁做**：督导主持本人。核算本身也要花 token，为核算再开一个会话是倒挂。
+- **什么时候**：每名成员（审查员 / 成本管理员）一次工作结束、报告交回后立刻算，不等批次结束。
+- **数据源**：`~/.dsh/sessions/<工作区>/<会话>/session.v4.jsonl.zstd` 的 `data.usage`
+  （`inputTokens / outputTokens / cacheReadTokens / cacheWriteTokens / totalTokens`）；
+  成员用 `subagent/descriptor.label` 认。首轮实测：审查员 `8dcfe228`、成本管理员 `7d8bd16f`。
+- **取数**：`node tools/token_report.mjs --json` 出按职位/按会话汇总；**当前脚本没有「按成员单列」开关**，
+  会话级要按 `label + 起止时间` 临时拆。建议执行主管给脚本加 `--by-session`（整改候补，不单独立项）。
+- **单价**（元 / 百万 tokens，模型 `deepseek-flash`，取 2026-11-12 官方页）：
+
+  | 项 | 空闲时段 | 高峰时段 |
+  |---|---|---|
+  | 输入·缓存未命中 | 1 元 | 2 元 |
+  | 输入·缓存命中 | 0.02 元 | 0.04 元 |
+  | 输出 | 4 元 | 8 元 |
+
+  高峰＝北京时间周一至周五 9:00–12:00、14:00–18:00（不含法定节假日），其余为闲时。
+  **单价会变**：每次核算以 <https://api-docs.deepseek.com/zh-cn/quick_start/pricing/> 当日为准，
+  并在记录里写明用了哪档价、几点跑的。
+- **算法**：`cost = input×未命中价 + cacheRead×命中价 + output×输出价 + cacheWrite×0`
+  （DeepSeek 不收缓存写费）。因 `totalTokens = input + output + cacheRead + cacheWrite`，
+  `inputTokens` 已是**未命中部分**，不要再把 cacheRead 从 input 里扣一次。
+- **记账**：写入本轮 `docs/AUDIT_LOG.md` 的「成员开销」小节（或当日 `COST-*.md`），保留 4 位小数、单位元，
+  并注明单价档位与时间。首轮实测见 AUDIT_LOG「2026-11-12 成员开销」。
