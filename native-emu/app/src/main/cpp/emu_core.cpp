@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <ctime>
 #include <vector>
 #include <fcntl.h>
 #include <unistd.h>
@@ -13,6 +14,19 @@ static void nlog(const char* msg) {
         write(fd, line.c_str(), line.size());
         close(fd);
     }
+}
+
+// 结构化日志（格式见 docs/OBSERVABILITY.md）：ISO8601 时间 + 级别 + 事件名 + key=value
+static void nlogEv(const char* level, const char* event, const char* fields) {
+    char ts[32] = "1970-01-01T00:00:00Z";
+    time_t now = time(nullptr);
+    struct tm tmv;
+    if (gmtime_r(&now, &tmv)) {
+        strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%SZ", &tmv);
+    }
+    char line[512];
+    snprintf(line, sizeof(line), "%s %-5s %s %s", ts, level, event, fields);
+    nlog(line);
 }
 
 #include <mgba/core/core.h>
@@ -81,6 +95,17 @@ bool Emu::init(const char* rom_path, const char* bios_path) {
         return false;
     }
     nlog("init: load ok");
+
+    // 电池存档（游戏内存档）：mGBA 前端必须显式挂 .sav 文件，否则存档只留在内存里，
+    // 关掉 App 就丢。落点与桌面 mGBA 默认一致：<ROM 目录>/<ROM 名>.sav。
+    // 必须在 mCoreLoadFile 之后调用（依赖它设好的 core->dirs / baseName）。
+    if (mCoreAutoloadSave(core_)) {
+        nlogEv("INFO", "emu.save", "stage=autoload ok=true");
+    } else {
+        // 存档文件打不开/目录不可写：不阻断启动，只降级为「存档不落盘」
+        nlogEv("WARN", "emu.save", "stage=autoload ok=false code=open_failed");
+    }
+
     (void) bios_path;
 
     nlog("init: reset");
