@@ -1,4 +1,4 @@
-# 交接文档（2026-11-12 05:25）
+# 交接文档（2026-11-12 19:20）
 
 > 给下一个会话：先读本文件 + `README.md` + `PROJECT_PLAN.md` + `NATIVE_EMU_TODO.md`。
 
@@ -18,17 +18,22 @@
 - **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
 - **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
 
-## 二·五、构建与发布现状（2026-11-12 05:35 实测）
+## 二·五、构建与发布现状（2026-11-12 19:20 实测）
 
-- HEAD = `6c3c13e`（代码树 = `cc9d0ad`）；CI 已在 `cc9d0ad` 通过（run 43103245820，05:30），
-  APK 已发到 Release `build-cc9d0ad`。之后的提交只改 `docs/`，不触发构建。
-- 之前 03:51–05:26 连续失败的两层原因，都已修掉：
+- **HEAD = `dc6810e`**（交接时点）。Python 测试 28/28；Kotlin 单测 **57 个**
+  （计数：`grep -rc '@Test' native-emu/app/src/test --include=*.kt` 求和）。
+- **最新构建 = 推送 tip `2c237da`**：CI run 43193673121 success（2026-11-12 17:41 +0800），
+  Release `build-2c237daebddc30…`（17:43 发布）。该 tag 覆盖 3 个提交：
+  `c13ee2e` / `9cfd5d0`（设置页「重置」「退出」）/ `2c237da`。
+- `2c237da` 之后到 HEAD 的 8 个提交**只改 `docs/`**，不触及 `native-emu/**`，所以没有新构建，
+  APK 不受影响。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
+- CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
+  覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
+- 历史失败（03:51–05:26）的两层原因已修掉，留作教训：
   1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
   2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
-     `Expecting a top level declaration`（`51cb162` 插入新布局时没删旧块）
-- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`（当前 `build-fab1535`）；构建失败不会发。
-  旧错包 `build-c7996e9` 已删除。
-- Python 测试：`python3 run_tests.py` → **28/28 通过**。
+     `Expecting a top level declaration`（插入新布局时没删旧块）
+- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`；构建失败不会发（旧错包 `build-c7996e9` 已删）。
 - 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
 - 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
   比反复推空提交省时间。
@@ -45,7 +50,7 @@
 ## 四、关键命令（本机可跑 Kotlin 单测，APK 仍走 CI）
 
 ```bash
-# Kotlin 单测（32 个，实测 ~1 分钟）
+# Kotlin 单测（57 个，2026-11-12 计数；本机实测约 1 分钟，APK 仍走 CI）
 ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
 cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --no-daemon \
   -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2
@@ -97,7 +102,8 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
   权限 600、均已被 `.gitignore` 忽略）。**不进仓库。**
 - ⚠️ 本机这两份文件是**唯一可恢复副本**：GitHub secret 只写不读。丢了就只能换密钥 → 再卸载重装一次。
   建议尽快把口令抄进密码管理器，并把 `keystore.jks` 另存一份。
-- **旧包签名不兼容**：从 `build-fab1535` 起是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
+- **旧包签名不兼容**：换新签名后（2026-11-12 起）出的包都是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
+  历史重写后旧 tag 名（如 `build-fab1535`）已不指向现存提交，不要再引用。
 - 构建成功自动发 Release，不会再把失败构建的旧包发出去。
 - 仍然成立的老规矩：凭据/私钥不进仓库、不进文档、不进聊天。
 
@@ -140,8 +146,10 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 | `docs/FILES.md` | **每个文件**的用途与状态（自动生成） | 找不到某个文件干嘛用 |
 | `docs/TEAM.md` | 团队编制与重建步骤 | 新会话第一件事 |
 | `docs/HANDOVER.md` | 交接阈值、前置检查、反模式 | 想换会话之前 |
-| `docs/roles/*.md` | 三个角色的提示词（builder/verifier/auditor） | 重建团队时复制 |
+| `docs/roles/*.md` | 四个角色的提示词（执行主管/工匠/考官/督导） | 重建团队时复制 |
 | `docs/INCIDENTS.md` | 事故复盘：现象/根因/固化 | 出事后 24 小时内写一条 |
+| `docs/AUDIT.md` | 第三方审查的触发条件与判据 | 到触发条件时 |
+| `docs/METRICS.md` | 构建覆盖 + CI 首过率（脚本生成） | 判 T4 / 查某个提交有没有构建 |
 | `docs/WORKPLAN.md` | 11-10 的工作计划（部分已被 P1 取代） | 仅追溯历史 |
 
 **冲突时以代码为准**：`CHANGELOG` 记行为、`NATIVE_EMU_TODO` 记进度，两边不一致先看 `git log`。
