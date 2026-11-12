@@ -171,9 +171,9 @@
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
-| `docs/org/README.md` | docs/org/ — 组织架构师接口 | 保留 |
+| `docs/org/README.md` | docs/org/ — 组织规划接口 | 保留 |
 | `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
-| `docs/roles/architect.md` | 组织架构师（architect）启动提示词 | 保留 |
+| `docs/roles/architect.md` | 组织规划（architect）启动提示词 | 保留 |
 | `docs/roles/artisan.md` | 工匠提示词 | 保留 |
 | `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
 | `docs/roles/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |

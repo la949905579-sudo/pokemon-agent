@@ -1,6 +1,6 @@
 # 项目规划：从「一个游戏的自动化」到「一个模拟器平台 + 多个游戏插件」
 
-> 2026-11-11 规划。当前状态：Pokemon 火红自动化已跑通；NativeEmu（自研双屏 GBA 模拟器）P0 完成。
+> 2026-11-11 规划（2026-11-13 更新）。当前状态：Pokemon 火红自动化已跑通；NativeEmu（自研双屏 GBA 模拟器）P0 完成、P1 插件化完成（见 `docs/HANDOFF.md:14-20`）。
 
 ---
 
@@ -127,7 +127,7 @@ class GamePlugin(Protocol):
 - [x] 抽出 `GamePlugin` 接口 + `_template`（`framework/game_plugin.py`）
 - [x] Pokemon 插件 `games/pokemon_firered/`（包装现有 info/state，零改动）
 - [x] `framework/runner.py` 通用主循环 + `framework/loader.py` + `run_game.py`
-- [x] 测试 28/28
+- [x] 测试通过（数量/结果以 `tools/test_results.json` 为准）
 - **用法**：`EMU_BACKEND=native python3 run_game.py pokemon_firered`
 
 ### P2 · 第二个游戏（约 1-2 周）
