@@ -160,7 +160,7 @@
 | `docs/PROJECT_PLAN.md` | 项目规划：从「一个游戏的自动化」到「一个模拟器平台 + 多个游戏插件」 | 保留 |
 | `docs/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/STRUCTURE.md` | 项目结构规范（STRUCTURE） | 保留 |
-| `docs/TEAM.md` | 团队手册（TEAM） | 保留 |
+| `docs/TEAM.md` | A 队团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
 | `docs/audit/ACTIONS.md` | 整改建议清单（B → A 队，2026-11-12） | 保留 |
@@ -170,6 +170,7 @@
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
+| `docs/org/PLAN-20261113-2.md` | 文件系统规划方案 2026-11-13（第二份） | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
 | `docs/org/README.md` | docs/org/ — 组织规划接口 | 保留 |
 | `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
@@ -290,4 +291,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 226 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 227 个文件（不含 `native-emu/third_party/` 第三方源码）。
