@@ -12,6 +12,7 @@
 用法：
     python3 tools/check_ui_state.py            # 检查 native-emu/app/src/main/java
     python3 tools/check_ui_state.py --dir <源码目录>
+    python3 tools/check_ui_state.py --list     # 列出每个状态的读数/写数
     python3 tools/check_ui_state.py --self-test  # 用内置样例自测检查逻辑
 
 退出码：0 = 没有“只写不读”的状态；1 = 有（需要修）；2 = 用法/环境错误。
@@ -70,67 +71,87 @@ def strip_comments(src):
     return "".join(out)
 
 
-def scan_text(text):
-    """返回 [(变量名, 风格, 读次数, 写次数, 行号)]。"""
+def find_decls(text):
+    """返回 [(变量名, 风格, 行号)]，并带上是否被 // ui-state-ok 抑制。"""
     clean = strip_comments(text)
-    lines = clean.splitlines()
-    decls = []  # (name, style, line_no)
-    for i, line in enumerate(lines, 1):
-        for m in RE_DIRECT.finditer(line):
-            decls.append((m.group(1), "direct", i))
-        for m in RE_DELEGATE.finditer(line):
-            decls.append((m.group(1), "delegate", i))
-    result = []
+    orig = text.splitlines()
+    clean_lines = clean.splitlines()
+    decls = []
     seen = set()
-    for name, style, line_no in decls:
-        key = (name, line_no)
-        if key in seen:
-            continue
-        seen.add(key)
-        # 抑制标记
-        ctx = lines[line_no - 1] + (lines[line_no - 2] if line_no >= 2 else "")
-        if "ui-state-ok" in ctx:
-            continue
-        reads = writes = 0
-        pat = re.compile(r"\b" + re.escape(name) + r"\b")
-        for m in pat.finditer(clean):
-            # 跳过声明本身
-            if clean.count("\n", 0, m.start()) + 1 == line_no:
+    for i, line in enumerate(clean_lines, 1):
+        found = [(m.group(1), "direct") for m in RE_DIRECT.finditer(line)]
+        found += [(m.group(1), "delegate") for m in RE_DELEGATE.finditer(line)]
+        for name, style in found:
+            key = (name, i)
+            if key in seen:
                 continue
-            tail = clean[m.end():m.end() + 12]
-            if style == "direct":
-                if tail.lstrip().startswith(".value") or m.group(0) == name and tail.lstrip().startswith(".value"):
-                    seg = clean[m.end():m.end() + 16]
-                    if re.match(r"\.value\s*" + ASSIGN_OPS, seg):
-                        writes += 1
-                    else:
-                        reads += 1
-                else:
-                    # 把 State 对象本身传出去，也算读取（下游会 .value）
-                    reads += 1
-            else:
-                seg = clean[m.start():m.start() + len(name) + 4]
-                if re.match(re.escape(name) + r"\s*" + ASSIGN_OPS, seg) or \
-                        re.match(re.escape(name) + r"\s*\+\+", seg) or \
-                        re.match(re.escape(name) + r"\s*--", seg):
+            seen.add(key)
+            ctx = orig[i - 1] if i - 1 < len(orig) else ""
+            ctx += orig[i - 2] if i >= 2 else ""
+            decls.append((name, style, i, "ui-state-ok" in ctx))
+    return decls
+
+
+def count_usage(clean, name, style, decl_line):
+    """在去注释后的源码里数 name 的读/写次数（声明所在行跳过）。"""
+    reads = writes = 0
+    pat = re.compile(r"\b" + re.escape(name) + r"\b")
+    for m in pat.finditer(clean):
+        if clean.count("\n", 0, m.start()) + 1 == decl_line:
+            continue
+        if style == "direct":
+            seg = clean[m.end():m.end() + 18]
+            if seg.lstrip().startswith(".value"):
+                if re.match(r"\s*\.value\s*" + ASSIGN_OPS, seg):
                     writes += 1
                 else:
                     reads += 1
-        result.append((name, style, reads, writes, line_no))
-    return result
+            else:
+                # 把 State 对象本身传出去，也算读取（下游会 .value）
+                reads += 1
+        else:
+            seg = clean[m.start():m.start() + len(name) + 4]
+            if re.match(re.escape(name) + r"\s*" + ASSIGN_OPS, seg):
+                writes += 1
+            else:
+                reads += 1
+    return reads, writes
 
 
-def check_file(path):
-    text = open(path, encoding="utf-8", errors="ignore").read()
-    return scan_text(text)
+def scan_sources(sources):
+    """sources: [(路径, 原文)] → [(路径, [(名, 风格, 读, 写, 行)])]。
+
+    两遍扫描：先收集全仓库的声明，再在全仓库范围数读写点——
+    状态经常在 MainActivity 声明、在 ui/ 里读写，按单文件数会误报“未使用”。
+    """
+    decls = []  # (路径, 名, 风格, 行, 抑制)
+    cleaned = {}
+    for path, text in sources:
+        cleaned[path] = strip_comments(text)
+        for name, style, line, suppressed in find_decls(text):
+            decls.append((path, name, style, line, suppressed))
+    per_file = {path: [] for path, _ in sources}
+    for path, name, style, line, suppressed in decls:
+        if suppressed:
+            continue
+        reads = writes = 0
+        for other, clean in cleaned.items():
+            dl = line if other == path else -1
+            r, w = count_usage(clean, name, style, dl)
+            reads += r
+            writes += w
+        per_file[path].append((name, style, reads, writes, line))
+    return per_file
 
 
-def report(files):
+def report(files, list_all=False):
     errors, warns, total = [], [], 0
     for path, rows in files:
         rel = os.path.relpath(path, ROOT)
         for name, style, reads, writes, line in rows:
             total += 1
+            if list_all:
+                print(f"  - {rel}:{line}  {name}（{style}）：读 {reads} / 写 {writes}")
             if writes > 0 and reads == 0:
                 errors.append((rel, line, name, style, reads, writes))
             elif reads == 0 and writes == 0:
@@ -175,7 +196,7 @@ def self_test():
     ]
     bad = 0
     for i, (src, style, exp_reads, exp_writes) in enumerate(cases, 1):
-        rows = [r for r in scan_text(src)]
+        rows = scan_sources([("X.kt", src)])["X.kt"]
         if style is None:
             ok = not rows
             got = "被抑制" if ok else rows
@@ -198,13 +219,14 @@ def main():
     if not os.path.isdir(src_dir):
         print(f"目录不存在：{src_dir}", file=sys.stderr)
         return 2
-    files = []
+    sources = []
     for base, _, names in os.walk(src_dir):
         for n in sorted(names):
             if n.endswith(".kt"):
                 p = os.path.join(base, n)
-                files.append((p, check_file(p)))
-    return report(files)
+                sources.append((p, open(p, encoding="utf-8", errors="ignore").read()))
+    per_file = scan_sources(sources)
+    return report([(p, per_file[p]) for p, _ in sources], list_all="--list" in args)
 
 
 if __name__ == "__main__":
