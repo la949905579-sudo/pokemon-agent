@@ -85,6 +85,9 @@ class GamePlugin(Protocol):
 
 ## 四、目录规划（迁移目标）
 
+> ⚠ 下面是**迁移目标，不是现状**。标「← 现有文件」的条目表示以后从根目录的那个文件迁入，
+> 现在并不存在；找当前文件请看 `docs/FILES.md`。
+
 ```
 /root/workspace/
 ├── platform/                 # 平台通用（从现有模块抽取）
@@ -95,7 +98,7 @@ class GamePlugin(Protocol):
 │   ├── _template/            # 新游戏模板（复制即用）
 │   └── pokemon_firered/      # 现有 Pokemon 项目迁入
 │       ├── plugin.py
-│       ├── memory_map.py     # ← addresses.py
+│       ├── memory_map.py     # 目标文件：由根目录 addresses.py 迁入（当前尚不存在）
 │       ├── state.py          # ← state.py/info.py
 │       ├── decision.py       # ← decision*.py
 │       └── ...
