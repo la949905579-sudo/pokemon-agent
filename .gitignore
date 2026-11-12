@@ -11,3 +11,4 @@ map_cache.txt
 route_log.txt
 faint*.txt
 *.jks
+keystore-info.txt

@@ -83,7 +83,10 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 
 - **签名已轮换**：旧 `keystore.jks` 曾随公开仓库泄露，已从版本库移除并换新密钥。
 - 新密钥只存在于两处：GitHub Actions secret（`ANDROID_KEYSTORE_B64` / `STORE_PASSWORD` /
-  `KEY_PASSWORD`，别名 `emu`）和本机 `native-emu/app/keystore.jks`（已 `.gitignore`）。**不进仓库。**
+  `KEY_PASSWORD`，别名 `emu`）和本机 `native-emu/app/`（`keystore.jks` + `keystore-info.txt`，
+  权限 600、均已被 `.gitignore` 忽略）。**不进仓库。**
+- ⚠️ 本机这两份文件是**唯一可恢复副本**：GitHub secret 只写不读。丢了就只能换密钥 → 再卸载重装一次。
+  建议尽快把口令抄进密码管理器，并把 `keystore.jks` 另存一份。
 - **旧包签名不兼容**：从 `build-dabb301` 起是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
 - 构建成功自动发 Release，不会再把失败构建的旧包发出去。
 - 仍然成立的老规矩：凭据/私钥不进仓库、不进文档、不进聊天。
