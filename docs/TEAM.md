@@ -7,7 +7,8 @@
 
 | 成员 | 中文名 | 职责 | 写入范围 |
 |---|---|---|---|
-| `lead` | 主持 | 派活、最终审查、推送、发布、写 `docs/` | 全部 |
+| `lead` | 主持 | **只做对接与协调**：需求澄清、优先级、跨会话、最终拍板 | 无（不碰工具原文） |
+| `steward` | 执行主管 | 派活、读 diff、跑测试、推送、等 CI、写 `docs/`、调度队友 | `docs/`、git push |
 | `artisan` | 工匠 | 实现与修复（**带 shell**） | `native-emu/**`、根目录 `test_*.py` |
 | `examiner` | 考官 | 只读复核，出结论（**带 shell**） | 无（不写文件） |
 | （按需）`auditor` | 督导 | 流程审查，一次性会话 | 无 |
@@ -43,12 +44,16 @@
 ## 三、任务流转
 
 ```
-Lead 建任务（目标 + 验收标准 + 写入范围）
-   → artisan 认领、实现、commit（不 push）
-   → examiner 复核，给「可发布 / 不可发布」+ 证据
-   → Lead 审 diff、跑测试、push、观察 CI
-   → 需要时发布 Release、更新 HANDOFF
+Lead 定优先级 + 批次目标（只看结论，不碰 diff）
+   → steward 拆任务、派给 artisan（含验收标准与写入边界）
+   → artisan 实现、自测、commit（有 shell 就自己提交）
+   → steward 跑测试、审 diff、push、等 CI
+   → examiner 独立复核，给「可发布 / 不可发布」+ 证据
+   → steward 汇总三行摘要给 Lead → Lead 拍板发布
+   → steward 更新 CHANGELOG/TODO/HANDOFF
 ```
+
+**Lead 的成本控制**：每轮只读三行摘要；每 3 个批次抽 1 次看关键 diff。
 
 规则：
 - 同一文件同时只允许一个写入者。
