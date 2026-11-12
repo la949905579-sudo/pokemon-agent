@@ -235,11 +235,19 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/PartyCrypto.kt` | 队伍数据解密（PortablePokemon） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Species.kt` | 关东 1-151 中文名表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/SwitchDecider.kt` | 换人决策 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/BattlePage.kt` | ⚠ 未描述 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/KeyPad.kt` | 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/SaveSlots.kt` | 即时存档卡槽：3 个槽，文件是 `filesDir/state1.sav` … `state3.sav`。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | ⚠ 未描述 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | ⚠ 未描述 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
 
 ## 界面
 
@@ -248,4 +256,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 184 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 192 个文件（不含 `native-emu/third_party/` 第三方源码）。
