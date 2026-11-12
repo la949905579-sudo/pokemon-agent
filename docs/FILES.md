@@ -261,6 +261,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/TabsTest.kt` | 离线单测：右侧 Tab 是否可点（「地图」Tab 暂置灰）。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/WalkPreviewTest.kt` | 离线单测：行走预览折线点。 | 保留 |
 
 ## 界面
@@ -273,4 +274,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 209 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 210 个文件（不含 `native-emu/third_party/` 第三方源码）。
