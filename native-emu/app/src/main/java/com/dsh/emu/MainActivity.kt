@@ -180,7 +180,14 @@ private val TXT = Color(0xFFEBEBEB)
 private val DIM = Color(0xFF8C8C8C)
 private val GREEN = Color(0xFF50B478)
 
-data class TeamMon(val name: String, val lv: Int, val hp: Int, val max: Int)
+/** 队伍里的一只；读不到的字段留空/负数，UI 显示 --（见 TeamPage 详情）。 */
+data class TeamMove(val name: String, val pp: Int, val maxPp: Int?)
+data class TeamMon(
+    val name: String, val lv: Int, val hp: Int, val max: Int,
+    val types: List<String> = emptyList(),
+    val moves: List<TeamMove> = emptyList(),
+    val exp: Long = -1L,
+)
 data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
     val team: List<TeamMon> = emptyList(),
@@ -200,7 +207,23 @@ private fun parseStatus(json: String): EmuStatus {
         o.optJSONArray("team")?.let { arr ->
             for (i in 0 until arr.length()) {
                 val t = arr.getJSONObject(i)
-                team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max")))
+                val types = mutableListOf<String>()
+                t.optJSONArray("types")?.let { a ->
+                    for (k in 0 until a.length()) a.optString(k, "").takeIf { it.isNotEmpty() }?.let { types.add(it) }
+                }
+                val moves = mutableListOf<TeamMove>()
+                t.optJSONArray("moves")?.let { a ->
+                    for (k in 0 until a.length()) {
+                        val mo = a.optJSONObject(k) ?: continue
+                        moves.add(TeamMove(
+                            mo.optString("name", ""),
+                            if (mo.has("pp")) mo.optInt("pp") else -1,
+                            if (mo.has("max")) mo.optInt("max") else null,
+                        ))
+                    }
+                }
+                team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max"),
+                    types, moves, if (t.has("exp")) t.optLong("exp") else -1L))
             }
         }
         val mm = o.optJSONObject("minimap")
@@ -672,11 +695,23 @@ private fun TeamPage(s: EmuStatus) {
         Column(Modifier.fillMaxSize()) {
             Text(m.name, color = TXT, fontSize = 16.sp)
             Spacer(Modifier.height(6.dp))
+            Text(if (m.types.isEmpty()) "属性 --" else "属性 ${m.types.joinToString(" / ")}", color = TXT, fontSize = 13.sp)
             Text("等级 ${m.lv}", color = TXT, fontSize = 13.sp)
             Text("HP ${m.hp}/${m.max}", color = TXT, fontSize = 13.sp)
             androidx.compose.material3.LinearProgressIndicator(
                 progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
                 modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
+            Text(if (m.exp >= 0) "经验 ${m.exp}" else "经验 --", color = TXT, fontSize = 13.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("招式", color = DIM, fontSize = 11.sp)
+            for (i in 0 until 4) {
+                val mv = m.moves.getOrNull(i)
+                val name = mv?.name?.takeIf { it.isNotEmpty() } ?: "--"
+                val ppText = if (mv != null && mv.pp >= 0) mv.pp.toString() else "--"
+                val maxText = mv?.maxPp?.toString() ?: "--"
+                val color = if (mv != null && mv.pp == 0) Color(0xFFFF6060) else TXT
+                Text("${i + 1}. $name   PP $ppText/$maxText", color = color, fontSize = 12.sp)
+            }
             Spacer(Modifier.weight(1f))
             BarButton("返回", true) { detail = null }
         }
@@ -754,6 +789,21 @@ private fun buildLocalStatusJson(): String {
             t.put("lv", m.lv)
             t.put("hp", m.hp)
             t.put("max", m.maxHp)
+            val types = org.json.JSONArray()
+            for (ty in m.types) types.put(ty)
+            t.put("types", types)
+            val moves = org.json.JSONArray()
+            for (i in m.moves.indices) {
+                val mid = m.moves[i]
+                val info = com.dsh.emu.game.GameData.moves[mid]
+                val mo = org.json.JSONObject()
+                mo.put("name", info?.first ?: "")
+                mo.put("pp", m.pp.getOrNull(i) ?: -1)
+                // 上限 PP 没有数据源（队伍结构里只有当前 PP），不带 max，UI 显示 --
+                moves.put(mo)
+            }
+            t.put("moves", moves)
+            t.put("exp", m.exp)
             team.put(t)
         }
         o.put("team", team)

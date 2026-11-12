@@ -1,9 +1,15 @@
 package com.dsh.emu
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import org.json.JSONObject
 import java.io.File
@@ -16,6 +22,7 @@ import java.net.UnknownHostException
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.Executors
 
 /** 从 GitHub Releases 检查并安装新版本。 */
 object Updater {
@@ -28,6 +35,24 @@ object Updater {
     private const val LOG_PATH = "/sdcard/Download/ota.log"
     private const val LOG_MAX_BYTES = 5L * 1024 * 1024
     private const val LOG_TAG = "OTA"
+
+    /** 安装结果广播最多等多久（用户可能要在系统安装器上点确认）。 */
+    private const val INSTALL_RESULT_TIMEOUT_MS = 120_000L
+
+    /**
+     * 日志写盘统一丢到这个单线程队列：UI 线程不碰 /sdcard，写文件顺序仍与调用一致。
+     * 守护线程，进程退出时不必等它收尾（日志丢了也比卡住强）。
+     */
+    private val logExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "ota-log").apply { isDaemon = true }
+    }
+
+    /** 安装结果广播的回调线程（主线程）。 */
+    private val installResultHandler = Handler(Looper.getMainLooper())
+
+    /** 当前登记着的安装结果接收器；同一时间最多一个。 */
+    @Volatile
+    private var installResultReceiver: BroadcastReceiver? = null
 
     data class Release(val tag: String, val url: String, val body: String)
 
@@ -56,10 +81,18 @@ object Updater {
                 sb.append(' ').append(k).append('=').append(text)
             }
             val line = sb.toString()
-            var written = false
-            try { appendToFile(line); written = true } catch (_: Throwable) { written = false }
-            if (!written) {
-                try { Log.println(prio(level), LOG_TAG, line) } catch (_: Throwable) {}
+            val p = prio(level)
+            try {
+                // 落盘放到后台线程；写失败走 logcat
+                logExecutor.execute {
+                    val written = try { appendToFile(line); true } catch (e: Throwable) { logWarn("write", e); false }
+                    if (!written) {
+                        try { Log.println(p, LOG_TAG, line) } catch (_: Throwable) {}
+                    }
+                }
+            } catch (_: Throwable) {
+                // 队列都提交不进去（已关闭/内存不足）：直接降级 logcat
+                try { Log.println(p, LOG_TAG, line) } catch (_: Throwable) {}
             }
         } catch (_: Throwable) {
             // 连日志都记不下来就算了，绝不外抛
@@ -105,6 +138,56 @@ object Updater {
             Log.println(Log.WARN, LOG_TAG,
                 "${nowIso()} WARN  ota.log stage=$stage code=${errCode(e)} msg=${sanitize(e.message)}")
         } catch (_: Throwable) {}
+    }
+
+    /** 注销安装结果接收器；可重复调用，不抛异常。 */
+    private fun unregisterInstallResult(context: Context) {
+        val r = installResultReceiver ?: return
+        installResultReceiver = null
+        try { context.unregisterReceiver(r) } catch (e: Throwable) { logWarn("unregister", e) }
+    }
+
+    /**
+     * 登记一次「安装结果」监听：收到自己包的 PACKAGE_ADDED / PACKAGE_REPLACED 就记
+     * ota.install stage=result ok=true；等满 INSTALL_RESULT_TIMEOUT_MS 还没收到就记
+     * stage=result ok=false code=timeout。收到或超时都会注销，不会泄漏。
+     *
+     * 注意：自更新是同包覆盖安装，安装时本进程通常会被系统杀掉，广播可能永远收不到——
+     * 那就走超时分支（或什么都不记），属预期；这个监听主要是给「装上了/没装上」留痕。
+     */
+    private fun registerInstallResult(context: Context) {
+        val app = context.applicationContext ?: context
+        val self = app.packageName
+        unregisterInstallResult(app)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context?, intent: Intent?) {
+                val action = intent?.action ?: "-"
+                val pkg = intent?.data?.schemeSpecificPart ?: "-"
+                if (pkg != self) return
+                log("INFO", "ota.install", "stage" to "result", "ok" to true,
+                    "action" to action.substringAfterLast('.'), "pkg" to pkg)
+                unregisterInstallResult(app)
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        try {
+            // targetSdk 34：注册时得显式给导出标记；系统包广播用 NOT_EXPORTED 即可
+            ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+            installResultReceiver = receiver
+        } catch (e: Throwable) {
+            log("WARN", "ota.install", "stage" to "register", "code" to errCode(e), "msg" to sanitize(e.message))
+            return
+        }
+        installResultHandler.postDelayed({
+            if (installResultReceiver === receiver) {
+                log("WARN", "ota.install", "stage" to "result", "ok" to false, "code" to "timeout")
+                unregisterInstallResult(app)
+            }
+        }, INSTALL_RESULT_TIMEOUT_MS)
     }
 
     /** 安装包 SHA-256 前 12 位（只记短摘要）；算不出来记 code=sha_fail，不影响有效性判定。 */
@@ -288,6 +371,7 @@ object Updater {
     fun install(activity: Activity, apk: File): Boolean {
         if (!canInstall(activity)) {
             log("WARN", "ota.install", "stage" to "perm", "ok" to false, "bytes" to apk.length())
+            log("WARN", "ota.install", "stage" to "result", "ok" to false, "code" to "perm_denied")
             openInstallSettings(activity)
             return false
         }
@@ -299,9 +383,12 @@ object Updater {
             }
             activity.startActivity(intent)
             log("INFO", "ota.install", "stage" to "start", "ok" to true, "bytes" to apk.length())
+            // 拉起安装器后等系统广播，用来记录「到底装上了没有」
+            registerInstallResult(activity)
             true
         } catch (e: Throwable) {
             log("ERROR", "ota.install", "stage" to "start", "code" to errCode(e), "msg" to sanitize(e.message))
+            log("WARN", "ota.install", "stage" to "result", "ok" to false, "code" to "start_failed")
             false
         }
     }

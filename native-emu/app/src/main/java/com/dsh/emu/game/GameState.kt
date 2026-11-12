@@ -8,6 +8,14 @@ object GameState {
     data class PartyMon(
         val slot: Int, val lv: Int, val hp: Int, val maxHp: Int, val pid: Long,
         val species: Int = 0,
+        /** 属性（1-2 个）；查不到为空列表，UI 显示 --。 */
+        val types: List<String> = emptyList(),
+        /** 4 个招式 id（0 = 空槽）。 */
+        val moves: List<Int> = emptyList(),
+        /** 4 个招式的当前 PP（顺序同 moves）。 */
+        val pp: List<Int> = emptyList(),
+        /** 当前经验值；读不到为 -1。 */
+        val exp: Long = -1L,
     ) {
         val name: String get() = Species.nameOf(species)
     }
@@ -76,7 +84,14 @@ object GameState {
                 acc or ((buf[base + Addresses.PARTY_PID + k].toLong() and 0xFF) shl (8 * k))
             }
             val dec = PartyCrypto.decrypt(buf, base)
-            out.add(PartyMon(i, lv, hp, mhp, pid, dec?.species ?: 0))
+            val sp = dec?.species ?: 0
+            out.add(PartyMon(
+                slot = i, lv = lv, hp = hp, maxHp = mhp, pid = pid, species = sp,
+                types = Species.typesOf(sp),
+                moves = dec?.moves ?: emptyList(),
+                pp = dec?.pp ?: emptyList(),
+                exp = dec?.exp ?: -1L,
+            ))
         }
         return out
     }

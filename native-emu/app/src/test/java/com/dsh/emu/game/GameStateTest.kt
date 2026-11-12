@@ -20,6 +20,11 @@ class GameStateTest {
         put(addr, v and 0xFF, (v shr 8) and 0xFF)
     }
 
+    private fun putU32(addr: Int, v: Long) {
+        put(addr, (v and 0xFF).toInt(), ((v shr 8) and 0xFF).toInt(),
+            ((v shr 16) and 0xFF).toInt(), ((v shr 24) and 0xFF).toInt())
+    }
+
     @Before
     fun setUp() {
         memory.clear()
@@ -174,6 +179,37 @@ class GameStateTest {
         val p = com.dsh.emu.game.MapWalker.path(tiles,
             com.dsh.emu.game.MapWalker.Point(1, 1), com.dsh.emu.game.MapWalker.Point(1, 1))
         assertEquals(0, p!!.size)
+    }
+
+    @Test
+    fun partyDetailReadsTypesMovesPpExp() {
+        val base = Addresses.PARTY_ADDR
+        memory[base + Addresses.PARTY_LV] = 12.toByte()
+        putU16(base + Addresses.PARTY_HP, 35)
+        putU16(base + Addresses.PARTY_HP + 2, 35)
+        // PID/OTID 都是 0 → 异或 key = 0；顺序表第 0 项 "GAEM"：G 在 0，A 在 12
+        putU16(base + 0x20, 25)        // species 皮卡丘
+        putU32(base + 0x20 + 4, 1234)  // 经验
+        putU16(base + 0x20 + 12, 84)   // 电击
+        putU16(base + 0x20 + 14, 86)   // 电磁波
+        memory[base + 0x20 + 20] = 30  // 电击 PP
+        memory[base + 0x20 + 21] = 20  // 电磁波 PP
+        val m = GameState.party().single()
+        assertEquals(25, m.species)
+        assertEquals("皮卡丘", m.name)
+        assertEquals(listOf("电"), m.types)
+        assertEquals(listOf(84, 86, 0, 0), m.moves)
+        assertEquals(listOf(30, 20, 0, 0), m.pp)
+        assertEquals(1234L, m.exp)
+    }
+
+    @Test
+    fun speciesTypesKnownAndMissing() {
+        assertEquals(listOf("草", "毒"), Species.typesOf(1))
+        assertEquals(listOf("一般", "飞行"), Species.typesOf(16))
+        assertEquals(listOf("超能力"), Species.typesOf(151))
+        assertTrue(Species.typesOf(0).isEmpty())
+        assertTrue(Species.typesOf(152).isEmpty())
     }
 
     @Test
