@@ -30,7 +30,10 @@ import org.json.JSONObject
 import java.io.File
 
 class MainActivity : ComponentActivity() {
+    /** 操作反馈（临时行）：存档失败/空槽/先载入 ROM 等，显示 2.8s 后自动消失。 */
     val statusText = mutableStateOf("")
+    /** 常驻状态（顶部状态栏）：TCP 桥状态 + 当前 ROM 名，一直显示。 */
+    val statusBarState = mutableStateOf("")
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
@@ -49,7 +52,8 @@ class MainActivity : ComponentActivity() {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
         } catch (_: Throwable) {}
         val ok = bridge.start()
-        statusText.value = if (ok) "TCP :55401" else ""
+        // 启动状态是常驻信息，放 statusBarState；不写 statusText（否则启动会闪一条临时行）
+        statusBarState.value = if (ok) "TCP :55401" else "TCP 未启动"
         setContent { AppScreen(this) }
     }
 
@@ -95,7 +99,8 @@ class MainActivity : ComponentActivity() {
             try { Thread.sleep(120) } catch (_: InterruptedException) {}
         }
         romReadyState.value = ok
-        statusText.value = if (ok) rom.name.take(24) else "初始化失败（重试 4 次）"
+        statusBarState.value = if (ok) rom.name.take(24) else "未载入"
+        if (!ok) statusText.value = "初始化失败（重试 4 次）"
         if (ok) {
             EmuCore.start()
             runningState.value = true
@@ -139,10 +144,30 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
         val gh = EmuCore.videoHeight().coerceAtLeast(160)
         val targetNs = (1_000_000_000L / 59.7275).toLong()
         var nextNs = System.nanoTime()
+        var lastLoggedSpeed = speed
+        var stalled = false
         while (running) {
+            try {
+            val sp = speed
+            if (sp != lastLoggedSpeed) {
+                lastLoggedSpeed = sp
+                Nlog.info("emu.frame.speed", "n" to sp)
+            }
             var f = 0L
-            repeat(speed) { f = EmuCore.runFrame() }
-            if (f == 0L) { Thread.sleep(16); continue }
+            repeat(sp) { f = EmuCore.runFrame() }
+            if (f == 0L) {
+                // 卡帧：只在「进入」时记一次，恢复时再记一次，别每帧刷
+                if (!stalled) {
+                    stalled = true
+                    Nlog.warn("emu.frame.stall", "stage" to "enter")
+                }
+                try { Thread.sleep(16) } catch (_: InterruptedException) {}
+                continue
+            }
+            if (stalled) {
+                stalled = false
+                Nlog.info("emu.frame.stall", "stage" to "recover")
+            }
             val px = EmuCore.frameBuffer() ?: continue
             if (surfaceReady) {
                 var b = bmp
@@ -166,6 +191,17 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
             nextNs += targetNs
             val now = System.nanoTime()
             if (nextNs > now) { try { Thread.sleep((nextNs - now) / 1_000_000) } catch (_: InterruptedException) {} } else nextNs = now
+            } catch (e: Throwable) {
+                // 渲染线程不能因为一帧异常就崩：记录（同一错误 10s 内一条）后继续下一帧
+                Nlog.errorThrottled(
+                    "frame:" + e.javaClass.simpleName,
+                    "emu.frame.error",
+                    "code" to e.javaClass.simpleName,
+                    "msg" to e.message,
+                )
+                try { Thread.sleep(16) } catch (_: InterruptedException) {}
+                nextNs = System.nanoTime()
+            }
         }
     }
 }
@@ -322,8 +358,18 @@ fun AppScreen(activity: MainActivity) {
 
         // 下屏：左侧内容 + 右侧竖排 Tab + 最底边常驻按键折叠条
         Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
-            Text("${if (status.map.isNotBlank()) status.map else "—"}  (${status.x}, ${status.y})   帧 $frame  FPS $fps",
-                color = DIM, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+            // 顶部常驻状态行：桥状态/ROM 名（statusBarState）+ 地图坐标 + 帧率
+            val statusBar = activity.statusBarState.value
+            Text(
+                buildString {
+                    if (statusBar.isNotBlank()) append(statusBar).append("    ")
+                    append(if (status.map.isNotBlank()) status.map else "—")
+                    append("  (").append(status.x).append(", ").append(status.y).append(")")
+                    append("   帧 ").append(frame).append("  FPS ").append(fps)
+                },
+                color = DIM, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
+            )
             Row(Modifier.weight(1f).fillMaxWidth().padding(start = 6.dp, top = 6.dp, end = 6.dp, bottom = 4.dp)) {
                 Box(Modifier.weight(1f).fillMaxHeight()) {
                     when {

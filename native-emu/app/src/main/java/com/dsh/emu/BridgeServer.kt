@@ -29,16 +29,12 @@ class BridgeServer(private val port: Int = 55401) {
             server = ServerSocket(port, 8, bindAddr)
             running = true
             Thread { acceptLoop() }.apply { isDaemon = true; start() }
-            log("bridge: listening on ${bindAddr.hostAddress}:$port")
+            Nlog.info("bridge.conn", "ok" to true, "port" to port)
             true
         } catch (e: IOException) {
-            log("bridge: bind failed ${e.javaClass.simpleName}: ${e.message}")
+            Nlog.warn("bridge.conn", "ok" to false, "port" to port, "code" to e.javaClass.simpleName)
             false
         }
-    }
-
-    private fun log(msg: String) {
-        try { java.io.File("/sdcard/Download/bridge.log").appendText("$msg\n") } catch (_: Throwable) {}
     }
 
     fun stop() {
@@ -50,8 +46,15 @@ class BridgeServer(private val port: Int = 55401) {
     private fun acceptLoop() {
         while (running) {
             val s = try { server?.accept() } catch (e: Exception) { null } ?: continue
+            Nlog.info("bridge.conn", "stage" to "connect", "port" to port)
             Thread { handle(s) }.apply { isDaemon = true; start() }
         }
+    }
+
+    /** 命令失败统一入口：同一 cmd 10s 内只记一次，未知命令也算。 */
+    private fun logCmdError(line: String, reply: String) {
+        val cmd = line.split(Regex("\\s+")).firstOrNull()?.take(24).orEmpty().ifEmpty { "?" }
+        Nlog.warnThrottled("bridge.cmd:$cmd", "bridge.cmd", "ok" to false, "cmd" to cmd, "err" to reply)
     }
 
     private fun handle(s: Socket) {
@@ -60,13 +63,15 @@ class BridgeServer(private val port: Int = 55401) {
             val w: BufferedWriter = s.getOutputStream().bufferedWriter()
             while (true) {
                 val line = r.readLine() ?: break
-                val reply = try { handleLine(line.trim()) } catch (e: Throwable) { "err ${e.message}" }
+                val reply = try { handleLine(line.trim()) } catch (e: Throwable) { "err ${e.javaClass.simpleName}" }
+                if (reply.startsWith("err")) logCmdError(line.trim(), reply)
                 w.write(reply); w.newLine(); w.flush()
                 if (reply == "bye") break
             }
         } catch (_: Throwable) {
         } finally {
             try { s.close() } catch (_: Exception) {}
+            Nlog.info("bridge.conn", "stage" to "disconnect", "port" to port)
         }
     }
 

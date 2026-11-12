@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsh.emu.BuildConfig
@@ -23,9 +24,15 @@ import java.io.File
 import com.dsh.emu.EmuStatus
 
 @Composable
-internal fun BarButton(label: String, active: Boolean, onClick: () -> Unit) {
+internal fun BarButton(
+    label: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     Text(label, color = if (active) Color.White else DIM, fontSize = 12.sp,
-        modifier = Modifier.clickable { onClick() }
+        textAlign = TextAlign.Center,
+        modifier = modifier.clickable { onClick() }
             .background(if (active) ACCENT else CARD, RoundedCornerShape(8.dp))
             .padding(horizontal = 22.dp, vertical = 6.dp))
 }
@@ -294,17 +301,14 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
         Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
             onUpdate()
         }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
-        // 重置 / 退出：样式沿用 BarButton
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            BarButton("重置", active = false) {
-                val romReady = activity.romReadyState.value
-                val ok = romReady && EmuCore.resetGame()
-                activity.statusText.value = ActionHints.reset(romReady, ok)
-            }
-            Spacer(Modifier.width(10.dp))
-            BarButton("退出", active = false) {
-                exitApp(activity, emuView)
-            }
+        // 重置 / 退出：整行各一个，样式沿用 BarButton
+        BarButton("重置", active = false, modifier = Modifier.fillMaxWidth()) {
+            val romReady = activity.romReadyState.value
+            val ok = romReady && EmuCore.resetGame()
+            activity.statusText.value = ActionHints.reset(romReady, ok)
+        }
+        BarButton("退出", active = false, modifier = Modifier.fillMaxWidth()) {
+            exitApp(activity, emuView)
         }
     }
 }
