@@ -37,6 +37,9 @@ public:
     uint64_t frameCount();
     void setSpeed(int num, int den);
 
+    /// 软复位当前游戏（等同主机 Reset 键）：回到标题画面，存档文件不动。
+    bool resetGame();
+
     bool saveState(const char* path);
     bool loadState(const char* path);
 

@@ -188,6 +188,15 @@ int Emu::bytesPerPixel() {
     return BYTES_PER_PIXEL;
 }
 
+bool Emu::resetGame() {
+    std::lock_guard<std::mutex> lk(mu_);
+    if (!core_ || !core_->reset) return false;
+    nlog("reset: begin");
+    core_->reset(core_);
+    nlog("reset: done");
+    return true;
+}
+
 bool Emu::saveState(const char* path) {
     std::lock_guard<std::mutex> lk(mu_);
     nlog("save: begin");

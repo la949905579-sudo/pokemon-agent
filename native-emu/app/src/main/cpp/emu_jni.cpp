@@ -40,6 +40,11 @@ Java_com_dsh_emu_EmuCore_resume(JNIEnv*, jobject) { emu::Emu::get().resume(); }
 extern "C" JNIEXPORT void JNICALL
 Java_com_dsh_emu_EmuCore_stop(JNIEnv*, jobject) { emu::Emu::get().stop(); }
 
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_dsh_emu_EmuCore_resetGame(JNIEnv*, jobject) {
+    return emu::Emu::get().resetGame() ? JNI_TRUE : JNI_FALSE;
+}
+
 extern "C" JNIEXPORT jlong JNICALL
 Java_com_dsh_emu_EmuCore_runFrame(JNIEnv*, jobject) {
     return (jlong) emu::Emu::get().runFrame();

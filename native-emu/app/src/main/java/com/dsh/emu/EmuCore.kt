@@ -15,6 +15,9 @@ object EmuCore {
     external fun resume()
     external fun stop()
 
+    /** 软复位当前游戏（等同主机 Reset 键），存档文件保留。 */
+    external fun resetGame(): Boolean
+
     external fun runFrame(): Long
     external fun setKeys(mask: Int)
     external fun readMemory(addr: Int, len: Int): ByteArray?

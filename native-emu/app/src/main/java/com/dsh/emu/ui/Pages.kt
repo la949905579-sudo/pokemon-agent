@@ -294,5 +294,50 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
         Box(Modifier.fillMaxWidth().weight(1f).background(ACCENT, RoundedCornerShape(10.dp)).clickable {
             onUpdate()
         }, contentAlignment = Alignment.Center) { Text("更新", color = Color.White, fontSize = 14.sp) }
+        // 重置 / 退出：样式沿用 BarButton
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            BarButton("重置", active = false) {
+                val romReady = activity.romReadyState.value
+                val ok = romReady && EmuCore.resetGame()
+                activity.statusText.value = ActionHints.reset(romReady, ok)
+            }
+            Spacer(Modifier.width(10.dp))
+            BarButton("退出", active = false) {
+                exitApp(activity, emuView)
+            }
+        }
+    }
+}
+
+/**
+ * 完全退出：先把电池存档刷盘，再停服务、结束 Activity、杀进程。
+ * 顺序不能反——先 stop() 走 core deinit，mGBA 在 savedata unmap 时 msync 写回 .sav；
+ * 直接杀进程的话，游戏内存档可能还在页缓存里丢一部分。
+ */
+private fun exitApp(activity: MainActivity, emuView: EmuView) {
+    // 1) 刷盘：deinit core（含 savedata unmap + msync）
+    try { EmuCore.stop() } catch (_: Throwable) {}
+    // 2) 停渲染线程 / 状态
+    try { emuView.stop() } catch (_: Throwable) {}
+    activity.romReadyState.value = false
+    activity.runningState.value = false
+    // 3) 停前台服务
+    try {
+        activity.stopService(android.content.Intent(activity, com.dsh.emu.EmuService::class.java))
+    } catch (_: Throwable) {}
+    // 4) 结束 Activity（触发 bridge.stop 等收尾）
+    try { activity.finishAffinity() } catch (_: Throwable) {}
+    // 5) 杀进程：稍等一点让上面几步跑完
+    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+        android.os.Process.killProcess(android.os.Process.myPid())
+    }, 300)
+}
+
+/** 设置页操作的提示文案（纯函数，方便单测）。 */
+internal object ActionHints {
+    fun reset(romReady: Boolean, ok: Boolean): String = when {
+        !romReady -> "先载入 ROM"
+        ok -> "已重置"
+        else -> "重置失败"
     }
 }
