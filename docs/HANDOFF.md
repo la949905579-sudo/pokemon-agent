@@ -21,15 +21,15 @@
 ## 二·五、构建与发布现状（2026-11-12 19:50 实测）
 
 - **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 提交，写死 hash 会立刻过期）。
-  最后一次**代码**提交是 `fdbf448`（批次 B），也是当前最新构建的覆盖上限（见下）。
-  Python 测试 28/28；Kotlin 单测 **67/67 通过**（考官 20:0x 本机实跑 + CI 构建含单测；
-  批次 A 加 NlogTest 8 条、批次 B 再加 2 条，见 `docs/METRICS.md`）。
-- **最新构建 = 推送 tip `930fe29`（批次 B）**：CI 成功，Release tag
-  `build-930fe29856d7…`（2026-11-12 20:06 发布）；该 tag 覆盖 `fdbf448`（批次 B）、
-  `7a24a00`（token 统计）与 `930fe29`（文档）。
-  上一构建 `build-8082f89…`（19:48，批次 A），更早 `build-2c237da…`（17:43，覆盖
-  `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
-- 当前 HEAD 已包含批次 A/B 的 `native-emu/**` 改动（`8082f89`、`fdbf448`），APK 由 CI 构建；之后再有 docs/tools 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
+  最后一次**代码**提交是 `2a0fbc7`（批次 C 的 native 部分）；Python 侧最后代码提交 `81cfb2b`
+  （循环依赖修复），两者都在最新构建覆盖内（见下）。
+  Python 测试 **29/29**；Kotlin 单测 **67/67**（考官本机实跑 + CI 构建含单测；见 `docs/METRICS.md`）。
+- **最新构建 = 推送 tip `ccc9bff`（批次 C）**：CI 成功，Release tag
+  `build-ccc9bff7d929…`（2026-11-12 20:14 发布）；覆盖 `2a0fbc7`（批次 C native）、
+  `81cfb2b`（循环依赖修复）与 `ccc9bff`（文档）。
+  此前：`build-930fe29…`（20:06，批次 B）、`build-8082f89…`（19:48，批次 A）、
+  `build-2c237da…`（17:43，覆盖 `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
+- 当前 HEAD 已包含批次 A/B/C 的 `native-emu/**` 改动（`8082f89`、`fdbf448`、`2a0fbc7`），APK 由 CI 构建；之后再有 docs/tools/py 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
 - CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
   覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
 - 历史失败（03:51–05:26）的两层原因已修掉，留作教训：

@@ -189,7 +189,7 @@ function aggregate(records, since) {
     top: [...dupFiles.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([file, n]) => ({ file, reads: n, extra: n - 1 })),
+      .map(([file, extra]) => ({ file, extra })),
   };
   return { since, generatedAt: new Date().toISOString(), sessions, roles, days, totals, dup, usageRecords };
 }
@@ -216,7 +216,7 @@ function printHuman(agg) {
   console.log("日期\ttotal\tinput\toutput\tcacheRead");
   for (const d of days) console.log(`${d.day}\t${fmt(d.totalTokens)}\t${fmt(d.inputTokens)}\t${fmt(d.outputTokens)}\t${fmt(d.cacheReadTokens)}`);
   console.log(`\n重复读同一文件：额外读 ${dup.extra} 次`);
-  for (const f of dup.top) console.log(`  ${f.extra} 次重复  ${f.file}`);
+  for (const f of dup.top) console.log(`  ${f.extra} 次重复读  ${f.file}`);
 }
 
 function main() {

@@ -1,50 +1,50 @@
 {
-  "generatedAt": "2026-11-12T11:50:04.051Z",
+  "generatedAt": "2026-11-12T12:14:46.782Z",
   "windowSince": null,
   "totals": {
-    "inputTokens": 2332514,
-    "outputTokens": 1017145,
-    "cacheReadTokens": 408639104,
+    "inputTokens": 2396073,
+    "outputTokens": 1089837,
+    "cacheReadTokens": 448909440,
     "cacheWriteTokens": 0,
-    "totalTokens": 411988763
+    "totalTokens": 452395350
   },
   "sessionsCount": 8,
   "byRole": [
     {
       "role": "主会话（未标注职位）",
       "sessions": 2,
-      "inputTokens": 1112471,
-      "outputTokens": 395544,
-      "cacheReadTokens": 275589888,
+      "inputTokens": 1116990,
+      "outputTokens": 400262,
+      "cacheReadTokens": 283035264,
       "cacheWriteTokens": 0,
-      "totalTokens": 277097903
+      "totalTokens": 284552516
     },
     {
       "role": "工匠",
       "sessions": 2,
-      "inputTokens": 732264,
-      "outputTokens": 369545,
-      "cacheReadTokens": 105531264,
+      "inputTokens": 744884,
+      "outputTokens": 382604,
+      "cacheReadTokens": 118278528,
       "cacheWriteTokens": 0,
-      "totalTokens": 106633073
+      "totalTokens": 119406016
     },
     {
       "role": "执行主管",
       "sessions": 1,
-      "inputTokens": 118646,
-      "outputTokens": 114692,
-      "cacheReadTokens": 19036032,
+      "inputTokens": 150407,
+      "outputTokens": 154877,
+      "cacheReadTokens": 35209984,
       "cacheWriteTokens": 0,
-      "totalTokens": 19269370
+      "totalTokens": 35515268
     },
     {
       "role": "考官",
       "sessions": 2,
-      "inputTokens": 332926,
-      "outputTokens": 120479,
-      "cacheReadTokens": 7985536,
+      "inputTokens": 347585,
+      "outputTokens": 135209,
+      "cacheReadTokens": 11889280,
       "cacheWriteTokens": 0,
-      "totalTokens": 8438941
+      "totalTokens": 12372074
     },
     {
       "role": "督导",
@@ -60,50 +60,50 @@
     {
       "id": "session-b3505b33-06a3-426a-a3ab-55969e7b8d46",
       "role": "主会话（未标注职位）",
-      "turns": 103,
+      "turns": 109,
       "start": 1794329995728,
-      "end": 1794484014711,
-      "inputTokens": 1056707,
-      "outputTokens": 365669,
-      "cacheReadTokens": 273864832,
+      "end": 1794485484573,
+      "inputTokens": 1061226,
+      "outputTokens": 370387,
+      "cacheReadTokens": 281310208,
       "cacheWriteTokens": 0,
-      "totalTokens": 275287208
+      "totalTokens": 282741821
     },
     {
       "id": "d25bd035-22ca-400c-9e20-76be13a25f6f",
       "role": "工匠",
-      "turns": 11,
+      "turns": 13,
       "start": 1794446612119,
-      "end": 1794483839904,
-      "inputTokens": 668978,
-      "outputTokens": 308679,
-      "cacheReadTokens": 102453504,
+      "end": 1794485373533,
+      "inputTokens": 681598,
+      "outputTokens": 321738,
+      "cacheReadTokens": 115200768,
       "cacheWriteTokens": 0,
-      "totalTokens": 103431161
+      "totalTokens": 116204104
     },
     {
       "id": "df6cdb1c-cd6d-4aa1-838e-c401ba7ae86a",
       "role": "执行主管",
       "turns": 5,
       "start": 1794481554993,
-      "end": 1794484203153,
-      "inputTokens": 118646,
-      "outputTokens": 114692,
-      "cacheReadTokens": 19036032,
+      "end": 1794485685881,
+      "inputTokens": 150407,
+      "outputTokens": 154877,
+      "cacheReadTokens": 35209984,
       "cacheWriteTokens": 0,
-      "totalTokens": 19269370
+      "totalTokens": 35515268
     },
     {
       "id": "6802b98e-9170-4e1a-97b0-5b442aac7821",
       "role": "考官",
-      "turns": 5,
+      "turns": 7,
       "start": 1794446628763,
-      "end": 1794484010730,
-      "inputTokens": 213560,
-      "outputTokens": 81488,
-      "cacheReadTokens": 5811328,
+      "end": 1794485475838,
+      "inputTokens": 228219,
+      "outputTokens": 96218,
+      "cacheReadTokens": 9715072,
       "cacheWriteTokens": 0,
-      "totalTokens": 6106376
+      "totalTokens": 10039509
     },
     {
       "id": "f5f837fd-511d-4c46-87c3-53af77693379",
@@ -165,11 +165,11 @@
     },
     {
       "day": "2026-11-12",
-      "inputTokens": 2301228,
-      "outputTokens": 994986,
-      "cacheReadTokens": 407577216,
+      "inputTokens": 2364787,
+      "outputTokens": 1067678,
+      "cacheReadTokens": 447847552,
       "cacheWriteTokens": 0,
-      "totalTokens": 410873430
+      "totalTokens": 451280017
     }
   ],
   "dupReads": {
@@ -177,28 +177,23 @@
     "top": [
       {
         "file": "/root/workspace/native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt",
-        "reads": 20,
-        "extra": 19
+        "extra": 20
       },
       {
         "file": "/root/workspace/native-emu/app/src/main/java/com/dsh/emu/Updater.kt",
-        "reads": 8,
-        "extra": 7
+        "extra": 8
       },
       {
         "file": "/root/workspace/native-emu/app/src/main/cpp/emu_core.cpp",
-        "reads": 2,
-        "extra": 1
+        "extra": 2
       },
       {
         "file": "/root/workspace/docs/NATIVE_EMU_TODO.md",
-        "reads": 1,
-        "extra": 0
+        "extra": 1
       },
       {
         "file": "/root/workspace/.git/refs/heads/master",
-        "reads": 1,
-        "extra": 0
+        "extra": 1
       }
     ]
   },

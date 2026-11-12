@@ -416,7 +416,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
         dup = token.get("dupReads", {})
         if dup:
             lines += ["", f"- 重复读同一文件：额外读 **{dup.get('extra', 0)}** 次"
-                          + ("（" + "；".join(f"{f['file'].split('/')[-1]} ×{f['reads']}" for f in dup.get("top", [])[:3]) + "）"
+                          + ("（" + "；".join(f"{f['file'].split('/')[-1]} ×{f.get('extra', f.get('reads', 0))}" for f in dup.get("top", [])[:3]) + "）"
                              if dup.get("top") else "")]
         lines += [
             "",
