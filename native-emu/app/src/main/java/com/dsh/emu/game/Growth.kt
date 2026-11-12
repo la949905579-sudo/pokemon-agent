@@ -1,9 +1,7 @@
 package com.dsh.emu.game
 
-import android.util.Log
+import com.dsh.emu.Nlog
 import java.io.File
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
  * 升级经验阈值（Gen III）。
@@ -34,9 +32,6 @@ object Growth {
     private const val FALLBACK_RATES =
         "3333333330000003330000000000333333440044003330000000000005533333333333355333000000000000055333000000055000000055400000055000005555500000000005555555553"
 
-    private const val TAG = "native-emu"
-    private const val LOG_PATH = "/sdcard/Download/emu_native.log"
-
     /** 从 ROM 读到的 151 条成长类型；null=没读到，走回退表。 */
     @Volatile
     private var romRates: ByteArray? = null
@@ -65,7 +60,7 @@ object Growth {
             val base = locateBaseStats(bytes)
             if (base < 0) {
                 romRates = null
-                warn("growth.rom stage=locate ok=false code=not_found")
+                Nlog.warn("growth.rom", "stage" to "locate", "ok" to false, "code" to "not_found")
                 return
             }
             val rates = ByteArray(151)
@@ -74,11 +69,14 @@ object Growth {
                 rates[i] = if (off < bytes.size) bytes[off] else 0
             }
             romRates = rates
-            warn("growth.rom stage=locate ok=true base=0x%x bulbasaur=%d pikachu=%d"
-                .format(base, rates[0].toInt(), rates[24].toInt()))
+            Nlog.info(
+                "growth.rom", "stage" to "locate", "ok" to true,
+                "base" to "0x%x".format(base),
+                "bulbasaur" to rates[0].toInt(), "pikachu" to rates[24].toInt(),
+            )
         } catch (e: Throwable) {
             romRates = null
-            warn("growth.rom stage=read ok=false code=${e.javaClass.simpleName}")
+            Nlog.warn("growth.rom", "stage" to "read", "ok" to false, "code" to e.javaClass.simpleName)
         }
     }
 
@@ -146,26 +144,4 @@ object Growth {
         return Progress(exp, cur, next)
     }
 
-    // ---------- 日志（格式同 docs/OBSERVABILITY.md） ----------
-
-    private fun warn(msg: String) {
-        val line = "${isoNow()} WARN  $msg"
-        try { Log.w(TAG, line) } catch (_: Throwable) {}
-        try {
-            Thread {
-                try {
-                    File(LOG_PATH).appendText(line + "\n")
-                } catch (_: Throwable) {
-                }
-            }.start()
-        } catch (_: Throwable) {
-        }
-    }
-
-    private fun isoNow(): String =
-        try {
-            Instant.now().truncatedTo(ChronoUnit.SECONDS).toString()
-        } catch (_: Throwable) {
-            "1970-01-01T00:00:00Z"
-        }
 }

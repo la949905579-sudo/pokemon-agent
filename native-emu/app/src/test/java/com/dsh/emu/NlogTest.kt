@@ -97,6 +97,7 @@ class NlogTest {
         }
         threads.forEach { it.start() }
         threads.forEach { it.join(5_000) }
+        threads.forEach { assertFalse(it.isAlive) }   // 慢机上 join 超时不能假通过
         assertEquals(1, results.count { it })
     }
 }

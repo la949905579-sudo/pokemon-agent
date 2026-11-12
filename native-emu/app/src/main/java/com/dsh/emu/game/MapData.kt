@@ -1,11 +1,8 @@
 package com.dsh.emu.game
 
 import android.content.Context
-import android.util.Log
+import com.dsh.emu.Nlog
 import org.json.JSONObject
-import java.io.File
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
  * 当前地图数据（tile 级），给下屏「当前地图页 / 大地图」用。
@@ -32,9 +29,6 @@ object MapData {
     /** gMapHeader 指针（Python `terrain.py` 实测：换图后值立刻变）。 */
     const val MAP_HDR_PTR = 0x02036DFC
 
-    private const val TAG = "native-emu"
-    private const val LOG_PATH = "/sdcard/Download/emu_native.log"
-
     /** 地图数组地址 -> 归一化 tiles（assets 打包的）。 */
     private val assetTiles = HashMap<Int, List<List<Int>>>()
     @Volatile private var assetsLoaded = false
@@ -55,9 +49,9 @@ object MapData {
                 val layer = parseJson(text) ?: continue
                 assetTiles[layer.addr] = layer.tiles
             }
-            Log.i(TAG, "map.assets loaded=${assetTiles.size}")
+            Nlog.info("map.assets", "ok" to true, "loaded" to assetTiles.size)
         } catch (e: Throwable) {
-            Log.w(TAG, "map.assets load_failed code=${e.javaClass.simpleName}")
+            Nlog.warn("map.assets", "ok" to false, "code" to e.javaClass.simpleName)
         }
     }
 
@@ -97,7 +91,7 @@ object MapData {
             }
             Layer(addr, w, h, normalize(raw), true)
         } catch (e: Throwable) {
-            Log.w(TAG, "map.parse code=${e.javaClass.simpleName}")
+            Nlog.warn("map.parse", "ok" to false, "code" to e.javaClass.simpleName)
             null
         }
     }
@@ -164,9 +158,9 @@ object MapData {
         val fromAssets = assetTiles[addr]
         val tiles = fromAssets ?: fromMemory(addr, w, h)?.also {
             // assets 没这张图才走内存：留痕，方便以后排查「这张图为什么没有」
-            warn("map.fallback source=memory addr=0x%x ok=true".format(addr))
+            Nlog.info("map.fallback", "source" to "memory", "addr" to "0x%x".format(addr), "ok" to true)
         } ?: run {
-            warn("map.fallback source=memory addr=0x%x ok=false".format(addr))
+            Nlog.warn("map.fallback", "source" to "memory", "addr" to "0x%x".format(addr), "ok" to false)
             null
         }
         val layer = tiles?.let { Layer(addr, w, h, it, fromAssets != null) }
@@ -174,27 +168,4 @@ object MapData {
         return layer
     }
 
-    // ---------- 日志 ----------
-
-    private fun warn(msg: String) {
-        val line = "${isoNow()} WARN  $msg"
-        try { Log.w(TAG, line) } catch (_: Throwable) {}
-        try {
-            // 写 /sdcard 放后台线程；失败就只剩 logcat
-            Thread {
-                try {
-                    File(LOG_PATH).appendText(line + "\n")
-                } catch (_: Throwable) {
-                }
-            }.start()
-        } catch (_: Throwable) {
-        }
-    }
-
-    private fun isoNow(): String =
-        try {
-            Instant.now().truncatedTo(ChronoUnit.SECONDS).toString()
-        } catch (_: Throwable) {
-            "1970-01-01T00:00:00Z"
-        }
 }

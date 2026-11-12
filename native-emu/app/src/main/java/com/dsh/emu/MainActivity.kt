@@ -161,14 +161,14 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
                 // 卡帧：进入/恢复共用同一个限流 key，0/非 0 抖动最多 1 条/10s；正常帧不记日志
                 if (!stalled) {
                     stalled = true
-                    Nlog.warnThrottled("emu.frame.stall", "emu.frame.stall", "stage" to "enter")
+                    Nlog.warnThrottled("emu.frame.stall:enter", "emu.frame.stall", "stage" to "enter")
                 }
                 try { Thread.sleep(16) } catch (_: InterruptedException) {}
                 continue
             }
             if (stalled) {
                 stalled = false
-                Nlog.infoThrottled("emu.frame.stall", "emu.frame.stall", "stage" to "recover")
+                Nlog.infoThrottled("emu.frame.stall:recover", "emu.frame.stall", "stage" to "recover")
             }
             val px = EmuCore.frameBuffer() ?: continue
             if (surfaceReady) {
@@ -179,7 +179,7 @@ class EmuView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, 
                 b.setPixels(px, 0, gw, 0, 0, gw, gh)
                 val c: Canvas? = try {
                     if (android.os.Build.VERSION.SDK_INT >= 26) holder.lockHardwareCanvas() else holder.lockCanvas()
-                } catch (e: Throwable) { null }
+                } catch (e: Exception) { null }
                 if (c != null) {
                     try {
                         c.drawColor(AndroidColor.BLACK)
