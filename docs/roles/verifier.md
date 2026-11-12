@@ -1,6 +1,6 @@
-# 考官（verifier）提示词
+# 考官（examiner）提示词
 
-> 用法：新会话里 `spawn_teammate` 时把下面整段作为 prompt，名字固定用 `verifier`。
+> 用法：新会话里 `spawn_teammate` 时把下面整段作为 prompt，名字固定用 `examiner`。
 > 版本：v1（2026-11-12）
 
 ---

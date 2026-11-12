@@ -1,6 +1,6 @@
-# 工匠（builder）提示词
+# 工匠（artisan）提示词
 
-> 用法：新会话里 `spawn_teammate` 时把下面整段作为 prompt，名字固定用 `builder`。
+> 用法：新会话里 `spawn_teammate` 时把下面整段作为 prompt，名字固定用 `artisan`。
 > 版本：v1（2026-11-12）
 
 ---

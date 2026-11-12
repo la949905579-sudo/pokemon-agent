@@ -8,11 +8,16 @@
 | 成员 | 中文名 | 职责 | 写入范围 |
 |---|---|---|---|
 | `lead` | 主持 | 派活、最终审查、推送、发布、写 `docs/` | 全部 |
-| `builder` | 工匠 | 实现与修复 | `native-emu/**`、根目录 `test_*.py` |
-| `verifier` | 考官 | 只读复核，出结论 | 无（不写文件） |
+| `artisan` | 工匠 | 实现与修复（**带 shell**） | `native-emu/**`、根目录 `test_*.py` |
+| `examiner` | 考官 | 只读复核，出结论（**带 shell**） | 无（不写文件） |
 | （按需）`auditor` | 督导 | 流程审查，一次性会话 | 无 |
 
 `auditor` 不常驻——按里程碑/事故另开新会话，提示词见 `docs/roles/auditor.md`。
+
+> **2026-11-12 重建记录**：原 `builder` / `verifier` 诞生于 `workspace-write` 策略下，
+> 本机没有沙箱后端 → 它们的 bash 全被拒，只能改文件、不能提交/跑测试。
+> 会话策略改为 `danger-full-access` 后，**只有新建成员才继承新策略**，所以重建为
+> `artisan` / `examiner`。旧的 `builder` / `verifier` 留在原地、不再派活。
 
 ## 二、重建步骤（新会话，3 分钟）
 
