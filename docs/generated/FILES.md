@@ -177,7 +177,7 @@
 | `docs/org/PLAN-20261113-3.md` | 项目重建总方案 2026-11-13（第三份） | 保留 |
 | `docs/org/PLAN-20261113-4.md` | 项目重建总方案（2026-11-13，已与用户逐项核对） | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
-| `docs/org/README.md` | docs/org/ — 组织规划接口 | 保留 |
+| `docs/org/README.md` | docs/org/ — 方案箱（组织规划接口） | 保留 |
 | `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
 | `docs/roles/README.md` | docs/roles/ 角色卡索引 | 保留 |
 | `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |

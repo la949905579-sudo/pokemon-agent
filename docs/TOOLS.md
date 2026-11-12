@@ -8,7 +8,7 @@
 - RetroArch（mGBA 核心）+ 游戏**必须前台**（后台会暂停，内存读不到）
 - UDP 通道：读内存 `127.0.0.1:55355`，按键 `127.0.0.1:55400`
 - 所有命令在 `/root/workspace` 下执行
-- 测试全离线：`python3 run_tests.py`（当前 **28/28**，即 28 个 `test_*.py`；`run_tests.py` 按文件计数）
+- 测试全离线：`python3 run_tests.py`（当前 **29/29**，即 29 个 `test_*.py`；`run_tests.py` 按文件计数）
 - 模拟器后端：`EMU_BACKEND=native` 走 NativeEmu 的 TCP 桥（见第 12 节），不设则走上面的 RetroArch 通道
 
 ---

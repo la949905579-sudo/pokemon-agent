@@ -18,7 +18,7 @@
 | `generated/` | `FILES` `METRICS` | 已就位（M1，本批迁移） |
 | `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队）+ `README.md` 索引 | 已就位（`b/` 三卡已迁入） |
 | `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*`、`AUDIT`、`AUDIT_LOG` | 已就位（M6 本批归并：`AUDIT.md`/`AUDIT_LOG.md` 已迁入） |
-| `org/` | 组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
+| `org/` | **方案箱**——组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
 | `archive/` | 已结案、不再维护的文档；门槛：满 30 天或同主题 3 份 | 空，规则生效 |
 
 ## 三、新文件头元数据（只对新文件生效，旧文不追改）
