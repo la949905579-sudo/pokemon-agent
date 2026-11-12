@@ -3,6 +3,25 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.12-7（NativeEmu v0.4.2 · 批次 D）
+### 新增
+- 「地图」Tab 改两步式：点格子只**预览**路线（黄线 + 终点标记 + 「N 步」），
+  底部「开始走 / 取消」；点别的格子重新预览，取消不执行；不可达提示「走不到这里」；
+  开始走前发现换图提示「需要换图，暂不支持」（同图 BFS 不变）
+- 常驻「当前地图」页**未改**（只读视口保持原样）
+
+### 修复（批次 C 遗留）
+- `map.fallback` 两条日志改 `warnThrottled`（ok/fail 分开 key）：恢复 WARN 级且不再 2 条/秒刷屏
+- `growth.rom locate ok=true` 恢复 WARN 级（缺图/走内存能被 WARN 过滤到）
+- `Updater` 的 logger 自兜底不再手拼 `"WARN  "` 文本，改用 `Nlog.buildLine`（只进 logcat）
+
+### 测试
+- Kotlin 70/70（新增 `WalkPreview` 纯函数 + 3 条单测）；Python 29/29 不变
+
+### 已知遗留
+- 见 `docs/NATIVE_EMU_TODO.md`「批次 D 遗留」（地图身份 "?" 放行、走完后无「停止」入口、
+  换图未离开 Tab 时旧线路预渲染、提交措辞），均轻，并入下一批
+
 ## v2026.11.12-6（NativeEmu v0.4.2 · 批次 C 积压清理）
 ### 修复
 - `emu.frame.stall` 的进入/恢复改各自限流 key（`…:enter` / `…:recover`）：抖动时不会再「只见进入不见恢复」

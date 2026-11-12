@@ -43,6 +43,7 @@
 | `auto_battle.py` | 战斗门面：拆分为 switch / watchdog / battle_loop，这里统一导出。 | 保留 |
 | `battle_loop.py` | 战斗主循环：读状态→决策→按键→回写日志 | 保留 |
 | `bdata.py` | 战斗数据解码（双方精灵、招式、血量） | 保留 |
+| `bdata_shared.py` | 队伍槽解码的共享纯函数（无 IO、不 import state/bdata，消掉循环依赖）。 | 保留 |
 | `bridge.py` | 注册制中间层（未接入主链路） | 保留 |
 | `changelog.py` | 从 git log 生成 CHANGELOG 草稿（按 commit 前缀归类）。 | 保留 |
 | `decision.py` | 决策层门面：按场景拆分到子模块，这里统一导出（保持旧接口兼容）。 | 保留 |
@@ -204,6 +205,7 @@
 | `test_action.py` | 离线测试：action | 保留 |
 | `test_avoid_grass.py` | 离线测试：avoid_grass | 保留 |
 | `test_battle_loop.py` | 离线测试：battle_loop | 保留 |
+| `test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
 | `test_bridge.py` | 离线测试：bridge | 保留 |
 | `test_cursor.py` | 离线测试：cursor | 保留 |
 | `test_decision.py` | 离线测试：decision | 保留 |
@@ -250,6 +252,7 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/SaveSlots.kt` | 即时存档卡槽：3 个槽，文件是 `filesDir/state1.sav` … `state3.sav`。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/WalkPreview.kt` | 行走预览的折线点：从起点开始按方向序列逐格推进，返回含起点和终点的点列表。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/NlogTest.kt` | 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
@@ -258,6 +261,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/WalkPreviewTest.kt` | 离线单测：行走预览折线点。 | 保留 |
 
 ## 界面
 
@@ -269,4 +273,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 205 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 209 个文件（不含 `native-emu/third_party/` 第三方源码）。

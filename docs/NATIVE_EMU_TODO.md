@@ -1,6 +1,6 @@
 # NativeEmu 待办
 
-> 更新：2026-11-12 20:11（批次 A `8082f89`、B `fdbf448`、C `2a0fbc7`/`81cfb2b`；见 `CHANGELOG v2026.11.12-4/-6`）
+> 更新：2026-11-12 20:30（批次 A `8082f89`、B `fdbf448`、C `2a0fbc7`/`81cfb2b`、D `cbbd1f9`/`ea576e9`；见 `CHANGELOG v2026.11.12-4/-7`）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
@@ -99,13 +99,22 @@
 
 ## 批次 C 遗留（2026-11-12，`2a0fbc7`/`81cfb2b` 合并时约定：轻，并入下一批）
 
-> 主持裁定：以下 3 条**不单开批次**，并入下一个功能批的**第一个提交**（同一次构建）。
+> 主持裁定：以下 3 条**不单开批次**，已并入批次 D 的第一个提交（同一次构建）——`cbbd1f9`。
 
-- [ ] **优先**：`map.fallback ok=false` 未限流 → 改 `Nlog.warnThrottled("map.fallback", …)`；
-      现在 header 可读但内存读取持续失败时，`buildLocalStatusJson` 每 500ms 调一次 → 2 条/秒刷屏
-- [ ] `map.fallback ok=true`、`growth.rom locate ok=true` 改回 `WARN` 级（缺图/走内存要能被 WARN 过滤到；
-      批次 C 里被降成了 INFO）
-- [ ] `Updater.kt:139` 那处旧式 `"WARN  "` 字符串收尾（logger 自兜底，只进 logcat、目标 `ota.log`）
+- [x] `map.fallback ok=false` 限流：两条都改 `Nlog.warnThrottled`，key 分 `:ok`/`:fail` —— `cbbd1f9`
+- [x] `map.fallback ok=true`、`growth.rom locate ok=true` 恢复 `WARN` 级 —— `cbbd1f9`
+- [x] `Updater.kt` 旧式 `"WARN  "` 手拼串 → `Nlog.buildLine`（只 logcat）—— `cbbd1f9`
+
+## 批次 D 遗留（2026-11-12，`cbbd1f9`/`ea576e9` 合并时约定：轻，并入下一批）
+
+- [ ] `currentMapId()` 读不到地图地址时返回 `"?"`：预览与开始走两侧同为 `"?"` 会放行过期路线
+      → 建议 `"?"` 时拒绝「开始走」并提示等地图数据
+- [ ] 点「开始走」后预览立即清、「取消」按钮消失：中途停只能开按键面板/点 Tab
+      → 可保留「停止」条，或预览保留到走动线程结束
+- [ ] 换图但没离开「地图」Tab 时，旧预览会先按旧坐标画在新图上，直到点「开始走」才提示
+      → 渲染前比对地图身份，不一致不画
+- [ ] 提交信息措辞：批次 D 提交 1 说「全仓无 WARN 硬编码」，实际 `NlogTest` 期望串仍含
+      （非旧式写点），后续别这么写
 
 ## 结构债（考官 2026-11-12 发现）
 
