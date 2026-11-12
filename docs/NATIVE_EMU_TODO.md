@@ -72,7 +72,10 @@
 
 - [ ] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4 from state import ...` —— 循环依赖，
       STRUCTURE §三 判定违规；现在靠延迟导入不炸，重构时必须拆（把共享常量提到 `platform/`）
-- [ ] `MainActivity.kt` 815 行 > 500 行上限（P2 拆分任务）
+- [ ] `MainActivity.kt` 874 行 > 500 行上限：B/C/D（当前地图/战斗/Tab/经验）做完后必须拆成
+      `ui/KeyPad.kt`、`ui/BattlePage.kt`、`ui/MapPage.kt`、`ui/SideTabs.kt`（P2）
+- [ ] 按键状态清理统一走一个函数（`keysOpen=false` 时必须同时 `keys=0; EmuCore.setKeys(0)`），
+      已在 A 提交里发现 Tab 路径漏清 → 见 INC-005
 
 ## 已清理（2026-11-12 05:35）
 
