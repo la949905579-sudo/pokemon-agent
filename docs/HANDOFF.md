@@ -1,4 +1,4 @@
-# 交接文档（2026-11-12 19:20 整改后）
+# 交接文档（2026-11-13 00:32 · F1 后、可交接版本）
 
 > 给下一个会话：先读本文件 + `README.md` + `PROJECT_PLAN.md` + `NATIVE_EMU_TODO.md`。
 
@@ -14,20 +14,22 @@
 ## 二、当前进度
 
 - **P0 平台**：完成（双屏/渲染/60fps/存档/多指按键/后台保活/固定签名/OTA）
-- **P1 插件化**：完成（`framework/` + `games/pokemon_firered/` + `run_game.py`，28 项 Python 测试）
+- **P1 插件化**：完成（`framework/` + `games/pokemon_firered/` + `run_game.py`；测试数量/结果以 `tools/test_results.json` 为准）
 - **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
 - **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
 - **地图交互**：非战斗常驻页 = 整张城镇图（点格子预览→开始走）；「地图」Tab 置灰不可点；15×9 视口代码保留未接入（批次 E）
 
-## 二·五、构建与发布现状（2026-11-12 19:50 实测）
+## 二·五、构建与发布现状（2026-11-13 00:32 实测）
 
-- **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 提交，写死 hash 会立刻过期）。
+- **写本文件时 HEAD = `47e92d9`**（F1 提交在其上执行，只改 docs/tools，不动物码）。
   最后一次**代码**提交是 `188bbe9`（批次 E 地图交换）；Python 侧最后代码提交 `81cfb2b`
   （循环依赖修复），都在最新构建覆盖内（见下）。
-  Python 测试 **29/29**；Kotlin 单测 **71/71**（考官本机实跑 + CI 构建含单测；见 `docs/METRICS.md`）。
+  测试：Python / Kotlin 的**数量与最近一次真实结果见 `tools/test_results.json`**（本机实跑；
+  CI 构建也会跑 Kotlin 单测）。本文不硬编码数字——数字改由该文件单一真源提供。
 - **最新构建 = 推送 tip `760b0c2`（批次 E）**：CI 成功，Release tag
   `build-760b0c2bd975…`（2026-11-12 20:46 发布）；覆盖 `b6e8db3`（D 遗留）、
   `188bbe9`（地图交换）与 `760b0c2`（文档）。
+  此后到 F1 为止全部是 docs/tools/docs(org)/docs(audit) 提交，**没有新构建**，APK 仍对应批次 E。
   此前：`build-401aeaa…`（20:33，批次 D）、`build-ccc9bff…`（20:14，批次 C）、
   `build-930fe29…`（20:06，批次 B）、`build-8082f89…`（19:48，批次 A）、
   `build-2c237da…`（17:43，覆盖 `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
@@ -43,19 +45,38 @@
 - 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
   比反复推空提交省时间。
 
-## 三、下一批待办（已和用户确认过方案）
+## 二·六、交接与审查状态（T5 用，2026-11-13）
 
-1. **存档卡槽**：3 槽，显示保存时间 + 存档/读档/删除（`state1-3.sav`）
-2. **队伍详情字段**：属性 / 4 招式 + PP / 经验
-3. **行走路径提示**：点地图先画路线 + 步数 + 「开始走」
-4. **招式点击施放**：读 `MOVE_CURSOR`(0x02023FFC) → 方向键序列 → 回读确认（风险最高，需防护）
+- **最近审查**：B 队 2026-11-12 首轮（`docs/audit/REPORT-20261112.md`），整改清单在
+  `docs/audit/ACTIONS.md`（A 队只读）；本轮 F1 已闭环 A-1/A-2/A-3/A-4/A-9。
+- **冷却期**：两次审查间隔 ≥7 天 → 下次常规审查不早于 **2026-11-19**；T4 红点（INC-007 复发）
+  B 队已登记「延续观察」。
+- **A-7 过线**：主会话 130+ 轮 / 3 亿+ token（占全体 ~59%），按 `AGENTS.md` 应交接。
+- **若 11-19 前交接**：需用户书面豁免并在 `docs/AUDIT_LOG.md` 留痕；否则先交接后补审，
+  结论标「**降级采信**」（两者都不许静默跳过）。
+- 交接前置检查见 `docs/HANDOVER.md` §二（10 条 + 钩子已装）。
+
+## 三、下一批范围（与 `docs/audit/ACTIONS.md` 对齐，2026-11-13）
+
+**F1 已完成（本提交）**：A-1 装钩子 / A-2 测试数改引用 `tools/test_results.json` /
+A-3 同步 TODO·STRUCTURE·TEAM / A-4 重生成 METRICS / A-9 修 METRICS 脚本两处 ——
+一个 docs/tools 提交，不触发构建。
+
+**仍未闭环（按 ACTIONS 现状）**：
+- A-10 机械化过期检查（precommit 加文档 greps：硬编码测试数、退役成员名等 = 0；`metrics.py --check` 窗口验真）
+- A-11 `PROJECT_PLAN.md` 阶段更新或标「历史规划」
+- A-12 `docs/AUDIT.md` 的「8 条前置检查」→ 10 条
+- A-13 `docs/AUDIT.md` 旧 `auditor` 名统一为 `audit-inspector`
+- A-5 `docs/audit/REQUEST.md` 增 T4 必填 + 窗口起点验真（A 队 + B 队，下次请求前；**不属 F1**）
+- 功能：**招式点击施放**（TODO P1 战斗，风险最高，未做）；地图相关**只修 bug、不加交互控件**
+  （用户 2026-11-12 决定）；批次 A–E 真机验证仍缺（ACTIONS 预警 3），批次 E 整图重绘帧率待装机观察
 
 详见 `NATIVE_EMU_TODO.md`。
 
 ## 四、关键命令（本机可跑 Kotlin 单测，APK 仍走 CI）
 
 ```bash
-# Kotlin 单测（57 个，2026-11-12 19:19 本机实跑通过 44s；APK 仍走 CI）
+# Kotlin 单测（数量/结果见 tools/test_results.json 的 kotlin 字段；APK 仍走 CI）
 ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
 cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --no-daemon \
   -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2
@@ -64,7 +85,7 @@ cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --
 ## 四·一、关键命令
 
 ```bash
-# Python 测试（28 项）
+# Python 测试（数量/结果见 tools/test_results.json 的 python 字段）
 python3 run_tests.py
 
 # 状态推送（下屏数据）
@@ -151,10 +172,13 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 | `docs/FILES.md` | **每个文件**的用途与状态（自动生成） | 找不到某个文件干嘛用 |
 | `docs/TEAM.md` | 团队编制与重建步骤 | 新会话第一件事 |
 | `docs/HANDOVER.md` | 交接阈值、前置检查、反模式 | 想换会话之前 |
-| `docs/roles/*.md` | 四个角色的提示词（执行主管/工匠/考官/督导） | 重建团队时复制 |
+| `docs/roles/*.md` | A 队三份提示词（执行主管/工匠/考官）；B 队与组织规划见 `docs/audit/TEAM.md`、`docs/org/README.md` | 重建团队时复制 |
 | `docs/INCIDENTS.md` | 事故复盘：现象/根因/固化 | 出事后 24 小时内写一条 |
 | `docs/AUDIT.md` | 第三方审查的触发条件与判据 | 到触发条件时 |
-| `docs/METRICS.md` | 构建覆盖 + CI 首过率（脚本生成） | 判 T4 / 查某个提交有没有构建 |
+| `docs/METRICS.md` | 构建覆盖 + CI 首过率 + token 成本（脚本生成） | 判 T4 / 查某个提交有没有构建 |
+| `docs/audit/ACTIONS.md` | B 队整改清单（A 队只读） | 决定下一批做什么 |
+| `docs/audit/REPORT-*.md` / `COST-*.md` | B 队审查报告与成本巡检 | 复盘、核成本 |
+| `docs/org/` | 组织规划请求与计划（`REQUEST.md` / `PLAN-*.md`） | 跨会话流程与组织问题 |
 | `docs/WORKPLAN.md` | 11-10 的工作计划（部分已被 P1 取代） | 仅追溯历史 |
 
 **冲突时以代码为准**：`CHANGELOG` 记行为、`NATIVE_EMU_TODO` 记进度，两边不一致先看 `git log`。

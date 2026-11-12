@@ -12,7 +12,7 @@
 
 ### P0 平台
 - [x] 双屏 / ROM 加载 / 渲染 / 触屏按键 / 60fps
-- [x] 存档读档（内存缓冲 + 文件，当前单槽 `state1.sav`）
+- [x] 存档读档（内存缓冲 + 文件；现为 **3 槽** `state1-3.sav`，见下屏「存档卡槽」）
 - [x] ROM 列表（canonical 去重）、载入 ROM 移到设置页
 - [x] 多指按键（pointerId 跟踪 + 真实坐标命中）
 - [x] 后台常驻（前台服务 + WakeLock + 电池无限制）
@@ -37,7 +37,7 @@
 - [x] 后台推送常驻脚本 `start_push.sh`
 
 ### 架构
-- [x] P1 插件化（`framework/GamePlugin` + `games/pokemon_firered` + `run_game.py` + 28 项离线测试）
+- [x] P1 插件化（`framework/GamePlugin` + `games/pokemon_firered` + `run_game.py`；离线测试数量/结果见 `tools/test_results.json`）
 - [x] B 方案数据/决策层 Kotlin 化（`native-emu/.../game/`：GameState / BattleDecider / SwitchDecider / MapWalker）
 - [x] CI 跑 `:app:testDebugUnitTest`（Kotlin 单测 3 个文件）
 
@@ -56,7 +56,8 @@
 ### P1 · 下屏
 - [x] **存档卡槽**：3 个槽位（`state1-3.sav`），显示时间，存档/读取/删除，覆盖·读取·删除均二次确认
 - [x] **队伍详情字段补全**：属性、4 招式 + PP、经验与升级进度（`0ac6009`）
-- [ ] **行走路径提示**：点地图先画路线（黄线 + 终点）+ 显示步数 +「开始走」按钮，替代现在点了就走
+- [x] **行走路径提示**：点格子先预览（黄线 + 终点 + 步数）+「开始走/取消」—— `ea576e9`（批次 D）；
+      批次 E 起非战斗常驻页直接是整张城镇图、地图 Tab 置灰（`188bbe9`）；「停止条」用户决定不做
 
 ### P1 · 交互细节
 - [x] `hintText` 通道：把「操作提示」和「常驻状态」（TCP/ROM 名）分开，避免启动时刷屏 —— `8082f89`

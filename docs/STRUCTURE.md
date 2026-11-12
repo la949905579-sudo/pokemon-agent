@@ -41,7 +41,7 @@
 
 1. **单向依赖**：`games → platform`、`ui → game → core`。平台层**永远不 import 具体游戏**。
 2. **游戏之间零耦合**：`games/A` 不许 import `games/B`。
-3. **无环**：任何 `import` 环都算违规，`verifier` 有权直接打回。
+3. **无环**：任何 `import` 环都算违规，考官（examiner）有权直接打回。
 4. **UI 不碰内存**：Compose 层只消费 `GameState` 暴露的数据，不直接 `Memo.u16(...)`。
 
 ## 四、文件规范
@@ -59,16 +59,16 @@
 - **P0 规范**（本文档 + `FILES.md` + `OBSERVABILITY.md`）——已完成 2026-11-12
 - **P1 Python 侧**：建 `platform/`、`games/pokemon_firered/`，按「移动 + 修 import」迁移；每步跑 28 项测试
 - **P2 Kotlin 侧**：拆 `MainActivity.kt`；只能靠 CI 验证，一次只拆一个页面
-- **P3 固化**：`verifier` 增加边界检查；`auditor` 检查是否按分期执行
+- **P3 固化**：考官（examiner）增加边界检查；独立督导（B 队）检查是否按分期执行
 
 **每期的验收标准**：`run_tests.py` 全过 → 无 import 环 → `FILES.md` 重新生成无「未描述」→ 文档同步。
 
 ## 六、边界检查怎么落地
 
-`verifier` 的清单里加三条（不用新角色）：
+考官（examiner）的清单里加三条（不用新角色）：
 
 1. 新代码属于哪一层？有没有跨层 import？
 2. 有没有引入循环依赖？（`python3 -c "import <模块>"` 或静态 grep）
 3. 改动的文件是否超过长度上限？超了是拆分计划还是就这样？
 
-`auditor` 则只看流程：迁移有没有夹带行为变更、有没有跳过测试。
+独立督导（B 队）则只看流程：迁移有没有夹带行为变更、有没有跳过测试。

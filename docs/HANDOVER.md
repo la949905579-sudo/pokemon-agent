@@ -55,13 +55,14 @@ python3 tools/metrics.py --check     # CI 首过率 / 复发率；exit 1 = T4 �
 1. `git status` 干净，没有未提交改动
 2. 所有提交**已推送到远端**（远端是真源）
 3. CI 绿；如果有红，必须在 HANDOFF 里写清原因和下一步
-4. `python3 run_tests.py` 通过（当前 28/28）
+4. `python3 run_tests.py` 通过（数量/结果以 `tools/test_results.json` 为准，不写死）
 5. `docs/NATIVE_EMU_TODO.md` / `CHANGELOG.md` 与代码同步
 6. `python3 tools/gen_files_index.py` 重新生成，`--check` 返回 0
 7. `docs/HANDOFF.md` 更新：当前状态、阻塞、下一步、**不要做什么**
 8. 没有未结束的后台任务（job）或未完成的子代理
 9. `tools/precommit_check.sh --push` 通过（远端未被 amend 改写、待推提交非空/非空信息）
 10. 若有 Kotlin UI 改动：`python3 tools/check_ui_state.py` 无“只写不读”的状态（INC-006）
+11. 本地机械闸门已装（A-1）：`ls .git/hooks/pre-commit .git/hooks/pre-push` 两个都在
 
 ## 三、交接内容模板
 
@@ -94,8 +95,8 @@ python3 tools/metrics.py --check     # CI 首过率 / 复发率；exit 1 = T4 �
 
 **交接前必须**：推送所有提交、工作区干净、CI 结论已知、测试结果已知。
 
-**接手方 5 分钟**：`git status` 空 → HEAD 与 HANDOFF 一致 → `origin/master..HEAD` 为 0 →
-`run_tests.py` 28/28 → Kotlin 单测通过。
+**接手方 5 分钟**：`git status` 空 → HEAD 与 HANDOFF 记录一致 → `origin/master..HEAD` 为 0 →
+`run_tests.py` 全部通过（见 `tools/test_results.json`）→ Kotlin 单测通过。
 
 ## 三·六、主持与执行主管的分界（防漂移）
 
@@ -126,9 +127,9 @@ python3 tools/metrics.py --check     # CI 首过率 / 复发率；exit 1 = T4 �
 ```bash
 cd /root/workspace
 git status --short          # 期望：空
-git log -1 --pretty='%h %s' # 期望：与 HANDOFF 记录的 HEAD 一致
+git log -1 --pretty='%h %s' # 期望：与 HANDOFF 记录的 HEAD 一致（HANDOFF 注明其后仅 docs/tools 提交时允许前进）
 git rev-list --count origin/master..HEAD   # 期望：0（没有未推送提交）
-python3 run_tests.py        # 期望：28/28 通过
+python3 run_tests.py        # 期望：全部通过（最近结果见 tools/test_results.json）
 ```
 
 任何一条对不上，说明交接不完整——先补齐再干活。

@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-11-12T12:46:55.284Z",
+  "generatedAt": "2026-11-13 00:32（Asia/Shanghai）",
   "windowSince": null,
   "totals": {
-    "inputTokens": 2467965,
-    "outputTokens": 1164946,
-    "cacheReadTokens": 496672256,
+    "inputTokens": 2920753,
+    "outputTokens": 1628199,
+    "cacheReadTokens": 559374464,
     "cacheWriteTokens": 0,
-    "totalTokens": 500305167
+    "totalTokens": 563923416
   },
-  "sessionsCount": 8,
+  "sessionsCount": 14,
   "byRole": [
     {
       "role": "主会话（未标注职位）",
-      "sessions": 2,
-      "inputTokens": 1123203,
-      "outputTokens": 408720,
-      "cacheReadTokens": 295017600,
+      "sessions": 4,
+      "inputTokens": 1358830,
+      "outputTokens": 674978,
+      "cacheReadTokens": 339612544,
       "cacheWriteTokens": 0,
-      "totalTokens": 296549523
+      "totalTokens": 341646352
     },
     {
       "role": "工匠",
@@ -30,12 +30,12 @@
     },
     {
       "role": "执行主管",
-      "sessions": 1,
-      "inputTokens": 178135,
-      "outputTokens": 183283,
-      "cacheReadTokens": 50875904,
+      "sessions": 2,
+      "inputTokens": 227610,
+      "outputTokens": 210756,
+      "cacheReadTokens": 58451072,
       "cacheWriteTokens": 0,
-      "totalTokens": 51237322
+      "totalTokens": 58889438
     },
     {
       "role": "考官",
@@ -45,6 +45,15 @@
       "cacheReadTokens": 16265216,
       "cacheWriteTokens": 0,
       "totalTokens": 16783351
+    },
+    {
+      "role": "未知职位",
+      "sessions": 3,
+      "inputTokens": 167686,
+      "outputTokens": 169522,
+      "cacheReadTokens": 10532096,
+      "cacheWriteTokens": 0,
+      "totalTokens": 10869304
     },
     {
       "role": "督导",
@@ -60,14 +69,14 @@
     {
       "id": "session-b3505b33-06a3-426a-a3ab-55969e7b8d46",
       "role": "主会话（未标注职位）",
-      "turns": 120,
+      "turns": 138,
       "start": 1794329995728,
-      "end": 1794487481866,
-      "inputTokens": 1067439,
-      "outputTokens": 378845,
-      "cacheReadTokens": 293292544,
+      "end": 1794501075190,
+      "inputTokens": 1077305,
+      "outputTokens": 402881,
+      "cacheReadTokens": 319384320,
       "cacheWriteTokens": 0,
-      "totalTokens": 294738828
+      "totalTokens": 320864506
     },
     {
       "id": "d25bd035-22ca-400c-9e20-76be13a25f6f",
@@ -84,14 +93,14 @@
     {
       "id": "df6cdb1c-cd6d-4aa1-838e-c401ba7ae86a",
       "role": "执行主管",
-      "turns": 7,
+      "turns": 8,
       "start": 1794481554993,
-      "end": 1794487609908,
-      "inputTokens": 178135,
-      "outputTokens": 183283,
-      "cacheReadTokens": 50875904,
+      "end": 1794501176491,
+      "inputTokens": 196451,
+      "outputTokens": 201899,
+      "cacheReadTokens": 57092608,
       "cacheWriteTokens": 0,
-      "totalTokens": 51237322
+      "totalTokens": 57490958
     },
     {
       "id": "6802b98e-9170-4e1a-97b0-5b442aac7821",
@@ -104,6 +113,54 @@
       "cacheReadTokens": 14091008,
       "cacheWriteTokens": 0,
       "totalTokens": 14450786
+    },
+    {
+      "id": "session-4a4239a0-57cf-42d5-b4b9-6b992dda30da",
+      "role": "主会话（未标注职位）",
+      "turns": 34,
+      "start": 1794440877014,
+      "end": 1794500960385,
+      "inputTokens": 178492,
+      "outputTokens": 135027,
+      "cacheReadTokens": 10108672,
+      "cacheWriteTokens": 0,
+      "totalTokens": 10422191
+    },
+    {
+      "id": "65303c29-9b2e-43ee-ad60-2967a420cc18",
+      "role": "未知职位",
+      "turns": 7,
+      "start": 1794494631869,
+      "end": 1794500721839,
+      "inputTokens": 88613,
+      "outputTokens": 123871,
+      "cacheReadTokens": 8536832,
+      "cacheWriteTokens": 0,
+      "totalTokens": 8749316
+    },
+    {
+      "id": "session-968d22ad-3abd-42ab-9131-c1653c11090b",
+      "role": "主会话（未标注职位）",
+      "turns": 11,
+      "start": 1794490064323,
+      "end": 1794500630203,
+      "inputTokens": 60238,
+      "outputTokens": 85179,
+      "cacheReadTokens": 6412928,
+      "cacheWriteTokens": 0,
+      "totalTokens": 6558345
+    },
+    {
+      "id": "session-166ebc84-22e1-4e3c-b854-c0c1cd7bd754",
+      "role": "主会话（未标注职位）",
+      "turns": 8,
+      "start": 1794494361653,
+      "end": 1794500772615,
+      "inputTokens": 42795,
+      "outputTokens": 51891,
+      "cacheReadTokens": 3706624,
+      "cacheWriteTokens": 0,
+      "totalTokens": 3801310
     },
     {
       "id": "f5f837fd-511d-4c46-87c3-53af77693379",
@@ -130,16 +187,28 @@
       "totalTokens": 2332565
     },
     {
-      "id": "session-4a4239a0-57cf-42d5-b4b9-6b992dda30da",
-      "role": "主会话（未标注职位）",
-      "turns": 10,
-      "start": 1794440877014,
-      "end": 1794475377524,
-      "inputTokens": 55764,
-      "outputTokens": 29875,
-      "cacheReadTokens": 1725056,
+      "id": "8dcfe228-e750-4dbd-be42-c9358713b236",
+      "role": "未知职位",
+      "turns": 1,
+      "start": 1794490465902,
+      "end": 1794490750623,
+      "inputTokens": 61442,
+      "outputTokens": 36128,
+      "cacheReadTokens": 1794816,
       "cacheWriteTokens": 0,
-      "totalTokens": 1810695
+      "totalTokens": 1892386
+    },
+    {
+      "id": "e1099ee0-e4e7-4a6d-846d-abee168b521a",
+      "role": "执行主管",
+      "turns": 5,
+      "start": 1794495073279,
+      "end": 1794500765665,
+      "inputTokens": 31159,
+      "outputTokens": 8857,
+      "cacheReadTokens": 1358464,
+      "cacheWriteTokens": 0,
+      "totalTokens": 1398480
     },
     {
       "id": "f7b14b0b-2b28-40ef-ad0d-6843acb2ac87",
@@ -152,6 +221,18 @@
       "cacheReadTokens": 496384,
       "cacheWriteTokens": 0,
       "totalTokens": 549476
+    },
+    {
+      "id": "7d8bd16f-7f39-4312-896e-58fa2ea17ee5",
+      "role": "未知职位",
+      "turns": 1,
+      "start": 1794490466043,
+      "end": 1794490516912,
+      "inputTokens": 17631,
+      "outputTokens": 9523,
+      "cacheReadTokens": 200448,
+      "cacheWriteTokens": 0,
+      "totalTokens": 227602
     }
   ],
   "byDay": [
@@ -165,15 +246,23 @@
     },
     {
       "day": "2026-11-12",
-      "inputTokens": 2436679,
-      "outputTokens": 1142787,
-      "cacheReadTokens": 495610368,
+      "inputTokens": 2791889,
+      "outputTokens": 1476942,
+      "cacheReadTokens": 534618880,
       "cacheWriteTokens": 0,
-      "totalTokens": 499189834
+      "totalTokens": 538887711
+    },
+    {
+      "day": "2026-11-13",
+      "inputTokens": 97578,
+      "outputTokens": 129098,
+      "cacheReadTokens": 23693696,
+      "cacheWriteTokens": 0,
+      "totalTokens": 23920372
     }
   ],
   "dupReads": {
-    "extra": 32,
+    "extra": 41,
     "top": [
       {
         "file": "/root/workspace/native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt",
@@ -184,8 +273,24 @@
         "extra": 8
       },
       {
+        "file": "/root/workspace/docs/org/PLAN-20261112.md",
+        "extra": 3
+      },
+      {
         "file": "/root/workspace/native-emu/app/src/main/cpp/emu_core.cpp",
         "extra": 2
+      },
+      {
+        "file": "/root/workspace/docs/audit/TEAM.md",
+        "extra": 2
+      },
+      {
+        "file": "/root/workspace/docs/roles/architect.md",
+        "extra": 1
+      },
+      {
+        "file": "/root/workspace/docs/TEAM.md",
+        "extra": 1
       },
       {
         "file": "/root/workspace/docs/NATIVE_EMU_TODO.md",
@@ -193,6 +298,10 @@
       },
       {
         "file": "/root/workspace/.git/refs/heads/master",
+        "extra": 1
+      },
+      {
+        "file": "docs/org/PLAN-20261112.md",
         "extra": 1
       }
     ]

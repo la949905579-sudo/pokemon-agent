@@ -39,6 +39,16 @@ function add(a, b) {
   return a;
 }
 
+/** Asia/Shanghai 的本地时间 YYYY-MM-DD HH:mm（A-9：文档时间戳统一本地时区）。 */
+function localDateTime(ms) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(new Date(ms));
+  const get = (t) => parts.find((p) => p.type === t)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
+}
+
 /** Asia/Shanghai 的本地日期 YYYY-MM-DD。 */
 function localDate(ms) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
@@ -191,7 +201,7 @@ function aggregate(records, since) {
       .slice(0, 10)
       .map(([file, extra]) => ({ file, extra })),
   };
-  return { since, generatedAt: new Date().toISOString(), sessions, roles, days, totals, dup, usageRecords };
+  return { since, generatedAt: `${localDateTime(Date.now())}（${TZ}）`, sessions, roles, days, totals, dup, usageRecords };
 }
 
 function printHuman(agg) {

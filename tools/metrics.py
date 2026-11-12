@@ -415,9 +415,24 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
                 )
         dup = token.get("dupReads", {})
         if dup:
-            lines += ["", f"- 重复读同一文件：额外读 **{dup.get('extra', 0)}** 次"
-                          + ("（" + "；".join(f"{f['file'].split('/')[-1]} ×{f.get('extra', f.get('reads', 0))}" for f in dup.get("top", [])[:3]) + "）"
-                             if dup.get("top") else "")]
+            total_dup = dup.get("extra", 0)
+            top = dup.get("top", [])
+            shown = top[:10]
+            def _rel(path):
+                try:
+                    r = os.path.relpath(path, ROOT)
+                    return r if not r.startswith("..") else path
+                except (OSError, ValueError):
+                    return path
+            detail = "；".join(
+                f"{_rel(f['file'])} ×{f.get('extra', f.get('reads', 0))}" for f in shown
+            )
+            shown_sum = sum(f.get("extra", f.get("reads", 0)) for f in shown)
+            rest = total_dup - shown_sum
+            if rest > 0:
+                detail += f"；另 {rest} 次分散在其余文件"
+            lines += ["", f"- 重复读同一文件：额外读 **{total_dup}** 次"
+                          + (f"（{detail}）" if detail else "")]
         lines += [
             "",
             "> **判定：只报告 + 给改进建议，不设红线。** 按 AUDIT 第八类（成本）执行；跑两轮拿到基线后",
@@ -503,9 +518,14 @@ def main():
         red.append(f"CI 首过率 {pct(stats['rate'])} < 70%")
     if inc_relapse > 0:
         red.append(f"复发 {inc_relapse} 条")
-    if check and red:
-        print("T4 红：" + "；".join(red))
-        return 1
+    if check:
+        if stats is None:
+            # A-4/A-9：--check 拿不到 CI 数据时按“红/未判定”退出，不能静默 exit 0
+            print("T4 未判定：CI 数据未知（离线或 GitHub API 限流），按红处理——先恢复数据再判")
+            return 1
+        if red:
+            print("T4 红：" + "；".join(red))
+            return 1
     return 0
 
 

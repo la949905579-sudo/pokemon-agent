@@ -31,7 +31,7 @@
 - 与 B 队互不改文档；审查机制意见写 `docs/org/` 报告，由主持转给督导主持
 - P0（数据丢失 / 密钥外泄 / 发布事故）：立即停下并通知用户
 
-## 一、编制（3 + 1）
+## 一、编制（4）
 
 | 职位（交接用） | 默认实例名（spawn 用） | 职责 | 写入范围 |
 |---|---|---|---|
@@ -39,12 +39,11 @@
 | **执行主管** | `steward` | 派活、读 diff、跑测试、推送、等 CI、写 `docs/` 与 `tools/`、调度队友 | `docs/`、`tools/`、git push |
 | **工匠** | `artisan` | 实现与修复（带 shell） | `native-emu/**`、根目录 `test_*.py` |
 | **考官** | `examiner` | 只读复核，出结论（带 shell） | 无（不写文件） |
-| **督导**（按需） | `auditor` | 第三方流程审查，一次性会话 | 无 |
 
 **退役成员（禁止派活）**：`builder`（旧工匠）、`verifier`（旧考官）。它们诞生在 `workspace-write`
 策略下、bash 不可用；工具不支持删除成员，它们随会话结束自然消失。新会话**不要**再建这两个名字。
 
-`auditor` 不常驻——按里程碑/事故另开新会话，提示词见 `docs/roles/auditor.md`。
+第三方审查**不属 A 队编制**：由 B 队（`docs/audit/TEAM.md`）按需开新会话完成，A 队只读其报告。
 
 > **2026-11-12 重建记录**：原 `builder` / `verifier` 诞生于 `workspace-write` 策略下，
 > 本机没有沙箱后端 → 它们的 bash 全被拒，只能改文件、不能提交/跑测试。
@@ -53,7 +52,7 @@
 
 ## 二、重建步骤（新会话，3 分钟）
 
-1. 读 `docs/HANDOFF.md` → 了解当前状态；读 `docs/roles/` 下的四份提示词。
+1. 读 `docs/HANDOFF.md` → 了解当前状态；读 `docs/roles/` 下 A 队三份提示词（`steward.md` / `artisan.md` / `examiner.md`）。
 2. 各 spawn 一个，**实例名用默认值**：
    - 执行主管 → `steward`（prompt = `steward.md`）
    - 工匠 → `artisan`（prompt = `artisan.md`）
