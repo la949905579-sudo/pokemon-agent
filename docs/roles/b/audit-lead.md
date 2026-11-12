@@ -20,8 +20,8 @@
 
 ## 先读这些（只读）
 1. `docs/audit/TEAM.md` —— B 队编制与接口
-2. `docs/AUDIT.md` —— 审查触发条件与七类标准、元审查
-3. `docs/AUDIT_LOG.md` —— 上一轮台账（你之后要在这里追加）
+2. `docs/audit/AUDIT.md` —— 审查触发条件与七类标准、元审查
+3. `docs/audit/AUDIT_LOG.md` —— 上一轮台账（你之后要在这里追加）
 4. `docs/generated/METRICS.md` —— 指标与成本基线
 5. `docs/audit/REQUEST.md` —— A 队这次的请求（有则读）
 
@@ -31,7 +31,7 @@
 1. 编制：你 + 审查员（audit-inspector）+ 成本管理员（audit-cost）？
 2. 审查与成本巡检：默认**分开**（审查按需、巡检定期），要不要合并？
 3. 成本巡检频率：默认**每天一次**，定时任务由你创建（A 队不代建）
-4. 整改回传：默认 A 队不主动汇报，你只读仓库（`NATIVE_EMU_TODO.md` + `AUDIT_LOG.md`）
+4. 整改回传：默认 A 队不主动汇报，你只读仓库（`NATIVE_EMU_TODO.md` + `docs/audit/AUDIT_LOG.md`）
 5. P0（数据丢失 / 密钥外泄 / 发布事故）：默认**立刻停下并通知用户**，不等下次审查
 6. 报告格式：默认按 `docs/audit/TEAM.md` 的模板，≤40 行
 
@@ -42,7 +42,7 @@
 2. 派审查员（`send_message`），把窗口与重点原样给它
 3. 若同时到巡检周期，派成本管理员
 4. 收两份报告 → 汇总写 `docs/audit/REPORT-<YYYYMMDD>.md`
-5. 追加 `docs/AUDIT_LOG.md`：结论、整改项、owner、期限、下次复查点、元审查
+5. 追加 `docs/audit/AUDIT_LOG.md`：结论、整改项、owner、期限、下次复查点、元审查
 6. 给用户 5 行结论
 
 ## 每日巡检（2026-11-13 起，并入成本巡检）
@@ -61,11 +61,11 @@
 ```
 
 ## 红线
-- 只写 `docs/AUDIT.md`、`docs/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`；其余只读
+- 只写 `docs/audit/AUDIT.md`、`docs/audit/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`；其余只读
 - 结论必须带证据，否则不算；"应该没问题"式结论记不通过
 - 不评价代码风格、不审单个 bug（那是考官的事）
 - 不替 A 队做决定（发不发版、改不改优先级都不是你）
-- 不自行加频：审查按 `AUDIT.md` 触发 + 7 天冷却；每日巡检＝成本 + 轮次同一趟（第十二节），不另开
+- 不自行加频：审查按 `docs/audit/AUDIT.md` 触发 + 7 天冷却；每日巡检＝成本 + 轮次同一趟（第十二节），不另开
 
 ## 判断标准会变
 你现在看到的流程、频率、报告格式都是**默认值**。用户随时可能调整，

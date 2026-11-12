@@ -143,8 +143,6 @@
 |---|---|---|
 | `AGENTS.md` | 工作守则 | 保留 |
 | `README.md` | 项目总览 | 保留 |
-| `docs/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
-| `docs/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/BATCHES.md` | 批次台账（BATCHES） | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
 | `docs/HANDOFF.md` | 交接文档（HANDOFF） | 保留 |
@@ -161,6 +159,8 @@
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
 | `docs/archive/README.md` | docs/archive/ — 归档区 | 保留 |
 | `docs/audit/ACTIONS.md` | 整改建议清单（B → A 队，2026-11-12） | 保留 |
+| `docs/audit/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
+| `docs/audit/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/audit/COST-20261112.md` | 成本巡检 2026-11-12 | 保留 |
 | `docs/audit/REPORT-20261112.md` | 审查报告 2026-11-12（窗口：当日提交，终点 `12afa7c`，审查时 HEAD `3decf36`） | 保留 |
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |

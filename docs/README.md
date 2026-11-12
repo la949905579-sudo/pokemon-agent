@@ -13,11 +13,11 @@
 
 | 分区 | 放什么 | 状态 |
 |---|---|---|
-| 顶层活规范 | `TEAM` `HANDOVER` `BATCHES` `STRUCTURE` `OBSERVABILITY` `AUDIT` `NATIVE_EMU_TODO` `HANDOFF` `PROJECT_PLAN` `WORKPLAN` `TOOLS` `FAQ` `PORTING` `NATIVE_EMU` | 已就位 |
+| 顶层活规范 | `TEAM` `HANDOVER` `BATCHES` `STRUCTURE` `OBSERVABILITY` `NATIVE_EMU_TODO` `HANDOFF` `PROJECT_PLAN` `WORKPLAN` `TOOLS` `FAQ` `PORTING` `NATIVE_EMU` | 已就位 |
 | `history/` | `CHANGELOG` `INCIDENTS` `RETROSPECTIVE` `NOTES` `ARCHITECTURE` | 已就位（M1，本批迁移） |
 | `generated/` | `FILES` `METRICS` | 已就位（M1，本批迁移） |
-| `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队）+ `README.md` 索引 | 已就位（`b/` 已由督导迁入，`6841960`） |
-| `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*` | 已就位；`AUDIT.md`/`AUDIT_LOG.md` 归并已获督导同意（M6），待单开批 |
+| `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队）+ `README.md` 索引 | 已就位（`b/` 三卡已迁入） |
+| `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*`、`AUDIT`、`AUDIT_LOG` | 已就位（M6 本批归并：`AUDIT.md`/`AUDIT_LOG.md` 已迁入） |
 | `org/` | 组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
 | `archive/` | 已结案、不再维护的文档；门槛：满 30 天或同主题 3 份 | 空，规则生效 |
 
@@ -65,5 +65,5 @@
 
 - **M1**（`history/` + `generated/` 迁移）：**已完成**（本批 `docs(M1)`，7 个文件 `git mv` + 旧路径引用同步）。
 - **M2** 角色卡按队拆：`a/`、`org/`、`b/` 均已就位（B 队三卡于 `6841960` 迁入）。
-- **M6** 审查件归并 `docs/audit/`：已获独立督导同意，待单开一批执行。
+- **M6** 审查件归并 `docs/audit/`：**已完成**（本批 `docs(M6)`，2 文件 `git mv` + 全仓引用同步）。
 - 代码侧结构不归本文件管，见 `docs/STRUCTURE.md`。

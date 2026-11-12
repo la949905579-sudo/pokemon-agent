@@ -36,7 +36,7 @@
 - 请看：这份基线是否合理、最该砍的是哪一块
 
 ## 附件
-- `docs/AUDIT.md`（标准与触发）
-- `docs/AUDIT_LOG.md`（上一轮记录，A 只读）
-- `docs/METRICS.md`（指标与成本基线）
-- `docs/INCIDENTS.md`（INC-001~007）
+- `docs/audit/AUDIT.md`（标准与触发）
+- `docs/audit/AUDIT_LOG.md`（上一轮记录，A 只读）
+- `docs/generated/METRICS.md`（指标与成本基线）
+- `docs/history/INCIDENTS.md`（INC-001~007）

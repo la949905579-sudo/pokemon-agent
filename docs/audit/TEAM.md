@@ -13,11 +13,11 @@
 
 | 职位 | 默认实例名 | 职责 | 写入范围 |
 |---|---|---|---|
-| **独立督导** | `audit-lead` | 读请求、派活、汇总报告、写台账、成本 + 轮次巡检 | `docs/AUDIT.md`、`docs/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`（对齐 `docs/TEAM.md` §一） |
-| **审查员** | `audit-inspector` | 按 `docs/AUDIT.md` 做流程审查，出结论 | **无**（只读；报告以**文本返回**独立督导，由独立督导落盘） |
+| **独立督导** | `audit-lead` | 读请求、派活、汇总报告、写台账、成本 + 轮次巡检 | `docs/audit/AUDIT.md`、`docs/audit/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`（对齐 `docs/TEAM.md` §一） |
+| **审查员** | `audit-inspector` | 按 `docs/audit/AUDIT.md` 做流程审查，出结论 | **无**（只读；报告以**文本返回**独立督导，由独立督导落盘） |
 | **成本管理员** | `audit-cost` | 跑 token 统计、看趋势、写成本报告 | `docs/audit/`（`COST-*.md`） |
 
-**只读边界**：B 队不写 `native-emu/**`、不改 A 队的 `docs/`；自有件仅 `docs/AUDIT.md`、`docs/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`。不跑构建、不碰凭据。
+**只读边界**：B 队不写 `native-emu/**`、不改 A 队的 `docs/`；自有件仅 `docs/audit/AUDIT.md`、`docs/audit/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**`。不跑构建、不碰凭据。
 
 > **2026-11-13 职位改名（用户定）**：督导主持→**独立督导**、主持→**统筹主持**、组织架构师→**组织规划**；
 > 成员职位（审查员 / 成本管理员）与实例名不变，队名「督导团队」保留；历史台账（`AUDIT_LOG.md`、`REPORT-*`、`COST-*`）不回改。
@@ -29,7 +29,7 @@
 | A → B | 审查请求（窗口/重点/要看的文件/触发条件） | `docs/audit/REQUEST.md`（A 队统筹主持写） |
 | B → A | 审查报告（结论/证据/整改/元审查） | `docs/audit/REPORT-<YYYYMMDD>.md` |
 | B → A | 成本巡检报告 | `docs/audit/COST-<YYYYMMDD>.md` |
-| B → A | 审查台账（谁审的、结论、整改是否闭环） | `docs/AUDIT_LOG.md`（B 队写，A 队只读） |
+| B → A | 审查台账（谁审的、结论、整改是否闭环） | `docs/audit/AUDIT_LOG.md`（B 队写，A 队只读） |
 | B → A | **整改建议清单（可执行、带依据/owner/期限/状态）** | `docs/audit/ACTIONS.md`（B 队写，A 队只读） |
 | B ↔ 组织规划 | 审查机制意见：组织规划写 `docs/org/`，**由统筹主持转达** B 队；B 队不改组织规划文档，组织规划不改 B 队三张角色卡 | `docs/org/`（组织规划写）+ 统筹主持转达 |
 
@@ -95,7 +95,7 @@
 | 1 | 编制 | **3 人**：独立督导 + 审查员（`audit-inspector`）+ 成本管理员（`audit-cost`） |
 | 2 | 审查 vs 成本巡检 | **分开**：审查按 `AUDIT.md` 触发 + 7 天冷却；巡检独立，不绑在审查里 |
 | 3 | 巡检频率 | **每日一次**（2026-11-13 重建版：成本巡检 + 轮次巡检合并一趟，见第十二节）。**仍不建系统定时任务**；触发＝统筹主持或用户开 B 队会话（一次性）。随审查一并派时每审查最多 1 次；连续 2 次成本环比异常 → 提请用户议建定时任务 |
-| 4 | 整改回传 | A 队**不主动汇报**；独立督导自查仓库：`NATIVE_EMU_TODO.md`、`docs/AUDIT_LOG.md`、`docs/METRICS.md`、`docs/HANDOFF.md` |
+| 4 | 整改回传 | A 队**不主动汇报**；独立督导自查仓库：`NATIVE_EMU_TODO.md`、`docs/audit/AUDIT_LOG.md`、`docs/generated/METRICS.md`、`docs/HANDOFF.md` |
 | 5 | P0 处置 | 数据丢失 / 密钥外泄 / 发布事故 → **立刻停下并通知用户**，不等下次审查，不受 7 天冷却限制 |
 | 6 | 报告格式 | 按第五节模板，**≤40 行**；超额首行写「申请 +N 行：原因」 |
 
@@ -103,12 +103,12 @@
 > 第 3 项与第九节冲突时，以本节为准（第九节为原始默认值）。
 >
 > **补充认定（2026-11-12 23:1x，A 队统筹主持裁定后追加）**：
-> - 整改建议每轮 **≤5 条**，依据 `docs/AUDIT.md` 三「超 5 条说明流程崩了」，不是独立督导自定。
-> - 成员 token 开销只记 `docs/AUDIT_LOG.md` / `docs/audit/COST-*.md`，**不进** `docs/METRICS.md`
+> - 整改建议每轮 **≤5 条**，依据 `docs/audit/AUDIT.md` 三「超 5 条说明流程崩了」，不是独立督导自定。
+> - 成员 token 开销只记 `docs/audit/AUDIT_LOG.md` / `docs/audit/COST-*.md`，**不进** `docs/generated/METRICS.md`
 >   （成本口径不与构建度量混放）。
 > - **一次性授权留痕（共 3 次，均为用户转达的明确指派）**：
 >   ① 改 `docs/roles/b/auditor.md` 的引用路径（第八节第 1 项修复）；
->   ② 改 `docs/AUDIT.md:4`「执行者 `auditor`」→ B 队审查员 `audit-inspector`（23:22 指派）；
+>   ② 改 `docs/audit/AUDIT.md:4`「执行者 `auditor`」→ B 队审查员 `audit-inspector`（23:22 指派）；
 >   ③ 改 `docs/roles/b/auditor.md:47`「10 条」→「11 条」（2026-11-13 01:5x，组织规划转达）。
 >   三者均属 B 队写范围例外。**2026-11-13 重建后**：B 队卡与 `AUDIT.md` 归独立督导写（`docs/roles/b/**`），本留痕仅供历史追溯。
 
@@ -142,7 +142,7 @@
 - **算法**：`cost = input×未命中价 + cacheRead×命中价 + output×输出价 + cacheWrite×0`
   （DeepSeek 不收缓存写费）。因 `totalTokens = input + output + cacheRead + cacheWrite`，
   `inputTokens` 已是**未命中部分**，不要再把 cacheRead 从 input 里扣一次。
-- **记账**：写入本轮 `docs/AUDIT_LOG.md` 的「成员开销」小节（或当日 `COST-*.md`），保留 4 位小数、单位元，
+- **记账**：写入本轮 `docs/audit/AUDIT_LOG.md` 的「成员开销」小节（或当日 `COST-*.md`），保留 4 位小数、单位元，
   并注明单价档位与时间。首轮实测见 AUDIT_LOG「2026-11-12 成员开销」。
 
 ## 十一、整改建议同步给 A 队（用户 2026-11-12 追加）
@@ -171,7 +171,7 @@
 
 ## 十三、迁移与改名记录
 
-- **2026-11-13 P1（M2 剩余）**：B 队三张卡已 `git mv` 入 `docs/roles/b/`（`audit-lead.md`、`audit-cost.md`、`auditor.md`，git 识别为 rename、历史保留）；B 队侧引用同步更新（`docs/AUDIT.md:4,132`、本手册、`ACTIONS.md`、卡内互引）。历史台账（`AUDIT_LOG.md`、`REPORT-*`、`COST-*`）**不回改**。
-- **2026-11-13 M6（审查件归并）**：`docs/AUDIT.md` / `docs/AUDIT_LOG.md` → `docs/audit/`：**独立督导同意**，但**单开一批、排在 P1 之后**，同批改约 70 处引用并过验收四连。理由：审查件是 B 队文件，归并后 B 队文档单一目录；但引用面大，不与卡迁移同批。
+- **2026-11-13 P1（M2 剩余）**：B 队三张卡已 `git mv` 入 `docs/roles/b/`（`audit-lead.md`、`audit-cost.md`、`auditor.md`，git 识别为 rename、历史保留）；B 队侧引用同步更新（`docs/audit/AUDIT.md:4,132`、本手册、`ACTIONS.md`、卡内互引）。历史台账（`AUDIT_LOG.md`、`REPORT-*`、`COST-*`）**不回改**。
+- **2026-11-13 M6（审查件归并）**：`docs/audit/AUDIT.md` / `docs/audit/AUDIT_LOG.md` → `docs/audit/`：**独立督导同意**，但**单开一批、排在 P1 之后**，同批改约 70 处引用并过验收四连。理由：审查件是 B 队文件，归并后 B 队文档单一目录；但引用面大，不与卡迁移同批。
 - **改名词表（会话级职位）**：督导主持→独立督导、主持→统筹主持、组织架构师→组织规划、执行主管→助理（A 队手册自 2026-11-13 起为「助理」）；成员职位与英文实例名不变。
 

@@ -6,7 +6,7 @@
    “某些提交没有构建”。本脚本把每个 tag 展开成它实际包含的提交列表，并列出
    尚未被任何 tag 覆盖的提交（构建覆盖可核）。
 2. CI 首次通过率没人统计，T4 触发条件形同虚设。本脚本按“每个推送 tip 的第一次
-   Action 结论”算首过率，写进文档，供 `docs/AUDIT.md` T4 每周自动判定。
+   Action 结论”算首过率，写进文档，供 `docs/audit/AUDIT.md` T4 每周自动判定。
 
 用法：
     python3 tools/metrics.py              # 生成 docs/generated/METRICS.md
