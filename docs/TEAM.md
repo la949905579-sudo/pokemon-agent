@@ -75,7 +75,7 @@
 | 发布前 | `CHANGELOG` / `HANDOFF` 已更新、索引 `--check`=0、tag（按需） |
 
 - 回滚：未推送 `git reset --hard`；已推送 `git revert`（**禁止 force push**）；已发版撤 tag 并重建上一版，记 `INCIDENTS`。
-- 热修：只修 P0，当天修，仍过门禁 + 考官轻量复核；极端情况允许「先发后补审」，但必须在 `INCIDENTS.md` 留痕。
+- 热修：只修 P0，当天修，仍过门禁 + 考官轻量复核；极端情况允许「先发后补审」，但必须在 `docs/history/INCIDENTS.md` 留痕。
 
 ## 三·七、汇报预算
 

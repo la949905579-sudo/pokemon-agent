@@ -25,10 +25,10 @@
 | 文件 | 用途 | 状态 |
 |---|---|---|
 | `tools/check_ui_state.py` | UI 状态读写配对检查（INC-006：mutableStateOf 只写不读） | 保留 |
-| `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/METRICS.md | 保留 |
+| `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/generated/METRICS.md | 保留 |
 | `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推 | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
-| `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md） | 保留 |
+| `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/generated/METRICS.md） | 保留 |
 | `tools/token_baseline.json` | token 成本基线快照（token_report.mjs --write 生成，供 METRICS 引用） | 保留 |
 | `tools/token_report.mjs` | token 成本统计：读会话 usage，按职位/会话/日期汇总，--write 生成基线 | 保留 |
 
@@ -88,7 +88,7 @@
 | `state_server.py` | 本地状态服务：给网页「下屏」提供数据与动作接口。 | 保留 |
 | `switch.py` | 换人模块：战斗内部队伍顺序 + 换人动作。 | 保留 |
 | `terrain.py` | 地图通行性：定位地图结构、读取地块、输出九宫格。 | 保留 |
-| `tools/gen_files_index.py` | 生成 docs/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
+| `tools/gen_files_index.py` | 生成 docs/generated/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
 | `track_route.py` | 后台记录用户操作时的坐标轨迹（带地图 ID，能分辨换图）。 | 保留 |
 | `train.py` | 练级 + 回合观测：走 battle_loop 的 on_round 回调，不再 monkeypatch。 | 保留 |
 | `watchdog.py` | 健壮性：看门狗 + 等回合完成。 | 保留 |
@@ -143,24 +143,18 @@
 |---|---|---|
 | `AGENTS.md` | 工作守则 | 保留 |
 | `README.md` | 项目总览 | 保留 |
-| `docs/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
 | `docs/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
 | `docs/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/BATCHES.md` | 批次台账（BATCHES） | 保留 |
-| `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
 | `docs/HANDOFF.md` | 交接文档（HANDOFF） | 保留 |
 | `docs/HANDOVER.md` | 交接标准（HANDOVER） | 保留 |
-| `docs/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
-| `docs/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
 | `docs/NATIVE_EMU.md` | 原生双屏 GBA 模拟器 · 项目规划（NATIVE_EMU） | 保留 |
 | `docs/NATIVE_EMU_TODO.md` | NativeEmu 待办 | 保留 |
-| `docs/NOTES.md` | 叶绿内存（实测） | 保留 |
 | `docs/OBSERVABILITY.md` | 可观测性规范（OBSERVABILITY） | 保留 |
 | `docs/PORTING.md` | 移植指南：换一个宝可梦游戏怎么改 | 保留 |
 | `docs/PROJECT_PLAN.md` | 项目规划：从「一个游戏的自动化」到「一个模拟器平台 + 多个游戏插件」 | 保留 |
 | `docs/README.md` | docs/ 目录说明 | 保留 |
-| `docs/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/STRUCTURE.md` | 项目结构规范（STRUCTURE） | 保留 |
 | `docs/TEAM.md` | A 队团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
@@ -171,6 +165,12 @@
 | `docs/audit/REPORT-20261112.md` | 审查报告 2026-11-12（窗口：当日提交，终点 `12afa7c`，审查时 HEAD `3decf36`） | 保留 |
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
+| `docs/generated/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
+| `docs/history/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
+| `docs/history/CHANGELOG.md` | CHANGELOG | 保留 |
+| `docs/history/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
+| `docs/history/NOTES.md` | 叶绿内存（实测） | 保留 |
+| `docs/history/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
 | `docs/org/PLAN-20261113-2.md` | 文件系统规划方案 2026-11-13（第二份） | 保留 |
@@ -183,9 +183,9 @@
 | `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |
 | `docs/roles/a/assistant.md` | 助理（assistant）启动提示词 | 保留 |
 | `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
-| `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
-| `docs/roles/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
-| `docs/roles/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
+| `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
+| `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
+| `docs/roles/b/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
 | `docs/roles/org/architect.md` | 组织规划（architect）启动提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 

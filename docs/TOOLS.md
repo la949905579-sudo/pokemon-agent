@@ -1,7 +1,7 @@
 # 工具使用手册（TOOLS）
 
 > 面向接手会话：每个模块/脚本的用途、怎么调用、注意事项。
-> 配套阅读：`ARCHITECTURE.md`（分层与 import 关系）、`NOTES.md`（地址与实测结论）。
+> 配套阅读：`docs/history/ARCHITECTURE.md`（分层与 import 关系）、`docs/history/NOTES.md`（地址与实测结论）。
 
 ## 0. 环境前提
 
@@ -33,7 +33,7 @@ ra.release_all()          # 异常退出时自动松开（已注册 atexit/signa
 - 按键是 UDP 事件，**不保证**游戏已处理；需要随后读状态确认
 
 ### addresses.py
-- 地址表（唯一真源）；改地址只改这里 + `NOTES.md`
+- 地址表（唯一真源）；改地址只改这里 + `docs/history/NOTES.md`
 
 ---
 

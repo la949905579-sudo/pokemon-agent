@@ -86,7 +86,7 @@ class GamePlugin(Protocol):
 ## 四、目录规划（迁移目标）
 
 > ⚠ 下面是**迁移目标，不是现状**。标「← 现有文件」的条目表示以后从根目录的那个文件迁入，
-> 现在并不存在；找当前文件请看 `docs/FILES.md`。
+> 现在并不存在；找当前文件请看 `docs/generated/FILES.md`。
 
 ```
 /root/workspace/

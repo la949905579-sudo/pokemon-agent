@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""生成 docs/FILES.md：仓库里每个被跟踪文件的用途索引。
+"""生成 docs/generated/FILES.md：仓库里每个被跟踪文件的用途索引。
 
 目的：交接时任何一个文件都能在文档里查到「它是干什么的、属于哪一层、要不要留」。
 
 用法：
-    python3 tools/gen_files_index.py           # 重新生成 docs/FILES.md
+    python3 tools/gen_files_index.py           # 重新生成 docs/generated/FILES.md
     python3 tools/gen_files_index.py --check   # 只检查，有未描述的文件就退出码 1
 """
 import ast
@@ -26,18 +26,18 @@ OVERRIDES = {
     "bridge.py": ("平台", "注册制中间层（未接入主链路）"),
     "handlers.py": ("平台", "注册制中间层（未接入主链路）"),
     "emu_bridge.py": ("平台", "NativeEmu TCP 桥客户端（rd/wr/press/frame）"),
-    "INCIDENTS.md": ("文档", "事故复盘库（现象/根因/固化改动）"),
+    "docs/history/INCIDENTS.md": ("文档", "事故复盘库（现象/根因/固化改动）"),
     "publish_release.py": ("构建", "把 CI 产物发布到 GitHub Release（OTA 更新源）"),
     "push_status.py": ("平台", "把状态推给模拟器下屏（:55401 status 命令）"),
     "run_game.py": ("平台", "插件化入口：EMU_BACKEND=native python3 run_game.py <game_id>"),
     "run_tests.py": ("测试", "一键跑全部离线测试（按 test_*.py 文件计数）"),
-    "tools/metrics.py": ("工具", "构建度量：build tag→提交映射、CI 首过率，生成 docs/METRICS.md"),
+    "tools/metrics.py": ("工具", "构建度量：build tag→提交映射、CI 首过率，生成 docs/generated/METRICS.md"),
     "tools/check_ui_state.py": ("工具", "UI 状态读写配对检查（INC-006：mutableStateOf 只写不读）"),
     "tools/precommit_check.sh": ("工具", "提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推"),
-    "tools/test_results.json": ("工具", "本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md）"),
+    "tools/test_results.json": ("工具", "本机真实测试结果记录（tools/metrics.py 读入 docs/generated/METRICS.md）"),
     "tools/token_report.mjs": ("工具", "token 成本统计：读会话 usage，按职位/会话/日期汇总，--write 生成基线"),
     "tools/token_baseline.json": ("工具", "token 成本基线快照（token_report.mjs --write 生成，供 METRICS 引用）"),
-    "docs/METRICS.md": ("文档", "构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改）"),
+    "docs/generated/METRICS.md": ("文档", "构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改）"),
     "start_push.sh": ("平台", "后台常驻的状态推送脚本（setsid，支持 stop）"),
     "memory.py": ("平台", "内存读写的统一入口（按 EMU_BACKEND 分派 RetroArch / NativeEmu）"),
     "ra.py": ("平台", "RetroArch UDP 通道（读内存 :55355、按键 :55400）"),
@@ -195,7 +195,7 @@ def main():
     files = git_files()
     rows, missing = [], []
     for f in files:
-        if f == "docs/FILES.md":
+        if f == "docs/generated/FILES.md":
             continue
         layer, desc = describe(f)
         if not desc:
@@ -224,8 +224,8 @@ def main():
     if check:
         return 1 if missing else 0
 
-    open(os.path.join(ROOT, "docs/FILES.md"), "w", encoding="utf-8").write("\n".join(lines))
-    print(f"已写入 docs/FILES.md（{len(rows)} 个文件，{len(missing)} 个未描述）")
+    open(os.path.join(ROOT, "docs/generated/FILES.md"), "w", encoding="utf-8").write("\n".join(lines))
+    print(f"已写入 docs/generated/FILES.md（{len(rows)} 个文件，{len(missing)} 个未描述）")
     return 0
 
 

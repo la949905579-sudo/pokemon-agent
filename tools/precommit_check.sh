@@ -235,7 +235,7 @@ push_checks() {
         else
             err "远端有本地没有的提交：说明历史被改写过或已分叉（INC-005）"
             echo "      禁止 amend/rebase/reset 已推提交；先 git pull --rebase，"
-            echo "      确需强推必须由主持批准并在 docs/INCIDENTS.md 留痕。"
+            echo "      确需强推必须由主持批准并在 docs/history/INCIDENTS.md 留痕。"
         fi
     fi
 

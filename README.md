@@ -19,7 +19,7 @@
 **运行环境**：Android 手机 + proot Ubuntu + RetroArch（游戏在前台或分屏）
 
 > 📖 **完整工具手册见 [`TOOLS.md`](docs/TOOLS.md)**（每个模块的用途/用法/注意事项）。
-> 本文件偏架构说明，部分内容停留在早期设计稿，与代码不一致时以 `TOOLS.md` 和 `ARCHITECTURE.md` 为准。
+> 本文件偏架构说明，部分内容停留在早期设计稿，与代码不一致时以 `TOOLS.md` 和 `docs/history/ARCHITECTURE.md` 为准。
 
 ---
 
@@ -201,7 +201,7 @@ python3 run_tests.py battle   # 只跑含 battle 的
 | 文件 | 内容 |
 |---|---|
 | `README.md` | 本文档：架构、模块、扩展、测试 |
-| `NOTES.md` | 技术笔记：地址表、实测数据、踩坑记录 |
+| `docs/history/NOTES.md` | 技术笔记：地址表、实测数据、踩坑记录 |
 | `HANDOFF.md` | 会话交接：当前游戏状态、待办事项 |
 
 ---

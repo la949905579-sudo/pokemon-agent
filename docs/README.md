@@ -14,10 +14,10 @@
 | 分区 | 放什么 | 状态 |
 |---|---|---|
 | 顶层活规范 | `TEAM` `HANDOVER` `BATCHES` `STRUCTURE` `OBSERVABILITY` `AUDIT` `NATIVE_EMU_TODO` `HANDOFF` `PROJECT_PLAN` `WORKPLAN` `TOOLS` `FAQ` `PORTING` `NATIVE_EMU` | 已就位 |
-| `history/` | `CHANGELOG` `INCIDENTS` `RETROSPECTIVE` `NOTES` `ARCHITECTURE` | **待迁移（M1，下一 docs 批）** |
-| `generated/` | `FILES` `METRICS` | **待迁移（M1，同上）** |
-| `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队，待督导迁入）+ `README.md` 索引 | `a/`、`org/` 已就位；`b/` 待督导 |
-| `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*` | 已就位；`AUDIT.md`/`AUDIT_LOG.md` 归并 **待督导同意** |
+| `history/` | `CHANGELOG` `INCIDENTS` `RETROSPECTIVE` `NOTES` `ARCHITECTURE` | 已就位（M1，本批迁移） |
+| `generated/` | `FILES` `METRICS` | 已就位（M1，本批迁移） |
+| `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队）+ `README.md` 索引 | 已就位（`b/` 已由督导迁入，`6841960`） |
+| `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*` | 已就位；`AUDIT.md`/`AUDIT_LOG.md` 归并已获督导同意（M6），待单开批 |
 | `org/` | 组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
 | `archive/` | 已结案、不再维护的文档；门槛：满 30 天或同主题 3 份 | 空，规则生效 |
 
@@ -52,18 +52,18 @@
 - **每周盘点一次**（并入独立督导巡检后的例行动作）。
 - 执行：组织规划提案 → 助理搬 → 助理跑生成器更新索引。
 - **只移动、不改正文**（历史不回改）；被引用的路径在同批更新。
-- 归档候选登记：`ARCHITECTURE.md`（旧快照，已被 `STRUCTURE.md` 取代）等。
+- 归档候选登记：`docs/history/ARCHITECTURE.md`（旧快照，已被 `STRUCTURE.md` 取代）等。
 
 ## 六、新增 / 移动文件后的动作
 
 1. 跑 `python3 tools/gen_files_index.py`；`--check` 必须为 0（已接进提交前钩子）。
-2. 生成物（`FILES` / `METRICS`）不得手改，只重跑脚本。
+2. 生成物（`docs/generated/FILES.md` / `docs/generated/METRICS.md`）不得手改，只重跑脚本。
 3. 改 `STRUCTURE.md` / `WORKPLAN.md` 仍需统筹主持确认（前者影响重构实施，后者是历史追溯）。
 4. 迁移类改动必须**同批完成**，不留「半搬半留」的过渡态。
 
 ## 七、本轮边界（2026-11-13 重建）
 
-- **M1**（`history/` + `generated/` 迁移）待下一 docs 批。
-- **M2** 角色卡按队拆：`a/`、`org/` 已就位；B 队三张卡待督导迁入 `b/`。
-- **M6** 审查件归并 `docs/audit/`：待独立督导同意。
+- **M1**（`history/` + `generated/` 迁移）：**已完成**（本批 `docs(M1)`，7 个文件 `git mv` + 旧路径引用同步）。
+- **M2** 角色卡按队拆：`a/`、`org/`、`b/` 均已就位（B 队三卡于 `6841960` 迁入）。
+- **M6** 审查件归并 `docs/audit/`：已获独立督导同意，待单开一批执行。
 - 代码侧结构不归本文件管，见 `docs/STRUCTURE.md`。

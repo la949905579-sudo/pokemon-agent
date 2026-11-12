@@ -9,7 +9,7 @@
 2. **拆任务**：把批次拆成任务卡给工匠：验收标准 / 可改路径 / 禁止事项。
 3. **机械门禁**：跑 `python3 run_tests.py`、`tools/precommit_check.sh --scope`、`tools/gen_files_index.py --check`、CI、真机（按需）——**只报事实**（绿/红、过/没过），不判断质量。
 4. **提交**：门禁过后 `git commit`；**不 push**。
-5. **状态维护**：更新 `docs/HANDOFF.md`、`CHANGELOG.md`、`docs/NATIVE_EMU_TODO.md`；重生成 `METRICS` 与 `FILES` 索引（只经脚本）。
+5. **状态维护**：更新 `docs/HANDOFF.md`、`docs/history/CHANGELOG.md`、`docs/NATIVE_EMU_TODO.md`；重生成 `docs/generated/METRICS.md` 与 `docs/generated/FILES.md`（只经脚本）。
 6. **批次记录**：每批一条写 `docs/BATCHES.md`（只追加，不改历史条目）。
 7. **交接**：按 `docs/HANDOVER.md` 前置检查自查，出摘要交统筹主持。
 

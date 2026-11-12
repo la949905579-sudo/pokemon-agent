@@ -1,13 +1,13 @@
 # 项目结构规范（STRUCTURE）
 
 > 目标：改一个功能时只动一两个文件，不牵一发动全身。
-> 配套：`FILES.md`（每个文件是什么）、`OBSERVABILITY.md`（日志规范）。
+> 配套：`docs/generated/FILES.md`（每个文件是什么）、`OBSERVABILITY.md`（日志规范）。
 
 ## 一、现状的三个问题
 
 1. **根目录平铺**：40+ 个 `.py` 混在一起，平台通用代码和火红专用代码没有边界。
 2. **单文件过大**：`native-emu/.../MainActivity.kt` 已 830 行，界面、逻辑、按键、小地图全在一个文件里。
-3. **调试残留入库**：`*.log`、`faint*.txt`、`mapcap*.log` 等 11 个文件被提交进仓库（见 `FILES.md` 标「待清理」的条目）。
+3. **调试残留入库**：`*.log`、`faint*.txt`、`mapcap*.log` 等 11 个文件被提交进仓库（见 `docs/generated/FILES.md` 标「待清理」的条目）。
 
 ## 二、目标结构
 
@@ -54,12 +54,12 @@
 | 单文件长度 | Python ≤ 400 行；Kotlin Composable 文件 ≤ 500 行，超过必须拆 |
 | 命名 | Python 模块 `snake_case`；Kotlin 文件 `PascalCase`（与主类型同名）；测试 `test_<模块>.py` |
 | 一文件一职责 | 文件名要能预测内容；出现「以及」「顺便」就该拆 |
-| 新增模块三件套 | ①单测 ②归属层（platform/games/ui/core）③`docs/FILES.md` 里能查到 |
+| 新增模块三件套 | ①单测 ②归属层（platform/games/ui/core）③`docs/generated/FILES.md` 里能查到 |
 | 数据文件 | 运行期产物（`*.log`、转储）一律不进仓库，写进 `.gitignore` |
 
 ## 五、迁移分期（只搬不改，每步可回滚）
 
-- **P0 规范**（本文档 + `FILES.md` + `OBSERVABILITY.md`）——已完成 2026-11-12
+- **P0 规范**（本文档 + `docs/generated/FILES.md` + `OBSERVABILITY.md`）——已完成 2026-11-12
 - **P1 Python 侧**（2026-11-13 重建后启动，**等 F 批发布**）：`test_*.py` 全收进 `tests/`；
   `maps/` `battles/` `dialogs/` 并入 `games/pokemon_firered/`；根目录 `.py` 收编进 `platform/`。
   按「移动 + 修 import」迁移，每步跑 `run_tests.py`

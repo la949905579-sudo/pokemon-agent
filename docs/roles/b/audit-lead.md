@@ -22,7 +22,7 @@
 1. `docs/audit/TEAM.md` —— B 队编制与接口
 2. `docs/AUDIT.md` —— 审查触发条件与七类标准、元审查
 3. `docs/AUDIT_LOG.md` —— 上一轮台账（你之后要在这里追加）
-4. `docs/METRICS.md` —— 指标与成本基线
+4. `docs/generated/METRICS.md` —— 指标与成本基线
 5. `docs/audit/REQUEST.md` —— A 队这次的请求（有则读）
 
 ## 首次启动：先和用户确认，不要直接开工

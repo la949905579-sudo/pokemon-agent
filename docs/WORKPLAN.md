@@ -21,7 +21,7 @@
 
 ## 阶段 0 · 规范基线（30 分钟）
 - [ ] 0.1 commit 前缀约定：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`
-- [ ] 0.2 建 `CHANGELOG.md`，补录 11-09 的 8 个 commit 为 `v2026.11.09-1`
+- [ ] 0.2 建 `docs/history/CHANGELOG.md`，补录 11-09 的 8 个 commit 为 `v2026.11.09-1`
 - [ ] 0.3 打 tag `v2026.11.09-1`
 - [ ] 0.4 写 `changelog.py`：按前缀从 git log 生成草稿
 - [ ] 0.5 README/HANDOFF 加“版本与变更流程”一节

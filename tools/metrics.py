@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""构建与 CI 度量：从远端 build-* tag 与 GitHub Actions 记录生成 docs/METRICS.md。
+"""构建与 CI 度量：从远端 build-* tag 与 GitHub Actions 记录生成 docs/generated/METRICS.md。
 
 解决两个问题：
 1. 一个 build tag 可能覆盖多个提交（CI 按推送 tip 打 tag），只看 tag 名会误判
@@ -9,7 +9,7 @@
    Action 结论”算首过率，写进文档，供 `docs/AUDIT.md` T4 每周自动判定。
 
 用法：
-    python3 tools/metrics.py              # 生成 docs/METRICS.md
+    python3 tools/metrics.py              # 生成 docs/generated/METRICS.md
     python3 tools/metrics.py --check      # 只打印摘要，不写文件
     python3 tools/metrics.py --offline    # 不查 GitHub API（CI 数据标“未知”）
 
@@ -29,7 +29,7 @@ from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://api.github.com/repos/la949905579-sudo/pokemon-agent"
-OUT = os.path.join(ROOT, "docs", "METRICS.md")
+OUT = os.path.join(ROOT, "docs", "generated", "METRICS.md")
 TZ = timezone(timedelta(hours=8))  # 手机时区 Asia/Shanghai
 
 
@@ -243,7 +243,7 @@ def token_baseline():
 
 
 def incidents():
-    path = os.path.join(ROOT, "docs", "INCIDENTS.md")
+    path = os.path.join(ROOT, "docs", "history", "INCIDENTS.md")
     try:
         text = open(path, encoding="utf-8").read()
     except OSError:
@@ -268,7 +268,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
         "",
         f"- 生成时间：{now}（Asia/Shanghai）",
         f"- 生成时 HEAD：`{head}`（之后若有新提交属正常）",
-        "- 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/INCIDENTS.md`",
+        "- 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`",
         "",
         "## 一、CI 首次通过率（T4 判据）",
         "",
@@ -345,7 +345,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
     lines += [
         "## 四、事故与复发率",
         "",
-        "定义：复发率 = `docs/INCIDENTS.md` 中标题标注「（复发）」的条目数 / 事故总数。",
+        "定义：复发率 = `docs/history/INCIDENTS.md` 中标题标注「（复发）」的条目数 / 事故总数。",
         f"当前：事故 **{inc_total}** 条，标注复发的 **{inc_relapse}** 条。",
         "",
     ]

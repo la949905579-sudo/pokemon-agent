@@ -7,4 +7,4 @@
 - 本目录当前为空（规则自 2026-11-13 起，先只立规则、不搬）。
 - 归档件保留原文件名（含日期），不建子目录、不合并。
 - 移入后如被其他文档引用，由执行主管在同批更新引用路径。
-- 分级与命名约定见 `docs/README.md`；自动索引仍以 `docs/FILES.md` 为准（重跑 `tools/gen_files_index.py`）。
+- 分级与命名约定见 `docs/README.md`；自动索引仍以 `docs/generated/FILES.md` 为准（重跑 `tools/gen_files_index.py`）。

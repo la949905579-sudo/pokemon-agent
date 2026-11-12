@@ -7,7 +7,7 @@
 
 ## 输入
 - `tools/token_report.mjs`（读会话日志的 usage 汇总）
-- `docs/METRICS.md`（历史基线）
+- `docs/generated/METRICS.md`（历史基线）
 - 上一次的 `docs/audit/COST-*.md`
 
 ## 你要产出

@@ -30,7 +30,7 @@
 2. docs/OBSERVABILITY.md —— 日志规范
 3. docs/HANDOFF.md —— 当前状态（重点看「构建与发布现状」和「安全债」）
 4. docs/NATIVE_EMU_TODO.md —— 进度真源
-5. docs/FILES.md —— 每个文件是干什么的
+5. docs/generated/FILES.md —— 每个文件是干什么的
 6. 再看事实：git log --oneline -30、git status、最近 CI run 的结论
 
 若仓库里存在 docs/PROCESS.md，以它为准；下面的基线只是兜底。
@@ -48,7 +48,7 @@
 - F 凭据纪律：无 token/私钥/口令明文、无 keystore 入仓、secret 可解释
 - G 角色边界：统筹主持是否在干助理的活、助理是否越权、是否有角色空转；**按新编制核对**：考官是否**每批都叫**（纯文档批走 ≤5 行轻量复核）、助理是否**每批新开**（不许跨批累积）、独立督导是否**只判不换**会话
 
-**构建覆盖必须看数据，不要按 tag 数量推断**：`docs/METRICS.md` 有 tag→提交映射，
+**构建覆盖必须看数据，不要按 tag 数量推断**：`docs/generated/METRICS.md` 有 tag→提交映射，
 一个 build tag 可覆盖多个提交（CI 按推送 tip 打 tag），这是 2026-11-12 误判的根因。
 
 ## 输出格式（四节 + 成本小节，默认 ≤40 行；超出首行写「申请 +N 行：原因」）

@@ -46,7 +46,7 @@
 2. 所有提交**已推送到远端**（远端是真源）
 3. CI 绿；若有红，必须在 `HANDOFF` 写清原因与下一步
 4. `python3 run_tests.py` 通过（数量/结果以 `tools/test_results.json` 为准，不写死）
-5. `docs/NATIVE_EMU_TODO.md` / `CHANGELOG.md` 与代码同步
+5. `docs/NATIVE_EMU_TODO.md` / `docs/history/CHANGELOG.md` 与代码同步
 6. `python3 tools/gen_files_index.py` 重生成，`--check` 返回 0
 7. `docs/HANDOFF.md` 更新：当前状态、阻塞、下一步、**不要做什么**
 8. 没有未结束的后台任务（job）或未完成的子代理
