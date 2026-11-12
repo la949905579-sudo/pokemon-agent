@@ -134,9 +134,9 @@
 | `docs/TEAM.md` | 团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
+| `docs/roles/artisan.md` | 工匠（artisan）提示词 | 保留 |
 | `docs/roles/auditor.md` | 督导（auditor）提示词 | 保留 |
-| `docs/roles/builder.md` | 工匠（builder）提示词 | 保留 |
-| `docs/roles/verifier.md` | 考官（verifier）提示词 | 保留 |
+| `docs/roles/examiner.md` | 考官（examiner）提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
 ## 构建
@@ -147,7 +147,6 @@
 | `.gitignore` | 忽略规则：缓存、构建产物、运行日志 | 保留 |
 | `native-emu/.gitignore` | 忽略 third_party 与构建产物 | 保留 |
 | `native-emu/app/build.gradle.kts` | Android 模块构建：固定签名 + BuildConfig(GIT_SHA/BUILD_TIME) | 保留 |
-| `native-emu/app/keystore.jks` | 固定签名私钥库（⚠ 已在公开仓库暴露，见 HANDOFF 安全债） | 保留 |
 | `native-emu/app/src/main/AndroidManifest.xml` | 权限（存储/前台服务/安装包）与组件声明 | 保留 |
 | `native-emu/app/src/main/cpp/CMakeLists.txt` | mGBA 子目录 + 编译宏（必须与 libmgba 完全一致） | 保留 |
 | `native-emu/app/src/main/res/xml/file_paths.xml` | FileProvider 路径（OTA 安装 APK 用） | 保留 |
@@ -226,4 +225,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt` | Compose 主界面：双屏、Tab、按键页、小地图（已超 500 行，待拆） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/UiState.kt` | 下屏状态模型（Python 推送的 JSON 落到这里） | 保留 |
 
-> 共 167 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 166 个文件（不含 `native-emu/third_party/` 第三方源码）。
