@@ -18,8 +18,10 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -565,6 +567,7 @@ private fun UpdatePage(activity: MainActivity) {
     val latest = activity.updateLatest.value
     val error = activity.updateError.value
     val progress = activity.downloadProgress.value
+    val bodyScroll = rememberScrollState()
     val buildTime = remember {
         try {
             java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
@@ -595,8 +598,10 @@ private fun UpdatePage(activity: MainActivity) {
         latest?.let { r ->
             Spacer(Modifier.height(8.dp))
             Text("最新: ${r.tag}", color = TXT, fontSize = 12.sp)
-            Text(r.body, color = DIM, fontSize = 11.sp, maxLines = 8,
-                modifier = Modifier.fillMaxWidth())
+            // 更新说明：保留换行，最多显示约 8 行高度，超出可滚动（别整段压成一行）
+            Box(Modifier.fillMaxWidth().heightIn(max = 128.dp).verticalScroll(bodyScroll)) {
+                Text(r.body, color = DIM, fontSize = 11.sp, modifier = Modifier.fillMaxWidth())
+            }
             Spacer(Modifier.height(6.dp))
             Box(Modifier.background(if (progress >= 0) CARD else ACCENT, RoundedCornerShape(10.dp)).clickable {
                 if (activity.downloadProgress.value >= 0) return@clickable
