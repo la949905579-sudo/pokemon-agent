@@ -1,17 +1,24 @@
 # 团队手册（TEAM）
 
-> 团队是**会话级**的：`artisan` / `examiner` 挂在发起它们的那个会话上，换会话不会继承。
+> 团队是**会话级**的：成员挂在发起它们的那个会话上，换会话不会继承。
 > 新会话要做的不是“加入”，而是“按本手册重建”。
+>
+> **命名规则（2026-11-12 起）**：文档、交接、汇报一律用**职位**（主持/执行主管/工匠/考官/督导）；
+> 英文实例名只用于两处——`spawn_teammate` 和 `send_message` 的 target。
+> 职位一个只能有一个实例；换实例名只改本手册的映射表，文档不用动。
 
 ## 一、编制（3 + 1）
 
-| 成员 | 中文名 | 职责 | 写入范围 |
+| 职位（交接用） | 默认实例名（spawn 用） | 职责 | 写入范围 |
 |---|---|---|---|
-| `lead` | 主持 | **只做对接与协调**：需求澄清、优先级、跨会话、最终拍板 | 无（不碰工具原文） |
-| `steward` | 执行主管 | 派活、读 diff、跑测试、推送、等 CI、写 `docs/`、调度队友 | `docs/`、git push |
-| `artisan` | 工匠 | 实现与修复（**带 shell**） | `native-emu/**`、根目录 `test_*.py` |
-| `examiner` | 考官 | 只读复核，出结论（**带 shell**） | 无（不写文件） |
-| （按需）`auditor` | 督导 | 流程审查，一次性会话 | 无 |
+| **主持** | `lead` | 只做对接与协调：需求澄清、优先级、跨会话、最终拍板 | 无（不碰工具原文） |
+| **执行主管** | `steward` | 派活、读 diff、跑测试、推送、等 CI、写 `docs/`、调度队友 | `docs/`、git push |
+| **工匠** | `artisan` | 实现与修复（带 shell） | `native-emu/**`、根目录 `test_*.py` |
+| **考官** | `examiner` | 只读复核，出结论（带 shell） | 无（不写文件） |
+| **督导**（按需） | `auditor` | 第三方流程审查，一次性会话 | 无 |
+
+**退役成员（禁止派活）**：`builder`（旧工匠）、`verifier`（旧考官）。它们诞生在 `workspace-write`
+策略下、bash 不可用；工具不支持删除成员，它们随会话结束自然消失。新会话**不要**再建这两个名字。
 
 `auditor` 不常驻——按里程碑/事故另开新会话，提示词见 `docs/roles/auditor.md`。
 
@@ -22,13 +29,15 @@
 
 ## 二、重建步骤（新会话，3 分钟）
 
-1. 读 `docs/HANDOFF.md` → 了解当前状态；读 `docs/roles/artisan.md`、`docs/roles/examiner.md`。
-2. 各 spawn 一个，**名字固定**：
-   - `artisan`（prompt = artisan.md 里的代码块）
-   - `examiner`（prompt = examiner.md 里的代码块）
-3. 让 `examiner` 先做一次基线核查（测试 + CI + 文档一致性），再从 `NATIVE_EMU_TODO.md` 派第一个任务给 `artisan`。
+1. 读 `docs/HANDOFF.md` → 了解当前状态；读 `docs/roles/` 下的三份提示词。
+2. 各 spawn 一个，**实例名用默认值**：
+   - 执行主管 → `steward`（prompt = `steward.md`）
+   - 工匠 → `artisan`（prompt = `artisan.md`）
+   - 考官 → `examiner`（prompt = `examiner.md`）
+3. 让考官先做一次基线核查（测试 + CI + 文档一致性），再由执行主管派第一个任务给工匠。
 
-**为什么名字必须固定**：`STRUCTURE.md`、任务派发、`FILES.md` 里都按名字引用，改名会让文档全部失效。
+**为什么要用默认实例名**：文档按职位写，但 `spawn`/`send_message` 只认英文名；用默认值可以省掉映射。
+换了名也能跑，只是要改本手册的映射表——**文档里的职位称呼永远不变**。
 
 ## 二·五、需求入口（2026-11-12 起，硬规则）
 
@@ -45,15 +54,15 @@
 
 ```
 Lead 定优先级 + 批次目标（只看结论，不碰 diff）
-   → steward 拆任务、派给 artisan（含验收标准与写入边界）
-   → artisan 实现、自测、commit（有 shell 就自己提交）
-   → steward 跑测试、审 diff、push、等 CI
-   → examiner 独立复核，给「可发布 / 不可发布」+ 证据
-   → steward 汇总三行摘要给 Lead → Lead 拍板发布
-   → steward 更新 CHANGELOG/TODO/HANDOFF
+   → 执行主管拆任务、派给工匠（含验收标准与写入边界）
+   → 工匠实现、自测、commit（有 shell 就自己提交）
+   → 执行主管跑测试、审 diff、push、等 CI
+   → 考官独立复核，给「可发布 / 不可发布」+ 证据
+   → 执行主管汇总三行摘要给主持 → 主持拍板发布
+   → 执行主管更新 CHANGELOG/TODO/HANDOFF
 ```
 
-**Lead 的成本控制**：每轮只读三行摘要；每 3 个批次抽 1 次看关键 diff。
+**主持的成本控制**：每轮只读三行摘要；每 3 个批次抽 1 次看关键 diff。
 
 规则：
 - 同一文件同时只允许一个写入者。

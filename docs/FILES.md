@@ -137,6 +137,7 @@
 | `AGENTS.md` | 工作守则 | 保留 |
 | `README.md` | 项目总览 | 保留 |
 | `docs/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
+| `docs/AUDIT.md` | 督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
 | `docs/HANDOFF.md` | 交接文档（2026-11-12 05:25） | 保留 |
@@ -156,6 +157,7 @@
 | `docs/roles/artisan.md` | 工匠（artisan）提示词 | 保留 |
 | `docs/roles/auditor.md` | 督导（auditor）提示词 | 保留 |
 | `docs/roles/examiner.md` | 考官（examiner）提示词 | 保留 |
+| `docs/roles/steward.md` | 执行主管（steward）提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
 ## 构建
@@ -257,4 +259,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 193 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 195 个文件（不含 `native-emu/third_party/` 第三方源码）。
