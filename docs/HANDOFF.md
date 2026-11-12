@@ -74,17 +74,26 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
   备注 `dsh-phone`；`~/.ssh/config` 里指定了 `IdentityFile`。
 - **git push 不需要 token**：SSH 直接可用。账号里的旧 token `native-emu-push` 已于 2026-11-12 删除，
   现在没有任何经典 token。
-- **但发 Release 仍要 API 凭据**（SSH 只能推 git，不能调 API）。做法：临时生成一个 7 天的
-  `repo` token，用完即删；或在 GitHub 网页上手动发 Release。切勿把 token 写进仓库/文档。
+- **发 Release 也不需要 token 了**：CI 构建成功后用仓库自带的 `GITHUB_TOKEN` 自动发
+  `build-<sha>`（workflow 里 `permissions: contents: write`），失败不会发（不会出现旧包）。
 - 换设备/换容器时：生成本机密钥 → 把公钥加到 GitHub → 改 remote 为 SSH，
   不要在聊天或文档里贴私钥。
 
-## 六·五、安全债（考官 2026-11-12 提出）
+## 六·五、签名与安全债（2026-11-12 已处置）
 
-- **签名私钥在公开仓库里**：`native-emu/app/keystore.jks` + 文档里的固定口令。仓库是 public，
-  等于签名私钥公开——理论上任何人只要拿到推送权限就能签一个「同签名」的包，App 会当正常更新收下。
-  彻底解决要轮换签名，但会导致已装 App 无法覆盖升级（要卸载重装），所以先记录、不贸然动。
-- 凭据纪律：私钥/token 不进仓库、不进文档、不进聊天；用 SSH 密钥代替 token。
+- **签名已轮换**：旧 `keystore.jks` 曾随公开仓库泄露，已从版本库移除并换新密钥。
+- 新密钥只存在于两处：GitHub Actions secret（`ANDROID_KEYSTORE_B64` / `STORE_PASSWORD` /
+  `KEY_PASSWORD`，别名 `emu`）和本机 `native-emu/app/keystore.jks`（已 `.gitignore`）。**不进仓库。**
+- **旧包签名不兼容**：从 `build-dabb301` 起是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
+- 构建成功自动发 Release，不会再把失败构建的旧包发出去。
+- 仍然成立的老规矩：凭据/私钥不进仓库、不进文档、不进聊天。
+
+## 六·六、GitHub 资源 CDN 在手机上不通
+
+- 现象：App 内 OTA 下载卡 0%，Release 附件直连 `objects.githubusercontent.com` 经常 SSL EOF。
+- 可用做法：走 API 端点 `repos/<o>/<r>/releases/assets/<id>`（带 `Accept: application/octet-stream`）
+  下载，或用文件管理器/代理下好后手动安装。
+- 已知未修：App 的 OTA 没有重试与错误码外显（日志已加，见 `ota.log`）。
 
 ## 七、注意
 
