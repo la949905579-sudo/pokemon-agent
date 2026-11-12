@@ -3,6 +3,15 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.12-3（NativeEmu v0.4.1）
+### 新增
+- 存档改成 3 个卡槽（`state1-3.sav`），显示保存时间，支持存档/读取/删除
+- 覆盖、读取、删除都有 3 秒二次确认，避免误触丢进度
+
+### 变更
+- `MainActivity.kt` 拆分：963 → 536 行，界面代码移到 `ui/`（KeyPad/BattlePage/MapPage/Tabs/Pages/Theme/SaveSlots）
+- 纯搬移，无行为变更；单测 47 → 52（新增存档槽位用例）
+
 ## v2026.11.12-2（NativeEmu v0.4）
 ### 新增
 - 下屏底部常驻「按键」折叠条（点击开合/下滑收起），战斗中也可见；按键面板是唯一入口

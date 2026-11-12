@@ -53,7 +53,7 @@
 ## 待办（按优先级）
 
 ### P1 · 下屏
-- [ ] **存档卡槽**（方案已定，未做）：3 个槽位，显示保存时间 + 存档/读档/删除；文件 `state1-3.sav`；点存档直接写当前槽
+- [x] **存档卡槽**：3 个槽位（`state1-3.sav`），显示时间，存档/读取/删除，覆盖·读取·删除均二次确认
 - [x] **队伍详情字段补全**：属性、4 招式 + PP、经验与升级进度（`0ac6009`）
 - [ ] **行走路径提示**：点地图先画路线（黄线 + 终点）+ 显示步数 +「开始走」按钮，替代现在点了就走
 
@@ -81,8 +81,8 @@
 
 - [ ] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4 from state import ...` —— 循环依赖，
       STRUCTURE §三 判定违规；现在靠延迟导入不炸，重构时必须拆（把共享常量提到 `platform/`）
-- [ ] `MainActivity.kt` **963 行**（B/C/D 已完成，必须拆了）：拆成
-      `ui/KeyPad.kt`、`ui/BattlePage.kt`、`ui/MapPage.kt`、`ui/SideTabs.kt`（P2）
+- [x] `MainActivity.kt` 拆分：963 → **536 行**，已拆出 `ui/KeyPad`、`ui/BattlePage`、`ui/MapPage`、`ui/Tabs`、`ui/Theme`、`ui/Pages`、`ui/SaveSlots`
+      （剩 `EmuView`/`parseStatus`/`walkTo` 可继续迁，未做）
 - [ ] 按键状态清理统一走一个函数（`keysOpen=false` 时必须同时 `keys=0; EmuCore.setKeys(0)`），
       已在 A 提交里发现 Tab 路径漏清 → 见 INC-005
 
