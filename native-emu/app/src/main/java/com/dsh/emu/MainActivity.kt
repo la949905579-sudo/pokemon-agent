@@ -343,7 +343,7 @@ fun AppScreen(activity: MainActivity) {
                                     }.padding(vertical = 6.dp))
                             }
                         }
-                        tabPage == Page.MAP -> MinimapPage(status) { tx, ty ->
+                        tabPage == Page.MAP -> TownMapPage(status) { tx, ty ->
                             walkTo(activity, status, tx, ty)
                         }
                         tabPage == Page.TEAM -> TeamPage(status)
@@ -365,10 +365,14 @@ fun AppScreen(activity: MainActivity) {
                         "存档" to Page.SAVE, "设置" to Page.OPTION,
                     )
                     for ((label, p2) in tabs) {
-                        TabButton(label, tabPage == p2, Modifier.weight(1f)) {
+                        // 设置页里的「更新」子页也算设置 Tab 处于打开状态
+                        val active = tabPage == p2 ||
+                            (p2 == Page.OPTION && tabPage == Page.UPDATE)
+                        TabButton(label, active, Modifier.weight(1f)) {
                             showRoms = false
                             closeKeys()
-                            tabPage = p2
+                            // 再点同一个 Tab = 关闭，回到常驻页；点别的 Tab = 直接切换
+                            tabPage = if (tabPage == p2) null else p2
                         }
                     }
                 }
@@ -448,8 +452,16 @@ private fun BarButton(label: String, active: Boolean, onClick: () -> Unit) {
             .padding(horizontal = 22.dp, vertical = 6.dp))
 }
 
+/**
+ * 「地图」Tab：当前所在城镇/道路的整张 tile 地图，点格子会真按方向键走过去。
+ * 与常驻的 CurrentMapPage（以玩家为中心的只读视口）是两个独立组件，别复用。
+ */
 @Composable
-private fun MinimapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit = { _, _ -> }) {
+private fun TownMapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit) {
+    if (s.mmTiles == null || s.mmW <= 0 || s.mmH <= 0) {
+        PlaceholderPage("地图", "等待地图数据…")
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).background(Color(0xFF14200F), RoundedCornerShape(12.dp))) {
             androidx.compose.foundation.Canvas(
@@ -463,36 +475,29 @@ private fun MinimapPage(s: EmuStatus, onWalk: (Int, Int) -> Unit = { _, _ -> }) 
                         }
                     }
             ) {
-                val w = s.mmW.coerceAtLeast(1)
-                val h = s.mmH.coerceAtLeast(1)
+                val w = s.mmW
+                val h = s.mmH
                 val cw = size.width / w
                 val ch = size.height / h
                 val tiles = s.mmTiles
                 for (y in 0 until h) for (x in 0 until w) {
-                    val pass = tiles?.getOrNull(y)?.getOrNull(x)?.let { it == 1 } ?: true
+                    val pass = tiles?.getOrNull(y)?.getOrNull(x) == 1
                     drawRect(
                         color = if (pass) Color(0xFF2E4B2A) else Color(0xFF0D0D0D),
-                        topLeft = androidx.compose.ui.geometry.Offset(x * cw, y * ch),
-                        size = androidx.compose.ui.geometry.Size(cw - 0.5f, ch - 0.5f),
+                        topLeft = Offset(x * cw, y * ch),
+                        size = Size(cw - 0.5f, ch - 0.5f),
                     )
                 }
-                // 玩家位置（按比例映射到格子）
-                val px = (s.mmPx.toFloat() / w).coerceIn(0f, 0.999f)
-                val py = (s.mmPy.toFloat() / h).coerceIn(0f, 0.999f)
-                drawCircle(Color(0xFFFF4040), radius = minOf(cw, ch) * 0.45f,
-                    center = androidx.compose.ui.geometry.Offset(px * size.width + cw / 2, py * size.height + ch / 2))
+                // 玩家位置（tile 坐标，和状态里一致）
+                drawCircle(
+                    color = Color(0xFFFF4040),
+                    radius = minOf(cw, ch) * 0.45f,
+                    center = Offset((s.mmPx + 0.5f) * cw, (s.mmPy + 0.5f) * ch),
+                )
             }
         }
-        Spacer(Modifier.height(6.dp))
-        if (s.battle.isNotBlank()) Text("⚔ ${s.battle}", color = Color(0xFFFFB060), fontSize = 12.sp)
-        for (m in s.team) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(m.name, color = TXT, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                Text("Lv${m.lv}", color = DIM, fontSize = 11.sp, modifier = Modifier.width(48.dp))
-                Text("${m.hp}/${m.max}", color = if (m.max > 0 && m.hp * 3 < m.max) Color(0xFFFF6060) else TXT, fontSize = 11.sp)
-            }
-        }
-        if (s.team.isEmpty()) Text("等待 Python 推送状态…", color = DIM, fontSize = 11.sp)
+        Text("点格子前往（会真按方向键移动角色）", color = DIM, fontSize = 10.sp,
+            modifier = Modifier.padding(top = 4.dp))
     }
 }
 
