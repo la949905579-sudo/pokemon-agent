@@ -109,7 +109,14 @@ class MainActivity : ComponentActivity() {
         }
         romReadyState.value = ok
         statusText.value = if (ok) rom.name.take(24) else "初始化失败（重试 4 次）"
-        if (ok) { EmuCore.start(); runningState.value = true }
+        if (ok) {
+            EmuCore.start()
+            runningState.value = true
+            // 读 ROM 的 BaseStats 表拿成长类型（16MB 扫描，必须放后台）
+            try {
+                Thread { com.dsh.emu.game.Growth.prepare(rom) }.start()
+            } catch (_: Throwable) {}
+        }
     }
 }
 
@@ -193,6 +200,9 @@ data class TeamMon(
     val types: List<String> = emptyList(),
     val moves: List<TeamMove> = emptyList(),
     val exp: Long = -1L,
+    /** 当前等级的经验下限 / 下一级阈值；-1 = 数据不够（UI 显示 --） */
+    val expCur: Long = -1L,
+    val expNext: Long = -1L,
 )
 data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
@@ -229,7 +239,9 @@ private fun parseStatus(json: String): EmuStatus {
                     }
                 }
                 team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max"),
-                    types, moves, if (t.has("exp")) t.optLong("exp") else -1L))
+                    types, moves, if (t.has("exp")) t.optLong("exp") else -1L,
+                    if (t.has("expCur")) t.optLong("expCur") else -1L,
+                    if (t.has("expNext")) t.optLong("expNext") else -1L))
             }
         }
         val mm = o.optJSONObject("minimap")
@@ -753,7 +765,18 @@ private fun TeamPage(s: EmuStatus) {
             androidx.compose.material3.LinearProgressIndicator(
                 progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
                 modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
-            Text(if (m.exp >= 0) "经验 ${m.exp}" else "经验 --", color = TXT, fontSize = 13.sp)
+            // 经验进度：阈值数据不够（未知物种/满级/ROM 没读到）就显示 --，不崩
+            if (m.exp >= 0 && m.expCur >= 0 && m.expNext > m.expCur) {
+                val remain = (m.expNext - m.exp).coerceAtLeast(0)
+                Text("经验 ${m.exp} / ${m.expNext}（还差 $remain 升级）", color = TXT, fontSize = 12.sp)
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = {
+                        ((m.exp - m.expCur).toFloat() / (m.expNext - m.expCur)).coerceIn(0f, 1f)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(6.dp), color = Color(0xFF6FA8FF))
+            } else {
+                Text(if (m.exp >= 0) "经验 ${m.exp}（升级阈值 --）" else "经验 --", color = TXT, fontSize = 12.sp)
+            }
             Spacer(Modifier.height(8.dp))
             Text("招式", color = DIM, fontSize = 11.sp)
             for (i in 0 until 4) {
@@ -873,6 +896,12 @@ private fun buildLocalStatusJson(): String {
             }
             t.put("moves", moves)
             t.put("exp", m.exp)
+            // 升级进度：成长类型从 ROM BaseStats 读（读不到回退标准表），拿不到就不带这两个字段
+            val prog = com.dsh.emu.game.Growth.progress(m.species, m.lv, m.exp)
+            if (prog != null) {
+                t.put("expCur", prog.cur)
+                t.put("expNext", prog.next)
+            }
             team.put(t)
         }
         o.put("team", team)
