@@ -1,50 +1,50 @@
 {
-  "generatedAt": "2026-11-12T12:14:46.782Z",
+  "generatedAt": "2026-11-12T12:33:53.838Z",
   "windowSince": null,
   "totals": {
-    "inputTokens": 2396073,
-    "outputTokens": 1089837,
-    "cacheReadTokens": 448909440,
+    "inputTokens": 2442947,
+    "outputTokens": 1134479,
+    "cacheReadTokens": 474568832,
     "cacheWriteTokens": 0,
-    "totalTokens": 452395350
+    "totalTokens": 478146258
   },
   "sessionsCount": 8,
   "byRole": [
     {
       "role": "主会话（未标注职位）",
       "sessions": 2,
-      "inputTokens": 1116990,
-      "outputTokens": 400262,
-      "cacheReadTokens": 283035264,
+      "inputTokens": 1120336,
+      "outputTokens": 404588,
+      "cacheReadTokens": 289313664,
       "cacheWriteTokens": 0,
-      "totalTokens": 284552516
+      "totalTokens": 290838588
     },
     {
       "role": "工匠",
       "sessions": 2,
-      "inputTokens": 744884,
-      "outputTokens": 382604,
-      "cacheReadTokens": 118278528,
+      "inputTokens": 757439,
+      "outputTokens": 397115,
+      "cacheReadTokens": 127369216,
       "cacheWriteTokens": 0,
-      "totalTokens": 119406016
+      "totalTokens": 128523770
     },
     {
       "role": "执行主管",
       "sessions": 1,
-      "inputTokens": 150407,
-      "outputTokens": 154877,
-      "cacheReadTokens": 35209984,
+      "inputTokens": 169661,
+      "outputTokens": 171142,
+      "cacheReadTokens": 43400192,
       "cacheWriteTokens": 0,
-      "totalTokens": 35515268
+      "totalTokens": 43740995
     },
     {
       "role": "考官",
       "sessions": 2,
-      "inputTokens": 347585,
-      "outputTokens": 135209,
-      "cacheReadTokens": 11889280,
+      "inputTokens": 359304,
+      "outputTokens": 144749,
+      "cacheReadTokens": 13989376,
       "cacheWriteTokens": 0,
-      "totalTokens": 12372074
+      "totalTokens": 14493429
     },
     {
       "role": "督导",
@@ -60,50 +60,50 @@
     {
       "id": "session-b3505b33-06a3-426a-a3ab-55969e7b8d46",
       "role": "主会话（未标注职位）",
-      "turns": 109,
+      "turns": 115,
       "start": 1794329995728,
-      "end": 1794485484573,
-      "inputTokens": 1061226,
-      "outputTokens": 370387,
-      "cacheReadTokens": 281310208,
+      "end": 1794486785157,
+      "inputTokens": 1064572,
+      "outputTokens": 374713,
+      "cacheReadTokens": 287588608,
       "cacheWriteTokens": 0,
-      "totalTokens": 282741821
+      "totalTokens": 289027893
     },
     {
       "id": "d25bd035-22ca-400c-9e20-76be13a25f6f",
       "role": "工匠",
-      "turns": 13,
+      "turns": 14,
       "start": 1794446612119,
-      "end": 1794485373533,
-      "inputTokens": 681598,
-      "outputTokens": 321738,
-      "cacheReadTokens": 115200768,
+      "end": 1794486575335,
+      "inputTokens": 694153,
+      "outputTokens": 336249,
+      "cacheReadTokens": 124291456,
       "cacheWriteTokens": 0,
-      "totalTokens": 116204104
+      "totalTokens": 125321858
     },
     {
       "id": "df6cdb1c-cd6d-4aa1-838e-c401ba7ae86a",
       "role": "执行主管",
-      "turns": 5,
+      "turns": 6,
       "start": 1794481554993,
-      "end": 1794485685881,
-      "inputTokens": 150407,
-      "outputTokens": 154877,
-      "cacheReadTokens": 35209984,
+      "end": 1794486827682,
+      "inputTokens": 169661,
+      "outputTokens": 171142,
+      "cacheReadTokens": 43400192,
       "cacheWriteTokens": 0,
-      "totalTokens": 35515268
+      "totalTokens": 43740995
     },
     {
       "id": "6802b98e-9170-4e1a-97b0-5b442aac7821",
       "role": "考官",
-      "turns": 7,
+      "turns": 8,
       "start": 1794446628763,
-      "end": 1794485475838,
-      "inputTokens": 228219,
-      "outputTokens": 96218,
-      "cacheReadTokens": 9715072,
+      "end": 1794486654565,
+      "inputTokens": 239938,
+      "outputTokens": 105758,
+      "cacheReadTokens": 11815168,
       "cacheWriteTokens": 0,
-      "totalTokens": 10039509
+      "totalTokens": 12160864
     },
     {
       "id": "f5f837fd-511d-4c46-87c3-53af77693379",
@@ -165,11 +165,11 @@
     },
     {
       "day": "2026-11-12",
-      "inputTokens": 2364787,
-      "outputTokens": 1067678,
-      "cacheReadTokens": 447847552,
+      "inputTokens": 2411661,
+      "outputTokens": 1112320,
+      "cacheReadTokens": 473506944,
       "cacheWriteTokens": 0,
-      "totalTokens": 451280017
+      "totalTokens": 477030925
     }
   ],
   "dupReads": {
