@@ -164,7 +164,7 @@
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
 | `docs/roles/artisan.md` | 工匠提示词 | 保留 |
-| `docs/roles/auditor.md` | 督导提示词 | 保留 |
+| `docs/roles/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
 | `docs/roles/examiner.md` | 考官提示词 | 保留 |
 | `docs/roles/steward.md` | 执行主管提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
