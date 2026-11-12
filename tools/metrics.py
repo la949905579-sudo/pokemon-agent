@@ -329,7 +329,10 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             "",
         ]
     local = local_verification()
-    lines += ["## 五、本机验证（最近一次真实运行）", ""]
+    lines += ["## 五、本机验证（最近一次真实运行）", "",
+              "> 记录来源：`tools/test_results.json` 是**执行主管**在每次真实跑完测试后更新的度量快照",
+              "> （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，",
+              "> 因此入库保留、便于跨会话核对；不是脚本自动生成。", ""]
     if local:
         lines += [f"- 更新时间：{local.get('updated', '未知')}", ""]
         lines += ["| 测试 | 数量 | 结果 | 时间 | 命令 |", "|---|---|---|---|---|"]
