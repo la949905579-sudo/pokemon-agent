@@ -163,10 +163,11 @@
 | `docs/TEAM.md` | 团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
+| `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/roles/artisan.md` | 工匠提示词 | 保留 |
 | `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
-| `docs/roles/audit-lead.md` | 督导主持（audit-lead）提示词 | 保留 |
+| `docs/roles/audit-lead.md` | 督导主持（audit-lead）启动提示词 | 保留 |
 | `docs/roles/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
 | `docs/roles/examiner.md` | 考官提示词 | 保留 |
 | `docs/roles/steward.md` | 执行主管提示词 | 保留 |
@@ -277,4 +278,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 213 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 214 个文件（不含 `native-emu/third_party/` 第三方源码）。
