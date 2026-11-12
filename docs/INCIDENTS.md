@@ -16,6 +16,16 @@
 
 ---
 
+## INC-004 Lead 的 `git add -A` 卷走了队友的未提交改动（2026-11-12）
+- 现象：`1ba8bc5`「feat: 会话健康检查脚本…」实际含 docs + `session_health.mjs` +
+  两支 Kotlin 改动（队伍详情、OTA 日志/回调），提交信息与内容不符。
+- 根因：队友 `artisan` 同时在工作区改文件（尚未 commit），Lead 执行了 `git add -A` 一并打包；
+  CI 自动发版时把这条 message 当成了 OTA 更新说明。
+- 影响：追溯性受损、OTA 说明词不达意；内容本身正确、无丢失。
+- 处置：不重写已推历史（避免二次强推）；记录在案，后续由新提交覆盖说明。
+- 固化：**Lead 提交前必须 `git status` 逐文件确认，禁止 `git add -A`**；队友有 shell 后，
+  改动应由队友自己 commit，Lead 只做 review + push。
+
 ## INC-003 交接文档写了不存在的文件（2026-11-12）
 - 现象：`tools/gen_files_index.py` 的 OVERRIDES 里有一条 `incident_notes.md`，仓库中并无此文件。
 - 根因：写生成器时凭印象补条目，没有用 `ls` 核对。
