@@ -65,7 +65,11 @@ class PokemonFireRedPlugin:
                 tiles = None
                 if os.path.exists(path):
                     with open(path) as f:
-                        tiles = json.load(f).get("tiles")
+                        raw = json.load(f).get("tiles")
+                    # maps/*.json 存的是原始碰撞位（0=可走、非 0=挡）；推送前归一化成
+                    # 1=可走，与 Kotlin `MapData` / MapWalker 的约定一致（UI 按 1=可走渲染）。
+                    if raw:
+                        tiles = [[1 if v == 0 else 0 for v in row] for row in raw]
                 self._mm_cache[addr] = tiles
             out = {"w": w, "h": h, "px": px, "py": py, "tiles": self._mm_cache[addr]}
             self._mm_last = out

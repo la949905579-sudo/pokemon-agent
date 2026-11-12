@@ -203,6 +203,8 @@ data class TeamMon(
     /** 当前等级的经验下限 / 下一级阈值；-1 = 数据不够（UI 显示 --） */
     val expCur: Long = -1L,
     val expNext: Long = -1L,
+    /** 已满级（100 级没有下一级阈值，UI 显示「已满级」而不是 --） */
+    val expMax: Boolean = false,
 )
 data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
@@ -241,7 +243,8 @@ private fun parseStatus(json: String): EmuStatus {
                 team.add(TeamMon(t.optString("name", "?"), t.optInt("lv"), t.optInt("hp"), t.optInt("max"),
                     types, moves, if (t.has("exp")) t.optLong("exp") else -1L,
                     if (t.has("expCur")) t.optLong("expCur") else -1L,
-                    if (t.has("expNext")) t.optLong("expNext") else -1L))
+                    if (t.has("expNext")) t.optLong("expNext") else -1L,
+                    t.optBoolean("expMax", false)))
             }
         }
         val mm = o.optJSONObject("minimap")
@@ -290,6 +293,8 @@ fun AppScreen(activity: MainActivity) {
         keysOpen = false
         keys = 0
         EmuCore.setKeys(0)
+        // 同时取消正在进行的「点击前往」，否则角色会把剩余步数走完
+        WalkControl.generation++
     }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
@@ -391,7 +396,12 @@ fun AppScreen(activity: MainActivity) {
             }
             // 常驻折叠条：任何页面（包括战斗中）都能打开按键面板
             KeyBar(keysOpen) {
-                if (keysOpen) closeKeys() else keysOpen = true
+                if (keysOpen) {
+                    closeKeys()
+                } else {
+                    WalkControl.generation++   // 打开面板也算离开地图操作，先停掉正在走的路线
+                    keysOpen = true
+                }
             }
         }
     }
@@ -765,8 +775,13 @@ private fun TeamPage(s: EmuStatus) {
             androidx.compose.material3.LinearProgressIndicator(
                 progress = { if (m.max > 0) m.hp.toFloat() / m.max else 0f },
                 modifier = Modifier.fillMaxWidth().height(6.dp), color = GREEN)
-            // 经验进度：阈值数据不够（未知物种/满级/ROM 没读到）就显示 --，不崩
-            if (m.exp >= 0 && m.expCur >= 0 && m.expNext > m.expCur) {
+            // 经验进度：满级单独显示；阈值数据不够（未知物种/ROM 没读到）显示 --，不崩
+            if (m.expMax) {
+                Text(if (m.exp >= 0) "经验 ${m.exp}（已满级）" else "已满级", color = TXT, fontSize = 12.sp)
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { 1f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp), color = Color(0xFF6FA8FF))
+            } else if (m.exp >= 0 && m.expCur >= 0 && m.expNext > m.expCur) {
                 val remain = (m.expNext - m.exp).coerceAtLeast(0)
                 Text("经验 ${m.exp} / ${m.expNext}（还差 $remain 升级）", color = TXT, fontSize = 12.sp)
                 androidx.compose.material3.LinearProgressIndicator(
@@ -896,11 +911,16 @@ private fun buildLocalStatusJson(): String {
             }
             t.put("moves", moves)
             t.put("exp", m.exp)
-            // 升级进度：成长类型从 ROM BaseStats 读（读不到回退标准表），拿不到就不带这两个字段
-            val prog = com.dsh.emu.game.Growth.progress(m.species, m.lv, m.exp)
-            if (prog != null) {
-                t.put("expCur", prog.cur)
-                t.put("expNext", prog.next)
+            // 升级进度：成长类型从 ROM BaseStats 读（读不到回退标准表），拿不到就不带这两个字段。
+            // 满级没有「下一级阈值」，单独标出来，UI 显示「已满级」。
+            if (m.lv >= 100) {
+                t.put("expMax", true)
+            } else {
+                val prog = com.dsh.emu.game.Growth.progress(m.species, m.lv, m.exp)
+                if (prog != null) {
+                    t.put("expCur", prog.cur)
+                    t.put("expNext", prog.next)
+                }
             }
             team.put(t)
         }
@@ -934,6 +954,27 @@ private fun buildLocalStatusJson(): String {
 }
 
 
+/**
+ * 「点击前往」的取消代际：closeKeys()（点 Tab / 载入 ROM / 收按键面板）会把 generation +1，
+ * 后台线程每走一步都检查代际；不一致就立刻停，不会把剩余步数走完。
+ */
+private object WalkControl {
+    @Volatile
+    var generation = 0
+}
+
+/** 可中断的 sleep：每 20ms 看一次代际，取消后能尽快停（不用等满 180ms）。 */
+private fun interruptibleSleep(ms: Long, myGen: Int): Boolean {
+    var left = ms
+    while (left > 0) {
+        if (myGen != WalkControl.generation) return false
+        val chunk = if (left < 20L) left else 20L
+        try { Thread.sleep(chunk) } catch (_: InterruptedException) { return false }
+        left -= chunk
+    }
+    return myGen == WalkControl.generation
+}
+
 /** 点击小地图走到目标格：BFS 算方向序列，再逐个按键。 */
 private fun walkTo(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
     val tiles = s.mmTiles ?: run {
@@ -946,18 +987,26 @@ private fun walkTo(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
     if (steps == null) { activity.statusText.value = "走不到 ($tx,$ty)"; return }
     if (steps.isEmpty()) { activity.statusText.value = "已经在这里"; return }
     activity.statusText.value = "前往 ($tx,$ty)：${steps.size} 步"
+    // 新的一次前往会让旧线程失效（代际自增），避免两次点击叠着走
+    val myGen = ++WalkControl.generation
     Thread {
-        for (dir in steps) {
-            val mask = when (dir) {
-                "UP" -> com.dsh.emu.EmuCore.KEY_UP
-                "DOWN" -> com.dsh.emu.EmuCore.KEY_DOWN
-                "LEFT" -> com.dsh.emu.EmuCore.KEY_LEFT
-                else -> com.dsh.emu.EmuCore.KEY_RIGHT
+        try {
+            for (dir in steps) {
+                if (myGen != WalkControl.generation) break
+                val mask = when (dir) {
+                    "UP" -> com.dsh.emu.EmuCore.KEY_UP
+                    "DOWN" -> com.dsh.emu.EmuCore.KEY_DOWN
+                    "LEFT" -> com.dsh.emu.EmuCore.KEY_LEFT
+                    else -> com.dsh.emu.EmuCore.KEY_RIGHT
+                }
+                com.dsh.emu.EmuCore.setKeys(mask)
+                if (!interruptibleSleep(180, myGen)) break
+                com.dsh.emu.EmuCore.setKeys(0)
+                if (!interruptibleSleep(90, myGen)) break
             }
-            com.dsh.emu.EmuCore.setKeys(mask)
-            try { Thread.sleep(180) } catch (_: InterruptedException) {}
+        } finally {
+            // 线程因取消退出时也要清按键，不能留着方向键一直走
             com.dsh.emu.EmuCore.setKeys(0)
-            try { Thread.sleep(90) } catch (_: InterruptedException) {}
         }
     }.start()
 }
