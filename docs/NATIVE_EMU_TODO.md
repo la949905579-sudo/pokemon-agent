@@ -1,6 +1,6 @@
 # NativeEmu 待办
 
-> 更新：2026-11-12 05:20（与 `git log` / `CHANGELOG v2026.11.12-1` 对齐）
+> 更新：2026-11-12 20:04（批次 A `8082f89`、批次 B `fdbf448`；见 `CHANGELOG v2026.11.12-4/-5`）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
@@ -59,8 +59,8 @@
 - [ ] **行走路径提示**：点地图先画路线（黄线 + 终点）+ 显示步数 +「开始走」按钮，替代现在点了就走
 
 ### P1 · 交互细节
-- [ ] `hintText` 通道：把「操作提示」和「常驻状态」（TCP/ROM 名）分开，避免启动时刷屏
-- [ ] 设置页「重置/退出」小屏可读性（两个并排按钮可能太挤，考虑整行）
+- [x] `hintText` 通道：把「操作提示」和「常驻状态」（TCP/ROM 名）分开，避免启动时刷屏 —— `8082f89`
+- [x] 设置页「重置/退出」小屏可读性：改成整行按钮（沿用 BarButton）—— `8082f89`
 
 ### P1 · 战斗
 - [ ] **招式点击施放**（风险最高，方案已定）：
@@ -71,7 +71,7 @@
 - [x] OTA 结构化日志（检查/下载进度/校验/安装，写 `/sdcard/Download/ota.log`）—— `aa126e0`
 - [x] 安装结果回调日志（`PACKAGE_ADDED` / `REPLACED`，超时/失败也记）
 - [x] 日志写入改异步（单线程队列，失败降级 logcat）
-- [ ] 桥（connect/cmd 失败）与帧循环异常按规范补日志
+- [x] 桥（connect/cmd 失败）与帧循环异常按规范补日志（`Nlog`，写 `emu_native.log`）—— `8082f89`
 
 ### P2 · 寻路
 - [ ] **A* 跨图移植**：`nav/pathfind` 的跨图逻辑搬到 Kotlin（同图 BFS 已完成）
@@ -81,6 +81,23 @@
 - [ ] 招式名补全（现在 55 条，完整 354 条缺数据源）
 - [ ] 自动化开关（工具页，需决策层接入）
 - [ ] 联机支持（GBA link cable，方案待调研）
+
+## 批次 A 遗留（2026-11-12，`8082f89` 合并时约定：不单独开构建，并入下一批）
+
+- [x] `statusBarState` 拆成 bridge / rom 两个状态：桥失败不再被 ROM 名覆盖 —— `fdbf448`（批次 B）
+- [x] `Nlog.throttlePass` 的 get→put 非原子 → 改 `ConcurrentHashMap.compute`，补并发单测 —— `fdbf448`
+- [x] `emu.frame.stall` 的 recover 未节流 → enter/recover 共用 10s 窗口 —— `fdbf448`
+- [x] 帧循环 `catch (Throwable)` → `catch (Exception)`，不吞 OOM —— `fdbf448`
+- [ ] **统一日志格式**（单独排）：`Growth`/`MapData` 仍是旧式行（无 event/k=v）；`OBSERVABILITY.md` §五
+      还写着 `bridge.log`（实际桥日志已改 `emu_native.log`）——把三套日志并到 `Nlog` 再改文档
+
+## 批次 B 遗留（2026-11-12，`fdbf448` 合并时约定：轻，并入下一批）
+
+- [ ] `emu.frame.stall` 的 enter/recover 共用 key 会把紧随其后的 recover 也压掉（只见 enter 不见 recover）
+      → 拆成 `stall:enter` / `stall:recover` 两个 key，各自 10s
+- [ ] 并发单测 `join(5_000)` 后没断言线程已结束 → 补 `assertFalse(t.isAlive)`，防慢机假通过
+- [ ] 帧循环里 `lockCanvas`/`lockHardwareCanvas` 的 `catch (Throwable)`（MainActivity 渲染段）也收窄到 `Exception`，
+      与「不吞 Error」口径一致
 
 ## 结构债（考官 2026-11-12 发现）
 

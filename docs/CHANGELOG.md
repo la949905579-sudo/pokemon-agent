@@ -3,6 +3,37 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.12-5（NativeEmu v0.4.2 · 批次 B 补丁包）
+### 修复
+- 顶部状态栏拆成「桥状态」「ROM 名」两个独立通道：桥启动失败显示「TCP 未启动」后，
+  载入 ROM 不会再把它覆盖掉（批次 A 遗留 1）
+- 日志限流 `throttlePass` 改为原子实现（`ConcurrentHashMap.compute`）：并发同一 key
+  一个窗口内只放行一条（批次 A 遗留 2）
+- `emu.frame.stall` 进入/恢复共用限流窗口：0/非 0 抖动最多 1 条/10s，不再连刷（批次 A 遗留 3）
+- 帧循环 `catch` 从 `Throwable` 收窄到 `Exception`：OOM 等 Error 不再被吞（批次 A 遗留 4）
+
+### 测试
+- Kotlin 单测 65 → 67（新增限流顺序窗口 + 16 线程并发原子性两条）
+
+### 已知遗留
+- 见 `docs/NATIVE_EMU_TODO.md`「批次 B 遗留」（stall 日志 key 拆分、并发单测断言、lockCanvas catch 收窄，均轻）
+
+## v2026.11.12-4（NativeEmu v0.4.2 · 批次 A）
+### 新增
+- 下屏顶部状态栏常驻显示 TCP 桥状态与当前 ROM 名；操作反馈（存档/读档/重置…）走临时行，
+  2.8 秒消失——启动不再闪一条「TCP :55401」
+- 结构化运行日志 `Nlog`：桥连接/断开/命令失败、帧速度切换/卡帧/异常写
+  `/sdcard/Download/emu_native.log`；只记失败与状态变化（同一错误 10s 限流），5MB 滚动，
+  写日志不阻塞渲染、不外抛
+
+### 变更
+- 设置页「重置」「退出」改为整行按钮（沿用 BarButton），小屏文字不挤
+- Kotlin 单测 57 → 65（新增 `NlogTest` 8 条）
+
+### 已知遗留
+- 见 `docs/NATIVE_EMU_TODO.md`「批次 A 遗留」：状态栏拆双通道、限流原子性、卡帧恢复节流、
+  catch 范围、统一日志格式（均轻，不单独开构建）
+
 ## v2026.11.12-3（NativeEmu v0.4.1）
 ### 新增
 - 存档改成 3 个卡槽（`state1-3.sav`），显示保存时间，支持存档/读取/删除
