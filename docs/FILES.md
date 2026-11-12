@@ -158,11 +158,13 @@
 | `docs/OBSERVABILITY.md` | 可观测性规范（OBSERVABILITY） | 保留 |
 | `docs/PORTING.md` | 移植指南：换一个宝可梦游戏怎么改 | 保留 |
 | `docs/PROJECT_PLAN.md` | 项目规划：从「一个游戏的自动化」到「一个模拟器平台 + 多个游戏插件」 | 保留 |
+| `docs/README.md` | docs/ 目录说明 | 保留 |
 | `docs/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/STRUCTURE.md` | 项目结构规范（STRUCTURE） | 保留 |
 | `docs/TEAM.md` | A 队团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
+| `docs/archive/README.md` | docs/archive/ — 归档区 | 保留 |
 | `docs/audit/ACTIONS.md` | 整改建议清单（B → A 队，2026-11-12） | 保留 |
 | `docs/audit/COST-20261112.md` | 成本巡检 2026-11-12 | 保留 |
 | `docs/audit/REPORT-20261112.md` | 审查报告 2026-11-12（窗口：当日提交，终点 `12afa7c`，审查时 HEAD `3decf36`） | 保留 |
@@ -291,4 +293,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 227 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 229 个文件（不含 `native-emu/third_party/` 第三方源码）。
