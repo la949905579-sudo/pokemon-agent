@@ -326,6 +326,8 @@ fun AppScreen(activity: MainActivity) {
         EmuCore.setKeys(0)
         // 同时取消正在进行的「点击前往」，否则角色会把剩余步数走完
         WalkControl.generation++
+        // 同时取消正在进行的「点击招式施放」（战斗里切页/收面板/载 ROM 都走这里）
+        BattleMoveAction.cancel()
         // 行走预览也一起清（点 Tab / 载入 ROM / 收面板都算离开地图操作）
         activity.walkPlanState.value = null
     }
@@ -426,7 +428,9 @@ fun AppScreen(activity: MainActivity) {
                             onRom = { activity.refreshRoms(); showRoms = true })
                         tabPage == Page.UPDATE -> UpdatePage(activity)
                         // 没手动开 Tab：常驻页自动切换（战斗中战斗页 / 否则整张城镇图）
-                        else -> if (inBattle) BattlePage(status) else TownMapPage(
+                        else -> if (inBattle) BattlePage(status, onCastMove = { idx ->
+                            BattleMoveAction.cast(activity, idx)
+                        }) else TownMapPage(
                             s = status,
                             preview = activity.walkPlanState.value,
                             mapId = currentMapId(),
@@ -564,7 +568,9 @@ private fun buildLocalStatusJson(): String {
             val moves = org.json.JSONArray()
             for (mid in com.dsh.emu.game.GameState.myMoves()) {
                 val info = com.dsh.emu.game.GameData.moves[mid]
-                moves.put(if (info != null) info.first else "")
+                // 招式名表未覆盖的招（P3 待补全）显示 #id，保证格子仍可点；
+                // 0 = 空槽，显示—并禁用。
+                moves.put(if (info != null) info.first else if (mid != 0) "#$mid" else "")
             }
             val me = org.json.JSONObject()
             me.put("lv", party.firstOrNull()?.lv ?: 0)
