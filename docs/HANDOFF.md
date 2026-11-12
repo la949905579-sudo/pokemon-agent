@@ -27,7 +27,7 @@
 - **最新构建 = 推送 tip `2c237da`**：CI run 43193673121 success（2026-11-12 17:41 +0800），
   Release `build-2c237daebddc30…`（17:43 发布）。该 tag 覆盖 3 个提交：
   `c13ee2e` / `9cfd5d0`（设置页「重置」「退出」）/ `2c237da`。
-- `2c237da` 之后到 HEAD 的 8 个提交**只改 `docs/`**，不触及 `native-emu/**`，所以没有新构建，
+- `2c237da` 之后到 HEAD 的提交**只改 `docs/` 与 `tools/`**，不触及 `native-emu/**`，所以没有新构建，
   APK 不受影响。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
 - CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
   覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
