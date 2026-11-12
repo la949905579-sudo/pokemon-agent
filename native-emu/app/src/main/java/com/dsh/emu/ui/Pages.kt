@@ -186,23 +186,17 @@ internal fun TeamPage(s: EmuStatus) {
     }
 }
 
-/** 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；覆盖和删除要 3 秒内二次确认。 */
+/** 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 */
 @Composable
 internal fun SavePage(activity: MainActivity, romReady: Boolean) {
-    var confirmSave by remember { mutableStateOf(-1) }
-    var confirmDelete by remember { mutableStateOf(-1) }
+    // 同一时刻只允许一个确认态：(操作, 槽位)
+    var confirming by remember { mutableStateOf<Pair<SlotAction, Int>?>(null) }
     var refresh by remember { mutableStateOf(0) }
-    // 第一次点「存档/删除」只进入确认态；3 秒内没再点就自动复原
-    LaunchedEffect(confirmSave) {
-        if (confirmSave >= 0) {
+    // 3 秒内没再点就自动复原
+    LaunchedEffect(confirming) {
+        if (confirming != null) {
             kotlinx.coroutines.delay(3000)
-            confirmSave = -1
-        }
-    }
-    LaunchedEffect(confirmDelete) {
-        if (confirmDelete >= 0) {
-            kotlinx.coroutines.delay(3000)
-            confirmDelete = -1
+            confirming = null
         }
     }
     val labels = remember(refresh) {
@@ -229,36 +223,43 @@ internal fun SavePage(activity: MainActivity, romReady: Boolean) {
 
     fun delete(slot: Int) {
         val f = SaveSlots.file(activity.filesDir, slot)
+        if (!f.isFile) {
+            activity.statusText.value = "槽 $slot 本来就是空的"
+            return
+        }
         val ok = try { f.delete() } catch (_: Throwable) { false }
         activity.statusText.value = if (ok) "槽 $slot 已删除" else "槽 $slot 删除失败"
         refresh++
     }
 
+    /** 三个按钮走同一个入口：该确认的进确认态，确认过的执行。 */
+    fun onAction(action: SlotAction, slot: Int, hasSave: Boolean, run: () -> Unit) {
+        if (SlotConfirm.shouldRunNow(action, slot, confirming, hasSave)) {
+            confirming = null
+            run()
+        } else {
+            confirming = action to slot
+        }
+    }
+
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         for (slot in 1..SaveSlots.COUNT) {
             val hasSave = SaveSlots.exists(activity.filesDir, slot)
+            val confirmingSave = confirming == (SlotAction.SAVE to slot)
+            val confirmingLoad = confirming == (SlotAction.LOAD to slot)
+            val confirmingDelete = confirming == (SlotAction.DELETE to slot)
             Column(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).padding(8.dp)) {
                 Text(labels[slot - 1], color = if (hasSave) TXT else DIM, fontSize = 13.sp)
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SlotButton(if (confirmSave == slot) "确认覆盖？" else "存档", confirmSave == slot) {
-                        when {
-                            confirmSave == slot -> { confirmSave = -1; save(slot) }
-                            hasSave -> { confirmSave = slot; confirmDelete = -1 }
-                            else -> save(slot)
-                        }
+                    SlotButton(if (confirmingSave) "确认覆盖？" else "存档", confirmingSave) {
+                        onAction(SlotAction.SAVE, slot, hasSave) { save(slot) }
                     }
-                    SlotButton("读取", false) {
-                        confirmSave = -1
-                        confirmDelete = -1
-                        load(slot)
+                    SlotButton(if (confirmingLoad) "确认读取？" else "读取", confirmingLoad) {
+                        onAction(SlotAction.LOAD, slot, hasSave) { load(slot) }
                     }
-                    SlotButton(if (confirmDelete == slot) "确认删除？" else "删除", confirmDelete == slot) {
-                        when {
-                            !hasSave -> activity.statusText.value = "槽 $slot 本来就是空的"
-                            confirmDelete == slot -> { confirmDelete = -1; delete(slot) }
-                            else -> { confirmDelete = slot; confirmSave = -1 }
-                        }
+                    SlotButton(if (confirmingDelete) "确认删除？" else "删除", confirmingDelete) {
+                        onAction(SlotAction.DELETE, slot, hasSave) { delete(slot) }
                     }
                 }
             }

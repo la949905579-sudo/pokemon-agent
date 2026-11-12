@@ -47,4 +47,28 @@ class SaveSlotsTest {
         SaveSlots.file(tmp.root, 2).writeText("x")
         assertTrue(SaveSlots.exists(tmp.root, 2))
     }
+
+    @Test
+    fun emptySlotActionsRunWithoutConfirm() {
+        // 空槽：三个操作都直接执行（各自负责给「空槽」提示），不用二次确认
+        for (a in listOf(SlotAction.SAVE, SlotAction.LOAD, SlotAction.DELETE)) {
+            assertTrue(SlotConfirm.shouldRunNow(a, 1, null, hasSave = false))
+        }
+    }
+
+    @Test
+    fun destructiveActionsNeedSecondClickOnSameSlot() {
+        // 有档：覆盖存档 / 读取 / 删除第一次都只进确认态
+        for (a in listOf(SlotAction.SAVE, SlotAction.LOAD, SlotAction.DELETE)) {
+            assertFalse(SlotConfirm.shouldRunNow(a, 2, null, hasSave = true))
+        }
+        // 第二次点同一操作同一槽 → 执行
+        for (a in listOf(SlotAction.SAVE, SlotAction.LOAD, SlotAction.DELETE)) {
+            assertTrue(SlotConfirm.shouldRunNow(a, 2, a to 2, hasSave = true))
+        }
+        // 换了槽或换了操作都不算确认
+        assertFalse(SlotConfirm.shouldRunNow(SlotAction.LOAD, 3, SlotAction.LOAD to 2, hasSave = true))
+        assertFalse(SlotConfirm.shouldRunNow(SlotAction.DELETE, 2, SlotAction.LOAD to 2, hasSave = true))
+        assertFalse(SlotConfirm.shouldRunNow(SlotAction.SAVE, 2, SlotAction.DELETE to 2, hasSave = true))
+    }
 }
