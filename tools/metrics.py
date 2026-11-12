@@ -232,7 +232,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
         "> 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。",
         "",
         f"- 生成时间：{now}（Asia/Shanghai）",
-        f"- HEAD：`{head}`",
+        f"- 生成时 HEAD：`{head}`（之后若有新提交属正常）",
         "- 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/INCIDENTS.md`",
         "",
         "## 一、CI 首次通过率（T4 判据）",
