@@ -144,7 +144,7 @@
 | `AGENTS.md` | 工作守则 | 保留 |
 | `README.md` | 项目总览 | 保留 |
 | `docs/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
-| `docs/AUDIT.md` | 督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
+| `docs/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
 | `docs/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
@@ -163,11 +163,18 @@
 | `docs/TEAM.md` | 团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
+| `docs/audit/ACTIONS.md` | 整改建议清单（B → A 队，2026-11-12） | 保留 |
+| `docs/audit/COST-20261112.md` | 成本巡检 2026-11-12 | 保留 |
+| `docs/audit/REPORT-20261112.md` | 审查报告 2026-11-12（窗口：当日提交，终点 `12afa7c`，审查时 HEAD `3decf36`） | 保留 |
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
+| `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
+| `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
+| `docs/org/README.md` | docs/org/ — 组织架构师接口 | 保留 |
+| `docs/roles/architect.md` | 组织架构师（architect）启动提示词 | 保留 |
 | `docs/roles/artisan.md` | 工匠提示词 | 保留 |
 | `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
-| `docs/roles/audit-lead.md` | 督导主持（audit-lead）启动提示词 | 保留 |
+| `docs/roles/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
 | `docs/roles/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
 | `docs/roles/examiner.md` | 考官提示词 | 保留 |
 | `docs/roles/steward.md` | 执行主管提示词 | 保留 |
@@ -278,4 +285,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 214 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 221 个文件（不含 `native-emu/third_party/` 第三方源码）。
