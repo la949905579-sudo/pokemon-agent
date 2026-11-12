@@ -17,21 +17,21 @@
 - **P1 插件化**：完成（`framework/` + `games/pokemon_firered/` + `run_game.py`，28 项 Python 测试）
 - **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
 - **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
-- **地图 Tab**：两步式——点格子只预览（黄线/终点/N 步），「开始走」才移动；常驻「当前地图」页只读（批次 D）
+- **地图交互**：非战斗常驻页 = 整张城镇图（点格子预览→开始走）；「地图」Tab 置灰不可点；15×9 视口代码保留未接入（批次 E）
 
 ## 二·五、构建与发布现状（2026-11-12 19:50 实测）
 
 - **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 提交，写死 hash 会立刻过期）。
-  最后一次**代码**提交是 `ea576e9`（批次 D 行走预览）；Python 侧最后代码提交 `81cfb2b`
+  最后一次**代码**提交是 `188bbe9`（批次 E 地图交换）；Python 侧最后代码提交 `81cfb2b`
   （循环依赖修复），都在最新构建覆盖内（见下）。
-  Python 测试 **29/29**；Kotlin 单测 **70/70**（考官本机实跑 + CI 构建含单测；见 `docs/METRICS.md`）。
-- **最新构建 = 推送 tip `401aeaa`（批次 D）**：CI 成功，Release tag
-  `build-401aeaa5bc39…`（2026-11-12 20:33 发布）；覆盖 `cbbd1f9`（C 遗留）、
-  `ea576e9`（行走预览）与 `401aeaa`（文档）。
-  此前：`build-ccc9bff…`（20:14，批次 C）、`build-930fe29…`（20:06，批次 B）、
-  `build-8082f89…`（19:48，批次 A）、`build-2c237da…`（17:43，覆盖 `c13ee2e` /
-  `9cfd5d0`（重置/退出）/ `2c237da`）。
-- 当前 HEAD 已包含批次 A/B/C/D 的 `native-emu/**` 改动（`8082f89`、`fdbf448`、`2a0fbc7`、`ea576e9`），APK 由 CI 构建；之后再有 docs/tools/py 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
+  Python 测试 **29/29**；Kotlin 单测 **71/71**（考官本机实跑 + CI 构建含单测；见 `docs/METRICS.md`）。
+- **最新构建 = 推送 tip `760b0c2`（批次 E）**：CI 成功，Release tag
+  `build-760b0c2bd975…`（2026-11-12 20:46 发布）；覆盖 `b6e8db3`（D 遗留）、
+  `188bbe9`（地图交换）与 `760b0c2`（文档）。
+  此前：`build-401aeaa…`（20:33，批次 D）、`build-ccc9bff…`（20:14，批次 C）、
+  `build-930fe29…`（20:06，批次 B）、`build-8082f89…`（19:48，批次 A）、
+  `build-2c237da…`（17:43，覆盖 `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
+- 当前 HEAD 已包含批次 A–E 的 `native-emu/**` 改动（`8082f89`、`fdbf448`、`2a0fbc7`、`ea576e9`、`188bbe9`），APK 由 CI 构建；之后再有 docs/tools/py 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
 - CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
   覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
 - 历史失败（03:51–05:26）的两层原因已修掉，留作教训：
