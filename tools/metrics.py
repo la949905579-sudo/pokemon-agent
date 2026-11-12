@@ -135,8 +135,15 @@ def uncovered_commits(tags):
     return rows
 
 
+CACHE = os.path.join(ROOT, "tools", "ci_runs_cache.json")
+
+
 def fetch_runs():
-    """GitHub Actions 全部运行记录；失败返回 None（网络或限流）。"""
+    """GitHub Actions 全部运行记录。
+
+    成功就写本地缓存；失败（限流/断网）时退回缓存，避免把 METRICS 的 CI 段写成“未知”。
+    返回 (runs, source)，source 形如 "live" 或 "cache(2026-11-12T11:20:00Z)"。
+    """
     runs, page = [], 1
     try:
         while True:
@@ -146,10 +153,20 @@ def fetch_runs():
             if len(batch) < 100 or len(runs) >= data.get("total_count", 0):
                 break
             page += 1
+        try:
+            json.dump({"fetchedAt": datetime.now(TZ).strftime("%Y-%m-%d %H:%M"),
+                       "runs": runs}, open(CACHE, "w", encoding="utf-8"))
+        except OSError:
+            pass
+        return runs, "live"
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError) as e:
-        print(f"⚠ 取 CI 数据失败（{e}），CI 指标标“未知”", file=sys.stderr)
-        return None
-    return runs
+        try:
+            cached = json.load(open(CACHE, encoding="utf-8"))
+            print(f"⚠ 取 CI 数据失败（{e}），沿用缓存 {cached.get('fetchedAt')}", file=sys.stderr)
+            return cached.get("runs", []), f"cache({cached.get('fetchedAt', '?')})"
+        except (OSError, ValueError):
+            print(f"⚠ 取 CI 数据失败（{e}），且无缓存，CI 指标标“未知”", file=sys.stderr)
+            return None, None
 
 
 def ci_stats(runs):
@@ -216,6 +233,15 @@ def local_verification():
         return None
 
 
+def token_baseline():
+    """读 tools/token_baseline.json：tools/token_report.mjs 产出的 token 成本基线（只报告）。"""
+    path = os.path.join(ROOT, "tools", "token_baseline.json")
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def incidents():
     path = os.path.join(ROOT, "docs", "INCIDENTS.md")
     try:
@@ -260,6 +286,8 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             f"| 最近 20 个 tip | {stats['recent_ok']} / {stats['recent_total']} | {pct(stats['recent_rate'])} | 判断当前趋势用这个 |",
             "",
             f"- 总运行次数 {stats['runs']}，其中重试/重复运行 {stats['retries']} 次。",
+            *([f"- 数据来源：本地缓存（GitHub API 本次限流/断网，缓存时间 {stats['source'][6:-1]}）"]
+              if str(stats.get("source", "")).startswith("cache") else []),
             f"- T4 阈值：全量首过率 < 70% **或 复发率 > 0** → 启动审查。",
             f"- 当前首过率 {pct(stats['rate'])}（{'触发' if stats['rate'] < 0.7 else '未触发'}）；"
             f"复发 {inc_relapse} 条（{'触发' if inc_relapse > 0 else '未触发'}）"
@@ -356,9 +384,52 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             "不要用 grep 计数冒充测试通过。", "",
         ]
 
+    token = token_baseline()
+    lines += ["## 六、token 成本（只报告，不设预算红线）", ""]
+    if token:
+        totals = token.get("totals", {})
+        roles = token.get("byRole", [])
+        total = totals.get("totalTokens", 0) or 1
+        lines += [
+            f"- 基线生成：{token.get('generatedAt', '未知')}（`node tools/token_report.mjs --since …` 可重算）",
+            f"- 会话数：{token.get('sessionsCount', '?')}；合计 input **{totals.get('inputTokens', 0):,}** / "
+            f"output **{totals.get('outputTokens', 0):,}** / cacheRead **{totals.get('cacheReadTokens', 0):,}** / "
+            f"total **{totals.get('totalTokens', 0):,}**",
+            "",
+            "| 职位 | 会话 | input | output | cacheRead | total | total 占比 |",
+            "|---|---|---|---|---|---|---|",
+        ]
+        for r in roles:
+            lines.append(
+                f"| {r.get('role', '?')} | {r.get('sessions', 0)} | {r.get('inputTokens', 0):,} | "
+                f"{r.get('outputTokens', 0):,} | {r.get('cacheReadTokens', 0):,} | {r.get('totalTokens', 0):,} | "
+                f"{r.get('totalTokens', 0) / total:.1%} |"
+            )
+        days = token.get("byDay", [])
+        if days:
+            lines += ["", "| 日期 | total | input | output | cacheRead |", "|---|---|---|---|---|"]
+            for d in days:
+                lines.append(
+                    f"| {d.get('day', '?')} | {d.get('totalTokens', 0):,} | {d.get('inputTokens', 0):,} | "
+                    f"{d.get('outputTokens', 0):,} | {d.get('cacheReadTokens', 0):,} |"
+                )
+        dup = token.get("dupReads", {})
+        if dup:
+            lines += ["", f"- 重复读同一文件：额外读 **{dup.get('extra', 0)}** 次"
+                          + ("（" + "；".join(f"{f['file'].split('/')[-1]} ×{f['reads']}" for f in dup.get("top", [])[:3]) + "）"
+                             if dup.get("top") else "")]
+        lines += [
+            "",
+            "> **判定：只报告 + 给改进建议，不设红线。** 按 AUDIT 第八类（成本）执行；跑两轮拿到基线后",
+            "> 再复议是否设预算。明细（含未标注职位的会话）见 `tools/token_baseline.json`。",
+            "",
+        ]
+    else:
+        lines += ["**未记录**：`tools/token_baseline.json` 不存在。跑 `node tools/token_report.mjs --write` 生成。", ""]
+
     stale = local_stale_tags(tags)
     lines += [
-        "## 六、已知局限",
+        "## 七、已知局限",
         "",
         "- CI 首过率只算“推送 tip 的第一次 Action”，不含本机测试结果；",
         "  文档类推送在 workflow 加 paths 过滤前也会触发构建，早期数据偏噪。",
@@ -369,7 +440,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             f"- 本地还有 {len(stale)} 个远端已删除的 `build-*` tag（历史重写遗留），"
             "本表以远端为准；清理：`git fetch --prune-tags`。",
         ]
-    lines += ["", "## 七、怎么用", "", "```bash",
+    lines += ["", "## 八、怎么用", "", "```bash",
               "python3 tools/metrics.py            # 重新生成本文件",
               "python3 tools/metrics.py --check    # 只看摘要（每周 T4 判定用）",
               "python3 tools/metrics.py --offline  # 没网时只算 tag/覆盖",
@@ -397,7 +468,13 @@ def main():
             print(f"⚠ tag {t.name} 指向的提交 {t.sha[:7]} 不在本地，先 git fetch", file=sys.stderr)
     fill_commits(tags)
     uncovered = uncovered_commits(tags)
-    stats = None if offline else ci_stats(fetch_runs())
+    if offline:
+        stats = None
+    else:
+        runs_data, source = fetch_runs()
+        stats = ci_stats(runs_data)
+        if stats:
+            stats["source"] = source
     annotate_ci(tags, stats)
     inc_total, inc_relapse = incidents()
 

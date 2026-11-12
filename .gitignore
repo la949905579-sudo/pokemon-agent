@@ -12,3 +12,4 @@ route_log.txt
 faint*.txt
 *.jks
 keystore-info.txt
+tools/ci_runs_cache.json

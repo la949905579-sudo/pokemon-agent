@@ -29,6 +29,8 @@
 | `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推 | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
 | `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md） | 保留 |
+| `tools/token_baseline.json` | token 成本基线快照（token_report.mjs --write 生成，供 METRICS 引用） | 保留 |
+| `tools/token_report.mjs` | token 成本统计：读会话 usage，按职位/会话/日期汇总，--write 生成基线 | 保留 |
 
 ## 平台
 
@@ -232,6 +234,7 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
+| `native-emu/app/src/main/java/com/dsh/emu/Nlog.kt` | 结构化日志（格式见 docs/OBSERVABILITY.md 第一节）：`ISO8601 LEVEL event k=v`。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Addresses.kt` | Kotlin 侧地址表（对应 addresses.py） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/BattleDecider.kt` | 战斗决策（选招/换人评分） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameData.kt` | 静态数据：属性表、招式表 | 保留 |
@@ -247,6 +250,7 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/SaveSlots.kt` | 即时存档卡槽：3 个槽，文件是 `filesDir/state1.sav` … `state3.sav`。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/NlogTest.kt` | 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
@@ -265,4 +269,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 201 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 205 个文件（不含 `native-emu/third_party/` 第三方源码）。

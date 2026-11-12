@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-11-12T11:50:04.051Z",
+  "windowSince": null,
+  "totals": {
+    "inputTokens": 2332514,
+    "outputTokens": 1017145,
+    "cacheReadTokens": 408639104,
+    "cacheWriteTokens": 0,
+    "totalTokens": 411988763
+  },
+  "sessionsCount": 8,
+  "byRole": [
+    {
+      "role": "主会话（未标注职位）",
+      "sessions": 2,
+      "inputTokens": 1112471,
+      "outputTokens": 395544,
+      "cacheReadTokens": 275589888,
+      "cacheWriteTokens": 0,
+      "totalTokens": 277097903
+    },
+    {
+      "role": "工匠",
+      "sessions": 2,
+      "inputTokens": 732264,
+      "outputTokens": 369545,
+      "cacheReadTokens": 105531264,
+      "cacheWriteTokens": 0,
+      "totalTokens": 106633073
+    },
+    {
+      "role": "执行主管",
+      "sessions": 1,
+      "inputTokens": 118646,
+      "outputTokens": 114692,
+      "cacheReadTokens": 19036032,
+      "cacheWriteTokens": 0,
+      "totalTokens": 19269370
+    },
+    {
+      "role": "考官",
+      "sessions": 2,
+      "inputTokens": 332926,
+      "outputTokens": 120479,
+      "cacheReadTokens": 7985536,
+      "cacheWriteTokens": 0,
+      "totalTokens": 8438941
+    },
+    {
+      "role": "督导",
+      "sessions": 1,
+      "inputTokens": 36207,
+      "outputTokens": 16885,
+      "cacheReadTokens": 496384,
+      "cacheWriteTokens": 0,
+      "totalTokens": 549476
+    }
+  ],
+  "bySession": [
+    {
+      "id": "session-b3505b33-06a3-426a-a3ab-55969e7b8d46",
+      "role": "主会话（未标注职位）",
+      "turns": 103,
+      "start": 1794329995728,
+      "end": 1794484014711,
+      "inputTokens": 1056707,
+      "outputTokens": 365669,
+      "cacheReadTokens": 273864832,
+      "cacheWriteTokens": 0,
+      "totalTokens": 275287208
+    },
+    {
+      "id": "d25bd035-22ca-400c-9e20-76be13a25f6f",
+      "role": "工匠",
+      "turns": 11,
+      "start": 1794446612119,
+      "end": 1794483839904,
+      "inputTokens": 668978,
+      "outputTokens": 308679,
+      "cacheReadTokens": 102453504,
+      "cacheWriteTokens": 0,
+      "totalTokens": 103431161
+    },
+    {
+      "id": "df6cdb1c-cd6d-4aa1-838e-c401ba7ae86a",
+      "role": "执行主管",
+      "turns": 5,
+      "start": 1794481554993,
+      "end": 1794484203153,
+      "inputTokens": 118646,
+      "outputTokens": 114692,
+      "cacheReadTokens": 19036032,
+      "cacheWriteTokens": 0,
+      "totalTokens": 19269370
+    },
+    {
+      "id": "6802b98e-9170-4e1a-97b0-5b442aac7821",
+      "role": "考官",
+      "turns": 5,
+      "start": 1794446628763,
+      "end": 1794484010730,
+      "inputTokens": 213560,
+      "outputTokens": 81488,
+      "cacheReadTokens": 5811328,
+      "cacheWriteTokens": 0,
+      "totalTokens": 6106376
+    },
+    {
+      "id": "f5f837fd-511d-4c46-87c3-53af77693379",
+      "role": "工匠",
+      "turns": 4,
+      "start": 1794435505641,
+      "end": 1794446603655,
+      "inputTokens": 63286,
+      "outputTokens": 60866,
+      "cacheReadTokens": 3077760,
+      "cacheWriteTokens": 0,
+      "totalTokens": 3201912
+    },
+    {
+      "id": "6be1900b-e0d0-427d-866c-742b4be87c85",
+      "role": "考官",
+      "turns": 4,
+      "start": 1794435505914,
+      "end": 1794445506729,
+      "inputTokens": 119366,
+      "outputTokens": 38991,
+      "cacheReadTokens": 2174208,
+      "cacheWriteTokens": 0,
+      "totalTokens": 2332565
+    },
+    {
+      "id": "session-4a4239a0-57cf-42d5-b4b9-6b992dda30da",
+      "role": "主会话（未标注职位）",
+      "turns": 10,
+      "start": 1794440877014,
+      "end": 1794475377524,
+      "inputTokens": 55764,
+      "outputTokens": 29875,
+      "cacheReadTokens": 1725056,
+      "cacheWriteTokens": 0,
+      "totalTokens": 1810695
+    },
+    {
+      "id": "f7b14b0b-2b28-40ef-ad0d-6843acb2ac87",
+      "role": "督导",
+      "turns": 1,
+      "start": 1794481330688,
+      "end": 1794481508423,
+      "inputTokens": 36207,
+      "outputTokens": 16885,
+      "cacheReadTokens": 496384,
+      "cacheWriteTokens": 0,
+      "totalTokens": 549476
+    }
+  ],
+  "byDay": [
+    {
+      "day": "2026-11-11",
+      "inputTokens": 31286,
+      "outputTokens": 22159,
+      "cacheReadTokens": 1061888,
+      "cacheWriteTokens": 0,
+      "totalTokens": 1115333
+    },
+    {
+      "day": "2026-11-12",
+      "inputTokens": 2301228,
+      "outputTokens": 994986,
+      "cacheReadTokens": 407577216,
+      "cacheWriteTokens": 0,
+      "totalTokens": 410873430
+    }
+  ],
+  "dupReads": {
+    "extra": 32,
+    "top": [
+      {
+        "file": "/root/workspace/native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt",
+        "reads": 20,
+        "extra": 19
+      },
+      {
+        "file": "/root/workspace/native-emu/app/src/main/java/com/dsh/emu/Updater.kt",
+        "reads": 8,
+        "extra": 7
+      },
+      {
+        "file": "/root/workspace/native-emu/app/src/main/cpp/emu_core.cpp",
+        "reads": 2,
+        "extra": 1
+      },
+      {
+        "file": "/root/workspace/docs/NATIVE_EMU_TODO.md",
+        "reads": 1,
+        "extra": 0
+      },
+      {
+        "file": "/root/workspace/.git/refs/heads/master",
+        "reads": 1,
+        "extra": 0
+      }
+    ]
+  },
+  "source": "~/.dsh/sessions/*/*/session.v4.jsonl.zstd（data.usage），无聊天内容"
+}

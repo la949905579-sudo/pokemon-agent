@@ -35,6 +35,8 @@ OVERRIDES = {
     "tools/check_ui_state.py": ("工具", "UI 状态读写配对检查（INC-006：mutableStateOf 只写不读）"),
     "tools/precommit_check.sh": ("工具", "提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推"),
     "tools/test_results.json": ("工具", "本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md）"),
+    "tools/token_report.mjs": ("工具", "token 成本统计：读会话 usage，按职位/会话/日期汇总，--write 生成基线"),
+    "tools/token_baseline.json": ("工具", "token 成本基线快照（token_report.mjs --write 生成，供 METRICS 引用）"),
     "docs/METRICS.md": ("文档", "构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改）"),
     "start_push.sh": ("平台", "后台常驻的状态推送脚本（setsid，支持 stop）"),
     "memory.py": ("平台", "内存读写的统一入口（按 EMU_BACKEND 分派 RetroArch / NativeEmu）"),
