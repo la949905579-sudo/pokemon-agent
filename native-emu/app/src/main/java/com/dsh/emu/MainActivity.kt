@@ -412,6 +412,7 @@ fun AppScreen(activity: MainActivity) {
                         tabPage == Page.MAP -> TownMapPage(
                             s = status,
                             preview = activity.walkPlanState.value,
+                            mapId = currentMapId(),
                             onPick = { tx, ty -> planWalk(activity, status, tx, ty) },
                             onStart = { startWalk(activity, status) },
                             onCancel = { cancelWalk(activity) },
@@ -629,12 +630,19 @@ private fun planWalk(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
 /** 「开始走」：校验地图没换，再复用 walkTo 真按方向键；先清预览。 */
 private fun startWalk(activity: MainActivity, s: EmuStatus) {
     val plan = activity.walkPlanState.value ?: return
+    val mapId = currentMapId()
+    if (mapId == "?" || plan.mapName == "?") {
+        // 地图身份都读不到时不能放行（"?" == "?" 会误判成没换图）
+        activity.walkPlanState.value = null
+        activity.statusText.value = "等地图数据"
+        return
+    }
     if (s.mmTiles == null) {
         activity.walkPlanState.value = null
         activity.statusText.value = "没有地图数据"
         return
     }
-    if (plan.mapName != currentMapId()) {
+    if (plan.mapName != mapId) {
         activity.walkPlanState.value = null
         activity.statusText.value = "需要换图，暂不支持"
         return

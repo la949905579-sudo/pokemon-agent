@@ -65,6 +65,7 @@ internal fun CurrentMapPage(s: EmuStatus) {
 internal fun TownMapPage(
     s: EmuStatus,
     preview: WalkPlan?,
+    mapId: String,
     onPick: (Int, Int) -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
@@ -99,8 +100,9 @@ internal fun TownMapPage(
                         size = Size(cw - 0.5f, ch - 0.5f),
                     )
                 }
-                // 行走预览：黄线逐段连 + 终点标记（只是预览，不执行移动）
-                if (preview != null) {
+                // 行走预览：黄线逐段连 + 终点标记（只是预览，不执行移动）。
+                // 换图后旧预览不预渲染：地图身份不一致就不画（预览状态保留，点开始走仍会提示换图）
+                if (preview != null && preview.mapName == mapId) {
                     val pts = previewPoints(preview.fromX, preview.fromY, preview.steps)
                     for (i in 0 until pts.size - 1) {
                         val a = pts[i]
