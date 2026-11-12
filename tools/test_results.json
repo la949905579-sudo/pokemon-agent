@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-12 20:04",
+  "updated": "2026-11-12 20:11",
   "kotlin": {
     "tests": 67,
     "result": "PASS（0 failure / 0 error）",
@@ -8,10 +8,10 @@
     "note": "考官 2026-11-12 20:0x 本机实跑 :app:testDebugUnitTest BUILD SUCCESSFUL（67/67）；批次 B 新增 2 条"
   },
   "python": {
-    "tests": 28,
-    "result": "PASS（28/28）",
-    "at": "2026-11-12 19:49",
+    "tests": 29,
+    "result": "PASS（29/29）",
+    "at": "2026-11-12 20:11",
     "command": "python3 run_tests.py",
-    "note": ""
+    "note": "批次 C 新增 test_bdata_shared.py（循环依赖修复）"
   }
 }

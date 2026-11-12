@@ -45,13 +45,20 @@
 | 位置 | 现状 |
 |---|---|
 | Python | `log.py`（写日志）/ `logq.py`（查询）；`logs/intent.json` 等 |
-| Kotlin/C++ | `nlog` 打到 logcat；`/sdcard/Download/emu_native.log`（init 阶段）、`service.log`、`bridge.log` |
+| Kotlin/C++ | 统一走 `Nlog`（`native-emu/.../Nlog.kt`）：写 `/sdcard/Download/emu_native.log`，格式 `ISO8601 LEVEL event k=v`，5MB 滚动 `.1`，异步写、失败降级 logcat。覆盖：桥（bridge.conn/bridge.cmd）、帧循环（emu.frame.*）、Growth（growth.rom）、MapData（map.assets/map.parse/map.fallback）。`service.log` 仍是服务自己的简单日志 |
 | CI | GitHub Actions 日志；失败时先看 `e: file:///…` 行 |
 
-## 六、落地任务（交给 `builder` 的第一批）
+## 六、落地状态（2026-11-12 更新）
 
-1. 按第二节的表，给每个节点补一条结构化日志（已有的改成统一格式）。
-2. OTA 下载补 `pct` / `code` 日志——这是今天踩的坑。
-3. 在设置页加「日志级别」开关（`INFO`/`DEBUG`），落盘生效。
+1. [x] 按第二节的表补结构化日志（统一格式）：
+   - OTA：检查/下载进度/校验/安装 → `ota.log`（`aa126e0`）
+   - 桥与帧循环：`bridge.conn` / `bridge.cmd` / `emu.frame.*` → `emu_native.log`（`8082f89`、`fdbf448`）
+   - Growth / MapData：`growth.rom` / `map.assets` / `map.parse` / `map.fallback`（批次 C）
+2. [x] OTA 补 `pct` / `code` 日志（同上 `aa126e0`）。
+3. [ ] 设置页「日志级别」开关（`INFO`/`DEBUG`）：`Nlog.minLevel` 已支持，缺 UI 开关；
+   记为待办（见 `NATIVE_EMU_TODO.md`）。
+
+**旧文件说明**：`/sdcard/Download/bridge.log` 自 2026-11-12 起不再写入（桥日志并入 `emu_native.log`），
+历史文件可留作对照；`ota.log` / `service.log` 仍各自独立。
 
 验收：制造一次失败（如断网触发 OTA），日志里能直接看到失败阶段和错误码。

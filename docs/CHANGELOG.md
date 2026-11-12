@@ -3,6 +3,20 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.12-6（NativeEmu v0.4.2 · 批次 C 积压清理）
+### 修复
+- `emu.frame.stall` 的进入/恢复改各自限流 key（`…:enter` / `…:recover`）：抖动时不会再「只见进入不见恢复」
+- 帧循环渲染段 `lockCanvas`/`lockHardwareCanvas` 的 `catch` 收窄为 `Exception`，与「不吞 Error」口径一致
+- 统一日志格式：`Growth` 的 `growth.rom`、`MapData` 的 `map.assets`/`map.parse`/`map.fallback`
+  从旧式 `ISO WARN  文本` 改为 `Nlog` 的 `event + k=v`（字段语义不变；`bridge.log` 确认停用）
+
+### 重构
+- 消除 `state.py` ↔ `bdata.py` 循环依赖：抽出纯解码模块 `bdata_shared.py`
+  （`mon_from_bytes` / `party_species`），地址只从 `addresses.py` 取；`state`/`bdata` 不再互相 import
+
+### 测试
+- Python 28 → 29（新增 `test_bdata_shared.py`）；Kotlin 67/67 不变（补断言不增用例）
+
 ## v2026.11.12-5（NativeEmu v0.4.2 · 批次 B 补丁包）
 ### 修复
 - 顶部状态栏拆成「桥状态」「ROM 名」两个独立通道：桥启动失败显示「TCP 未启动」后，

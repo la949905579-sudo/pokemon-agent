@@ -1,6 +1,6 @@
 # NativeEmu 待办
 
-> 更新：2026-11-12 20:04（批次 A `8082f89`、批次 B `fdbf448`；见 `CHANGELOG v2026.11.12-4/-5`）
+> 更新：2026-11-12 20:11（批次 A `8082f89`、B `fdbf448`、C `2a0fbc7`/`81cfb2b`；见 `CHANGELOG v2026.11.12-4/-6`）
 > 状态判断以代码为准：勾选过的项都在 `native-emu/` 里有实现。
 
 ## 当前阻塞（2026-11-12 05:35 已全部解除）
@@ -88,25 +88,34 @@
 - [x] `Nlog.throttlePass` 的 get→put 非原子 → 改 `ConcurrentHashMap.compute`，补并发单测 —— `fdbf448`
 - [x] `emu.frame.stall` 的 recover 未节流 → enter/recover 共用 10s 窗口 —— `fdbf448`
 - [x] 帧循环 `catch (Throwable)` → `catch (Exception)`，不吞 OOM —— `fdbf448`
-- [ ] **统一日志格式**（单独排）：`Growth`/`MapData` 仍是旧式行（无 event/k=v）；`OBSERVABILITY.md` §五
-      还写着 `bridge.log`（实际桥日志已改 `emu_native.log`）——把三套日志并到 `Nlog` 再改文档
+- [x] **统一日志格式**：`Growth`/`MapData` 旧式行已改 `Nlog` event+k=v；`OBSERVABILITY.md` §五/§六
+      已同步（`bridge.log` 停用说明）—— `2a0fbc7`（批次 C）
 
 ## 批次 B 遗留（2026-11-12，`fdbf448` 合并时约定：轻，并入下一批）
 
-- [ ] `emu.frame.stall` 的 enter/recover 共用 key 会把紧随其后的 recover 也压掉（只见 enter 不见 recover）
-      → 拆成 `stall:enter` / `stall:recover` 两个 key，各自 10s
-- [ ] 并发单测 `join(5_000)` 后没断言线程已结束 → 补 `assertFalse(t.isAlive)`，防慢机假通过
-- [ ] 帧循环里 `lockCanvas`/`lockHardwareCanvas` 的 `catch (Throwable)`（MainActivity 渲染段）也收窄到 `Exception`，
-      与「不吞 Error」口径一致
+- [x] `emu.frame.stall` enter/recover 拆两个 key，各自 10s —— `2a0fbc7`（批次 C）
+- [x] 并发单测 `join` 后补 `assertFalse(t.isAlive)` —— `2a0fbc7`
+- [x] `lockCanvas`/`lockHardwareCanvas` 的 `catch (Throwable)` 收窄为 `Exception` —— `2a0fbc7`
+
+## 批次 C 遗留（2026-11-12，`2a0fbc7`/`81cfb2b` 合并时约定：轻，并入下一批）
+
+> 主持裁定：以下 3 条**不单开批次**，并入下一个功能批的**第一个提交**（同一次构建）。
+
+- [ ] **优先**：`map.fallback ok=false` 未限流 → 改 `Nlog.warnThrottled("map.fallback", …)`；
+      现在 header 可读但内存读取持续失败时，`buildLocalStatusJson` 每 500ms 调一次 → 2 条/秒刷屏
+- [ ] `map.fallback ok=true`、`growth.rom locate ok=true` 改回 `WARN` 级（缺图/走内存要能被 WARN 过滤到；
+      批次 C 里被降成了 INFO）
+- [ ] `Updater.kt:139` 那处旧式 `"WARN  "` 字符串收尾（logger 自兜底，只进 logcat、目标 `ota.log`）
 
 ## 结构债（考官 2026-11-12 发现）
 
-- [ ] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4 from state import ...` —— 循环依赖，
-      STRUCTURE §三 判定违规；现在靠延迟导入不炸，重构时必须拆（把共享常量提到 `platform/`）
+- [x] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4` 循环依赖 → 抽出 `bdata_shared.py`
+      （纯解码 `mon_from_bytes`/`party_species`，地址只从 `addresses.py` 取）；`state`/`bdata` 都不再互相 import，
+      新增 `test_bdata_shared.py`，Python 测试 29/29 —— `81cfb2b`（批次 C）
 - [x] `MainActivity.kt` 拆分：963 → **536 行**，已拆出 `ui/KeyPad`、`ui/BattlePage`、`ui/MapPage`、`ui/Tabs`、`ui/Theme`、`ui/Pages`、`ui/SaveSlots`
       （剩 `EmuView`/`parseStatus`/`walkTo` 可继续迁，未做）
-- [ ] 按键状态清理统一走一个函数（`keysOpen=false` 时必须同时 `keys=0; EmuCore.setKeys(0)`），
-      已在 A 提交里发现 Tab 路径漏清 → 见 INC-005
+- [x] 按键状态清理统一走 `closeKeys()`（`keysOpen=false` 同时 `keys=0; EmuCore.setKeys(0)` 并取消
+      `WalkControl` 代际）：点 Tab / 载入 ROM / 收按键面板三条路径都已走它（MainActivity.kt:392/424/453）
 
 ## 已清理（2026-11-12 05:35）
 
