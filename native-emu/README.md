@@ -28,6 +28,15 @@ native-emu/
     └── bridge_client.py        # 桥客户端示例
 ```
 
+## 签名（2026-11-12 起）
+
+- 密钥库**不在仓库里**：CI 从 Actions secret `ANDROID_KEYSTORE_B64` 解码，
+  口令来自 `STORE_PASSWORD` / `KEY_PASSWORD`，别名固定 `emu`。
+- 本地开发想构建：把 keystore 放到 `native-emu/app/keystore.jks`（已被 .gitignore 忽略），
+  并 `export STORE_PASSWORD=... KEY_PASSWORD=...`。
+- **签名已轮换过**：旧包的签名无法覆盖升级，换机/重装必须卸载旧版。
+- 构建成功会自动发 Release（`build-<sha>`），OTA 的更新源就是它，不需要 PAT。
+
 ## 构建
 
 **必须用 CI**（x86_64 runner）：本地 arm64 + proot 无法跑 NDK 的 x86_64 工具链（qemu 嵌套 exec 不可用）。
