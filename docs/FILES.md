@@ -28,6 +28,7 @@
 | `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/METRICS.md | 保留 |
 | `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推 | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
+| `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md） | 保留 |
 
 ## 平台
 
@@ -264,4 +265,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 200 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 201 个文件（不含 `native-emu/third_party/` 第三方源码）。
