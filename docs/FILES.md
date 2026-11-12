@@ -24,6 +24,9 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
+| `tools/check_ui_state.py` | UI 状态读写配对检查（INC-006：mutableStateOf 只写不读） | 保留 |
+| `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/METRICS.md | 保留 |
+| `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推 | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
 
 ## 平台
@@ -82,7 +85,6 @@
 | `switch.py` | 换人模块：战斗内部队伍顺序 + 换人动作。 | 保留 |
 | `terrain.py` | 地图通行性：定位地图结构、读取地块、输出九宫格。 | 保留 |
 | `tools/gen_files_index.py` | 生成 docs/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
-| `tools/metrics.py` | 构建与 CI 度量：从远端 build-* tag 与 GitHub Actions 记录生成 docs/METRICS.md。 | 保留 |
 | `track_route.py` | 后台记录用户操作时的坐标轨迹（带地图 ID，能分辨换图）。 | 保留 |
 | `train.py` | 练级 + 回合观测：走 battle_loop 的 on_round 回调，不再 monkeypatch。 | 保留 |
 | `watchdog.py` | 健壮性：看门狗 + 等回合完成。 | 保留 |
@@ -145,7 +147,7 @@
 | `docs/HANDOFF.md` | 交接文档（2026-11-12 19:20） | 保留 |
 | `docs/HANDOVER.md` | 交接标准（HANDOVER） | 保留 |
 | `docs/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
-| `docs/METRICS.md` | 构建与 CI 度量（METRICS） | 保留 |
+| `docs/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
 | `docs/NATIVE_EMU.md` | 原生双屏 GBA 模拟器 · 项目规划（NATIVE_EMU） | 保留 |
 | `docs/NATIVE_EMU_TODO.md` | NativeEmu 待办 | 保留 |
 | `docs/NOTES.md` | 叶绿内存（实测） | 保留 |
@@ -183,7 +185,6 @@
 | `native-emu/tools/cmake_wrapper.c` | CMake 包装器源码 | 保留 |
 | `native-emu/tools/setup-sdk.sh` | 安装 Android SDK / NDK / Gradle | 保留 |
 | `publish_release.py` | 把 CI 产物发布到 GitHub Release（OTA 更新源） | 保留 |
-| `tools/precommit_check.sh` | ⚠ 未描述 | 保留 |
 
 ## 桥
 
@@ -263,4 +264,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 199 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 200 个文件（不含 `native-emu/third_party/` 第三方源码）。
