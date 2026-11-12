@@ -523,3 +523,11 @@ python3 logq.py --grep got=2 --json
   落点 `<ROM目录>/<ROM名>.sav`（不写 filesDir，卸载不丢）。
 - 实测：游戏内存档 → 强杀 → 重开同一 ROM →「继续」进度正常；`.sav` 131072 字节（火红叶绿 Flash 1M）。
 - 日志：`emu.save stage=autoload ok=true`；失败是 `ok=false`，且不阻断启动。
+
+## 退出时必须刷电池存档（2026-11-12）
+
+- 刷盘链路：`Emu::stop()` → `core_->deinit()` → `GBASavedataDeinit` → `savedata->vf->unmap()`
+  → `msync(MS_SYNC)` 写回 `.sav` → `munmap`。
+- **脆弱约定**：谁把 `Emu::stop()` 改成只置 `running_=false` 而不调 `deinit`，退出就会丢档。
+  改退出流程前必须先看这条。
+- 「重置」只调 `core_->reset()`，不动 `.sav`、不动三槽即时存档。

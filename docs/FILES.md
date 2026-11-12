@@ -244,6 +244,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
 
 ## 界面
@@ -256,4 +257,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 192 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 193 个文件（不含 `native-emu/third_party/` 第三方源码）。
