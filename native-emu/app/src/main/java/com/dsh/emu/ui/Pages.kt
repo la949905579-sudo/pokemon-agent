@@ -186,18 +186,96 @@ internal fun TeamPage(s: EmuStatus) {
     }
 }
 
+/** 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；覆盖和删除要 3 秒内二次确认。 */
 @Composable
 internal fun SavePage(activity: MainActivity, romReady: Boolean) {
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
-            if (romReady) activity.statusText.value =
-                if (EmuCore.saveState(File(activity.filesDir, "state1.sav").absolutePath)) "已存档" else "存档失败"
-        }, contentAlignment = Alignment.Center) { Text("即时存档", color = TXT, fontSize = 14.sp) }
-        Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
-            if (romReady) activity.statusText.value =
-                if (EmuCore.loadState(File(activity.filesDir, "state1.sav").absolutePath)) "已读档" else "读档失败"
-        }, contentAlignment = Alignment.Center) { Text("读取存档", color = TXT, fontSize = 14.sp) }
+    var confirmSave by remember { mutableStateOf(-1) }
+    var confirmDelete by remember { mutableStateOf(-1) }
+    var refresh by remember { mutableStateOf(0) }
+    // 第一次点「存档/删除」只进入确认态；3 秒内没再点就自动复原
+    LaunchedEffect(confirmSave) {
+        if (confirmSave >= 0) {
+            kotlinx.coroutines.delay(3000)
+            confirmSave = -1
+        }
     }
+    LaunchedEffect(confirmDelete) {
+        if (confirmDelete >= 0) {
+            kotlinx.coroutines.delay(3000)
+            confirmDelete = -1
+        }
+    }
+    val labels = remember(refresh) {
+        (1..SaveSlots.COUNT).map { SaveSlots.label(activity.filesDir, it) }
+    }
+
+    fun save(slot: Int) {
+        if (!romReady) { activity.statusText.value = "先载入 ROM 再存档"; return }
+        val ok = EmuCore.saveState(SaveSlots.file(activity.filesDir, slot).absolutePath)
+        activity.statusText.value = if (ok) "槽 $slot 已存档" else "槽 $slot 存档失败"
+        refresh++
+    }
+
+    fun load(slot: Int) {
+        if (!romReady) { activity.statusText.value = "先载入 ROM 再读档"; return }
+        if (!SaveSlots.exists(activity.filesDir, slot)) {
+            activity.statusText.value = "槽 $slot 是空槽"
+            return
+        }
+        val ok = EmuCore.loadState(SaveSlots.file(activity.filesDir, slot).absolutePath)
+        activity.statusText.value = if (ok) "槽 $slot 已读档" else "槽 $slot 读档失败"
+        refresh++
+    }
+
+    fun delete(slot: Int) {
+        val f = SaveSlots.file(activity.filesDir, slot)
+        val ok = try { f.delete() } catch (_: Throwable) { false }
+        activity.statusText.value = if (ok) "槽 $slot 已删除" else "槽 $slot 删除失败"
+        refresh++
+    }
+
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        for (slot in 1..SaveSlots.COUNT) {
+            val hasSave = SaveSlots.exists(activity.filesDir, slot)
+            Column(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).padding(8.dp)) {
+                Text(labels[slot - 1], color = if (hasSave) TXT else DIM, fontSize = 13.sp)
+                Spacer(Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SlotButton(if (confirmSave == slot) "确认覆盖？" else "存档", confirmSave == slot) {
+                        when {
+                            confirmSave == slot -> { confirmSave = -1; save(slot) }
+                            hasSave -> { confirmSave = slot; confirmDelete = -1 }
+                            else -> save(slot)
+                        }
+                    }
+                    SlotButton("读取", false) {
+                        confirmSave = -1
+                        confirmDelete = -1
+                        load(slot)
+                    }
+                    SlotButton(if (confirmDelete == slot) "确认删除？" else "删除", confirmDelete == slot) {
+                        when {
+                            !hasSave -> activity.statusText.value = "槽 $slot 本来就是空的"
+                            confirmDelete == slot -> { confirmDelete = -1; delete(slot) }
+                            else -> { confirmDelete = slot; confirmSave = -1 }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** 卡槽里的小按钮（不用系统对话框，保持轻量）。 */
+@Composable
+private fun SlotButton(label: String, danger: Boolean, onClick: () -> Unit) {
+    Text(label,
+        color = if (danger) Color.White else TXT,
+        fontSize = 12.sp,
+        modifier = Modifier.background(
+            if (danger) Color(0xFFB4453C) else Color(0xFF3A3A3A), RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp, vertical = 5.dp))
 }
 
 @Composable
