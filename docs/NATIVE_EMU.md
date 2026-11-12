@@ -224,7 +224,7 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 **OTA 链路**：`publish_release.py` → GitHub Releases（说明取 git 提交信息）
 → App 的「MENU → 更新」检查 `releases/latest` → 下载（带 UA + APK 头校验）→ 系统安装器。
 
-> 签名固定在 `native-emu/app/keystore.jks`（口令 emu123456），所以可以覆盖安装。
+> 签名固定在 `native-emu/app/keystore.jks`，口令存在同目录 `keystore-info.txt`（已被 gitignore）。
 > 换签名会导致 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
 
 ## TCP 桥协议（:55401，行协议）
@@ -250,7 +250,7 @@ native-emu/
 │   └── CMakeLists.txt
 ├── third_party/mgba/         # mGBA 源码（submodule 或拷贝）
 ├── tools/                    # 编译脚本、BIOS 准备
-└── docs/CONTRACT.md          # 本文档的契约部分
+└── docs/PROJECT_PLAN.md      # 分层与契约
 ```
 
 ---

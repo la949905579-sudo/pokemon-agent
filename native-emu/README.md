@@ -8,7 +8,7 @@
 native-emu/
 ├── app/
 │   ├── build.gradle.kts        # 固定 debug 签名 + BuildConfig(GIT_SHA/BUILD_TIME)
-│   ├── keystore.jks            # 固定签名（口令 emu123456），保证能覆盖安装
+│   ├── keystore.jks            # 固定签名（本地，已 gitignore；口令见 keystore-info.txt）
 │   └── src/main/
 │       ├── AndroidManifest.xml # 权限：存储/前台服务/安装包
 │       ├── cpp/

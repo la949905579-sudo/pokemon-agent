@@ -26,7 +26,8 @@
   1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
   2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
      `Expecting a top level declaration`（`2b5d3ca` 插入新布局时没删旧块）
-- 旧 Release `build-d0bd1c3`（错包）已删除，`releases/latest` 现在指向 `build-4c76a5b`。
+- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`（当前 `build-dabb301`）；构建失败不会发。
+  旧错包 `build-d0bd1c3` 已删除。
 - Python 测试：`python3 run_tests.py` → **28/28 通过**。
 - 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
 - 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
@@ -62,7 +63,7 @@ GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
 
 - 手机：Android 16，arm64；本机无法完整编译（NDK 是 x86_64），**一律用 GitHub Actions 构建**
 - 构建产物下载到 `/sdcard/Download/DSH-Go/app-debug.apk`
-- 签名固定：`native-emu/app/keystore.jks`（口令 emu123456）→ 可覆盖安装
+- 签名固定：`native-emu/app/keystore.jks`（**口令见 `native-emu/app/keystore-info.txt`，不进仓库**）
 - **mGBA 集成坑**（详见 `native-emu/README.md`）：emµ 与 libmgba 编译宏必须一致、初始化顺序、skipBios、RGB565、存档 API、mCoreFind 竞态
 - 下屏数据：**本地 Kotlin GameState 优先**，Python 推送兜底；地图（minimap）仍靠推送
 - 用户偏好：中文、简洁；**每次构建前先列改动清单确认**（commit message 即 OTA 更新日志）；构建放后台别阻塞

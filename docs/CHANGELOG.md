@@ -13,6 +13,9 @@
 - OTA 下载进度条 + APK 校验 + 安装权限引导
 - 小地图缺省沿用上次推送数据（Kotlin 侧尚未解析 `maps/*.json`）
 - 小地图点击前往：同图 BFS 寻路（`MapWalker`）+ 真按键（180ms/步），带 Kotlin 单测
+- OTA 结构化日志：检查/下载进度/校验 sha/安装失败写入 `/sdcard/Download/ota.log`
+- 签名改为 CI secret 注入，密钥库不再进仓库（并轮换了密钥）
+- CI 构建成功自动发 Release（`build-<sha>`），不再需要个人 token
 
 ### 修复
 - 战斗页自动切换：动画/击败对话框阶段不再跳回地图（battle_anim + 4 秒滞回）

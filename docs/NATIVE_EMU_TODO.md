@@ -68,6 +68,12 @@
 - [ ] 自动化开关（工具页，需决策层接入）
 - [ ] 联机支持（GBA link cable，方案待调研）
 
+## 结构债（考官 2026-11-12 发现）
+
+- [ ] `state.py:269` 函数内 `import bdata` ↔ `bdata.py:4 from state import ...` —— 循环依赖，
+      STRUCTURE §三 判定违规；现在靠延迟导入不炸，重构时必须拆（把共享常量提到 `platform/`）
+- [ ] `MainActivity.kt` 815 行 > 500 行上限（P2 拆分任务）
+
 ## 已清理（2026-11-12 05:35）
 
 - [x] `MainActivity.kt` 补上 `androidx.compose.foundation.gestures.detectTapGestures` 的 import

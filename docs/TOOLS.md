@@ -333,7 +333,7 @@ git push                                   # 改 native-emu/** 触发 .github/wo
 GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>   # 构建失败会拒绝发布
 ```
 
-- 签名固定 `native-emu/app/keystore.jks`（口令 `emu123456`），换签名会 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
+- 签名固定 `native-emu/app/keystore.jks`，口令在 `keystore-info.txt`（不进仓库）；换签名会 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
 - `publish_release.py` 只发**最新一次成功构建**的 APK；构建红的时候别手动补发
 
 ### 12.4 日志位置（排查第一步）
