@@ -16,6 +16,16 @@
 
 ---
 
+## INC-005 队友 amend 已推提交，导致本地/远端分叉（2026-11-12）
+- 现象：`artisan` 在 `80f4306`（已推送）上 `git commit --amend`，同时 Lead 刚在其上提交了
+  `a56d604`；amend 把 docs 提交一并卷入，随后 `reset --soft` 重做，本地变成
+  `7a722ad + cad39b0`，与远端 `80f4306 + a56d604` 分叉。
+- 根因：共享工作区里两个 agent 同时操作 HEAD；amend 会改写已有提交。
+- 影响：分叉；需二次强推对齐（内容未变，仅 hash 变化）。
+- 处置：Lead 强推 `cad39b0` 统一。
+- 固化：**已推送的提交禁止 amend / rebase / reset**，只能追加新提交（append-only）；
+  需要撤销就走 `git revert`。Lead 提交前先 `git status` 确认队友没有未提交改动。
+
 ## INC-004 Lead 的 `git add -A` 卷走了队友的未提交改动（2026-11-12）
 - 现象：`66940b2`「feat: 会话健康检查脚本…」实际含 docs + `session_health.mjs` +
   两支 Kotlin 改动（队伍详情、OTA 日志/回调），提交信息与内容不符。
