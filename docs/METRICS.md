@@ -3,8 +3,8 @@
 > 由 `tools/metrics.py` 生成，**不要手改**。重新生成：`python3 tools/metrics.py`。
 > 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。
 
-- 生成时间：2026-11-12 20:03（Asia/Shanghai）
-- 生成时 HEAD：`fdbf448`（之后若有新提交属正常）
+- 生成时间：2026-11-12 20:06（Asia/Shanghai）
+- 生成时 HEAD：`930fe29`（之后若有新提交属正常）
 - 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/INCIDENTS.md`
 
 ## 一、CI 首次通过率（T4 判据）
@@ -14,12 +14,12 @@
 
 | 口径 | 首过 / 总数 | 首过率 | 备注 |
 |---|---|---|---|
-| 全量（134 个推送 tip） | 107 / 134 | 79.9% | 含早期 workflow 未加 paths 过滤时的 docs 推送 |
-| 最近 20 个 tip | 16 / 20 | 80.0% | 判断当前趋势用这个 |
+| 全量（135 个推送 tip） | 108 / 135 | 80.0% | 含早期 workflow 未加 paths 过滤时的 docs 推送 |
+| 最近 20 个 tip | 17 / 20 | 85.0% | 判断当前趋势用这个 |
 
-- 总运行次数 156，其中重试/重复运行 22 次。
+- 总运行次数 157，其中重试/重复运行 22 次。
 - T4 阈值：全量首过率 < 70% **或 复发率 > 0** → 启动审查。
-- 当前首过率 79.9%（未触发）；复发 1 条（触发） → 合计 **需要启动审查**。
+- 当前首过率 80.0%（未触发）；复发 1 条（触发） → 合计 **需要启动审查**。
 
 ## 二、build tag → 包含的提交（构建覆盖）
 
@@ -38,19 +38,13 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 | `build-71d389d6b1dc1aff7444b6d6b33783d3be70a2a1` | `71d389d` | 2026-11-12 17:32 | 2 | `e37286a`；`71d389d` | 首过 |
 | `build-2c237daebddc30327681209328ae368453c5b60d` | `2c237da` | 2026-11-12 17:41 | 3 | `c13ee2e`；`9cfd5d0`；`2c237da` | 首过 |
 | `build-8082f89a3a41808534e214c0c568e1936451d68e` | `8082f89` | 2026-11-12 19:43 | 26 | `5fead6e`；`7f4c5d5`；`516aecc`；`a75275a`；`22004ca`；`8cf8d9d`；`8823269`；`dc6810e`；`d4f8bb6`；`9b58840`；`c2ec261`；`df2604… | 首过 |
+| `build-930fe29856d743a7355d79313e85fa742742c6ab` | `930fe29` | 2026-11-12 20:04 | 3 | `7a24a00`；`fdbf448`；`930fe29` | 首过 |
 
-- **单 tag 覆盖多提交的证据**：10 个 build tag 中，6 个覆盖 ≥2 个提交（最多 26 个）。所以“提交数 > tag 数”不等于漏构建。
+- **单 tag 覆盖多提交的证据**：11 个 build tag 中，7 个覆盖 ≥2 个提交（最多 26 个）。所以“提交数 > tag 数”不等于漏构建。
 
 ## 三、构建覆盖缺口（tag 之后未构建的提交）
 
-最后一个 build tag 之后还有 **2** 个提交未构建：
-
-| 提交 | 时间 | 说明 | 触及 `native-emu/**` |
-|---|---|---|---|
-| `7a24a00` | 2026-11-12 19:52 | feat: token 成本统计脚本与审查成本类（只报告，不设红线） | 否 |
-| `fdbf448` | 2026-11-12 19:53 | fix: 状态双通道、限流原子化、stall 恢复限流、catch 收窄 | ⚠ 是 |
-
-**⚠ 覆盖缺口 1 个**：有触及 `native-emu/**` 的提交未构建，需要推送触发 CI。
+所有提交都在某个 build tag 的覆盖范围内。
 
 ## 四、事故与复发率
 
@@ -63,14 +57,14 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 > （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，
 > 因此入库保留、便于跨会话核对；不是脚本自动生成。
 
-- 更新时间：2026-11-12 19:49
+- 更新时间：2026-11-12 20:04
 
 | 测试 | 数量 | 结果 | 时间 | 命令 |
 |---|---|---|---|---|
-| Kotlin 单测 | 65 | PASS（0 failure / 0 error） | 2026-11-12 19:49 | `cd native-emu && gradle :app:testDebugUnitTest --no-daemon -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2` |
+| Kotlin 单测 | 67 | PASS（0 failure / 0 error） | 2026-11-12 20:04 | `cd native-emu && gradle :app:testDebugUnitTest --no-daemon -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2` |
 | Python 离线测试 | 28 | PASS（28/28） | 2026-11-12 19:49 | `python3 run_tests.py` |
 
-- Kotlin：BUILD SUCCESSFUL 34s（执行主管 19:48 本机复跑）；数量/结果取自 app/build/test-results/testDebugUnitTest/*.xml
+- Kotlin：考官 2026-11-12 20:0x 本机实跑 :app:testDebugUnitTest BUILD SUCCESSFUL（67/67）；批次 B 新增 2 条
 
 > 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。
 

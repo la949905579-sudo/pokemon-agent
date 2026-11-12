@@ -18,17 +18,18 @@
 - **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
 - **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
 
-## 二·五、构建与发布现状（2026-11-12 19:20 实测）
+## 二·五、构建与发布现状（2026-11-12 19:50 实测）
 
-- **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 整改提交，写死 hash 会立刻过期）。
-  最后一次**代码**提交是 `2c237da`，也是当前最新构建的覆盖上限（见下）。
-  Python 测试 28/28；Kotlin 单测**本机实跑 57/57 通过**（2026-11-12 19:19，
-  `:app:testDebugUnitTest` BUILD SUCCESSFUL，结果见 `docs/METRICS.md`）。
-- **最新构建 = 推送 tip `2c237da`**：CI run 43193673121 success（2026-11-12 17:41 +0800），
-  Release `build-2c237daebddc30…`（17:43 发布）。该 tag 覆盖 3 个提交：
-  `c13ee2e` / `9cfd5d0`（设置页「重置」「退出」）/ `2c237da`。
-- `2c237da` 之后到 HEAD 的提交**只改 `docs/` 与 `tools/`**，不触及 `native-emu/**`，所以没有新构建，
-  APK 不受影响。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
+- **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 提交，写死 hash 会立刻过期）。
+  最后一次**代码**提交是 `fdbf448`（批次 B），也是当前最新构建的覆盖上限（见下）。
+  Python 测试 28/28；Kotlin 单测 **67/67 通过**（考官 20:0x 本机实跑 + CI 构建含单测；
+  批次 A 加 NlogTest 8 条、批次 B 再加 2 条，见 `docs/METRICS.md`）。
+- **最新构建 = 推送 tip `930fe29`（批次 B）**：CI 成功，Release tag
+  `build-930fe29856d7…`（2026-11-12 20:06 发布）；该 tag 覆盖 `fdbf448`（批次 B）、
+  `7a24a00`（token 统计）与 `930fe29`（文档）。
+  上一构建 `build-8082f89…`（19:48，批次 A），更早 `build-2c237da…`（17:43，覆盖
+  `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
+- 当前 HEAD 已包含批次 A/B 的 `native-emu/**` 改动（`8082f89`、`fdbf448`），APK 由 CI 构建；之后再有 docs/tools 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
 - CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
   覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
 - 历史失败（03:51–05:26）的两层原因已修掉，留作教训：
