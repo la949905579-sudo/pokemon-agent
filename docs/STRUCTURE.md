@@ -24,9 +24,12 @@
 │       ├── memory_map.py     # ← addresses.py
 │       ├── decode.py         # ← info.py / state.py / bdata.py
 │       ├── decide.py         # ← decision*.py
-│       └── plugin.py         # 实现 GamePlugin
+│       ├── plugin.py         # 实现 GamePlugin
+│       ├── maps/             # ← 根目录 maps/（地图数据，2026-11-13 定）
+│       ├── battles/          # ← 根目录 battles/（战斗数据）
+│       └── dialogs/          # ← 根目录 dialogs/（对话数据）
 ├── tools/                    # 开发工具（gen_files_index.py 等）
-├── tests/                    # ← test_*.py（命名不变，只挪位置）
+├── tests/                    # ← test_*.py（全收；命名不变，只挪位置）
 ├── native-emu/
 │   └── app/src/main/java/com/dsh/emu/
 │       ├── core/             # ← EmuCore.kt / EmuService.kt
@@ -57,11 +60,14 @@
 ## 五、迁移分期（只搬不改，每步可回滚）
 
 - **P0 规范**（本文档 + `FILES.md` + `OBSERVABILITY.md`）——已完成 2026-11-12
-- **P1 Python 侧**：建 `platform/`、`games/pokemon_firered/`，按「移动 + 修 import」迁移；每步跑 28 项测试
+- **P1 Python 侧**（2026-11-13 重建后启动，**等 F 批发布**）：`test_*.py` 全收进 `tests/`；
+  `maps/` `battles/` `dialogs/` 并入 `games/pokemon_firered/`；根目录 `.py` 收编进 `platform/`。
+  按「移动 + 修 import」迁移，每步跑 `run_tests.py`
 - **P2 Kotlin 侧**：拆 `MainActivity.kt`；只能靠 CI 验证，一次只拆一个页面
-- **P3 固化**：考官（examiner）增加边界检查；独立督导（B 队）检查是否按分期执行
+- **P3 固化**：考官增加边界检查；独立督导检查是否按分期执行
 
-**每期的验收标准**：`run_tests.py` 全过 → 无 import 环 → `FILES.md` 重新生成无「未描述」→ 文档同步。
+**每期的验收标准（四连，缺一不算完成）**：旧路径 grep=0 → `run_tests.py` 全过 → 无 import 环 →
+索引 `--check`=0；涉及模拟器时再加**真机冒烟**。
 
 ## 六、边界检查怎么落地
 

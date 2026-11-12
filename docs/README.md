@@ -1,68 +1,69 @@
 # docs/ 目录说明
 
-> 手写约定文件（人读）；**不代替** `docs/FILES.md`（自动索引，勿手改）。
-> 分区与生命周期规则自 2026-11-13 起（方案 A）；只约束**新文件**，不追改旧文。
+> 手写规则文件；**自动索引见 `docs/generated/FILES.md`**（勿手改，脚本生成）。
+> 2026-11-13 重建版：采用 B 档（`history/` + `generated/` 物理分区）。
 
-## 一、与 FILES.md 的分工
+## 一、与自动索引的分工
 
-- `docs/FILES.md`：自动索引——每个已跟踪文件「是什么」；由 `python3 tools/gen_files_index.py` 生成，
-  `--check` 为 0 才算同步，**不要手改**。
-- 本文件：分区、归属、生命周期、命名、归档规则（手写，人读）。
+- `docs/generated/FILES.md`：自动清单——每个已跟踪文件「是什么」；由 `python3 tools/gen_files_index.py` 生成，`--check`=0 才算同步，**不要手改**。
+- `docs/generated/METRICS.md`：自动度量，由 `tools/metrics.py` 生成，**不要手改**。
+- 本文件：分区、归属、生命周期、命名、归档规则（手写、人读）。
 
-## 二、分区表（2026-11-13 基线）
+## 二、分区（目标结构 + 当前状态）
 
-| 分区 | 放什么 | 当前文件 | 数量 |
-|---|---|---|---|
-| 活规范 | 流程 / 标准 / 当前事实 | `TEAM.md` `HANDOVER.md` `STRUCTURE.md` `OBSERVABILITY.md` `AUDIT.md` `NATIVE_EMU_TODO.md` `HANDOFF.md` `PROJECT_PLAN.md` `WORKPLAN.md` `TOOLS.md` `FAQ.md` `PORTING.md` `NATIVE_EMU.md` | 13 |
-| 历史快照 | 已发生、只读追溯 | `CHANGELOG.md` `INCIDENTS.md` `AUDIT_LOG.md` `RETROSPECTIVE.md` `ARCHITECTURE.md` `NOTES.md` | 6 |
-| 生成物 | 脚本产出、勿手改 | `FILES.md`、`METRICS.md` | 2 |
-| 子目录 | 见下 | `roles/` `audit/` `org/` | 18 个文件 |
+| 分区 | 放什么 | 状态 |
+|---|---|---|
+| 顶层活规范 | `TEAM` `HANDOVER` `BATCHES` `STRUCTURE` `OBSERVABILITY` `AUDIT` `NATIVE_EMU_TODO` `HANDOFF` `PROJECT_PLAN` `WORKPLAN` `TOOLS` `FAQ` `PORTING` `NATIVE_EMU` | 已就位 |
+| `history/` | `CHANGELOG` `INCIDENTS` `RETROSPECTIVE` `NOTES` `ARCHITECTURE` | **待迁移（M1，下一 docs 批）** |
+| `generated/` | `FILES` `METRICS` | **待迁移（M1，同上）** |
+| `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队，待督导迁入）+ `README.md` 索引 | `a/`、`org/` 已就位；`b/` 待督导 |
+| `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*` | 已就位；`AUDIT.md`/`AUDIT_LOG.md` 归并 **待督导同意** |
+| `org/` | 组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
+| `archive/` | 已结案、不再维护的文档；门槛：满 30 天或同主题 3 份 | 空，规则生效 |
 
-- 上表为**本次新增前已存在的 39 个文档**（平铺 21 + 子目录 18）分类。
-- 本文件（`docs/README.md`）与 `docs/archive/README.md` 为 2026-11-13 新增的**规则文件**，不计入上表。
-  当前 `docs/` 共 **41 个 `.md`**：平铺 22（+本文件）+ 子目录 19（`roles/` 7、`audit/` 5、`org/` 6、`archive/` 1）。
+## 三、新文件头元数据（只对新文件生效，旧文不追改）
 
-子目录职责：
-
-- `docs/roles/`：7 张角色卡——A 队 `steward` / `artisan` / `examiner`、第三方 `architect`、B 队 `audit-lead` / `audit-cost` / `auditor`。
-- `docs/audit/`：B 队（独立督导）专属——`TEAM.md` 手册、`ACTIONS.md` 活清单、`REQUEST.md` 请求、`REPORT-*` / `COST-*` 历史。
-- `docs/org/`：组织规划接口——统筹主持写 `REQUEST.md`，组织规划写 `PLAN-<YYYYMMDD>.md`（同日多份加 `-2`、`-3`）。
-
-## 三、新文件头元数据约定（只对新文件生效）
-
-新文件首段加一行（按实际三选一，示例）：
+新文件首段加一行（三选一，按实际）：
 
 ```
-> 归属：A 队 ｜ 生命周期：活 ｜ 维护者：执行主管
+> 归属：A 队 ｜ 生命周期：活 ｜ 维护者：助理
 > 归属：独立督导 ｜ 生命周期：历史 ｜ 维护者：独立督导
-> 归属：组织规划 ｜ 生命周期：生成 ｜ 维护者：执行主管（脚本生成）
+> 归属：组织规划 ｜ 生命周期：生成 ｜ 维护者：助理（脚本生成）
 ```
 
 - 归属：A 队 / 独立督导 / 组织规划
 - 生命周期：活 / 历史 / 生成
-- 维护者：实际写的人（用职位名，不用英文实例名）
-- 旧文件不追改（历史不回改）。
+- 维护者：实际写的人（中文职位名，不用英文实例名）
+- **旧文件不追改**（历史不回改）。
 
 ## 四、命名约定
 
-- 职位一律用中文名：**统筹主持 / 独立督导 / 组织规划 / 策略顾问**；英文实例名只出现在 `spawn_teammate` 与 `send_message`。
-- 两本手册互指：`docs/TEAM.md`（A 队）↔ `docs/audit/TEAM.md`（B 队），别混读。
-- 历史文件名带日期：`REPORT-YYYYMMDD.md`、`COST-YYYYMMDD.md`、`PLAN-YYYYMMDD.md`。
+- **文件名英文，文档标题与内容中文**。
+- 活规范：全大写单词名（`TEAM.md`、`HANDOVER.md`、`BATCHES.md`）。
+- 记录类：`<类型>-YYYYMMDD.md`（`PLAN-` `REPORT-` `COST-`）；同日多份加 `-2`、`-3`。
+- 目录说明：`README.md`。
+- 角色卡：文件名 = **英文实例名小写**（`assistant.md`、`artisan.md`），卡内用中文职位名。
+- 代码：Python `snake_case.py`、测试 `test_*.py`（统一 `tests/`）、Kotlin `PascalCase`。
+- **禁止**：中文文件名、空格、`v2` / `final` / `new` / `tmp`、拼音缩写；**禁止在 `docs/` 顶层新建无前缀 `.md`**（必须是已规范文件或带日期前缀）。
 
-## 五、归档规则
+## 五、归档
 
-- 新结案件（`PLAN-*` / `REPORT-*` / `COST-*` 及同类）满 **30 天**，或同一主题满 **3 份** → 移入 `docs/archive/`。
-- 本期只立规则与空目录（`docs/archive/README.md`），**先不搬**；搬动由组织规划提案、执行主管执行。
-- 归档只移动文件、不改正文（历史不回改）。
+- 规则：`PLAN-*` / `REPORT-*` / `COST-*` 等结案件满 **30 天**，或同一主题满 **3 份** → 移入 `docs/archive/`。
+- **每周盘点一次**（并入独立督导巡检后的例行动作）。
+- 执行：组织规划提案 → 助理搬 → 助理跑生成器更新索引。
+- **只移动、不改正文**（历史不回改）；被引用的路径在同批更新。
+- 归档候选登记：`ARCHITECTURE.md`（旧快照，已被 `STRUCTURE.md` 取代）等。
 
 ## 六、新增 / 移动文件后的动作
 
-1. 跑 `python3 tools/gen_files_index.py`；`--check` 必须为 0（有未描述文件即红）。
-2. 改 `STRUCTURE.md` / `WORKPLAN.md` 仍需主持确认（前者影响重构实施，后者是历史追溯）。
-3. 生成物（`FILES.md`、`METRICS.md`）不得手改，只重跑脚本。
+1. 跑 `python3 tools/gen_files_index.py`；`--check` 必须为 0（已接进提交前钩子）。
+2. 生成物（`FILES` / `METRICS`）不得手改，只重跑脚本。
+3. 改 `STRUCTURE.md` / `WORKPLAN.md` 仍需统筹主持确认（前者影响重构实施，后者是历史追溯）。
+4. 迁移类改动必须**同批完成**，不留「半搬半留」的过渡态。
 
-## 七、本轮边界（方案 A）
+## 七、本轮边界（2026-11-13 重建）
 
-- 不搬任何现有文件、不改旧文。
-- `docs/roles/` 按队拆分（P1）、审查件归并（P2，需独立督导同意）待后续排期。
+- **M1**（`history/` + `generated/` 迁移）待下一 docs 批。
+- **M2** 角色卡按队拆：`a/`、`org/` 已就位；B 队三张卡待督导迁入 `b/`。
+- **M6** 审查件归并 `docs/audit/`：待独立督导同意。
 - 代码侧结构不归本文件管，见 `docs/STRUCTURE.md`。

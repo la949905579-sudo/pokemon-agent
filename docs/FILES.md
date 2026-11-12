@@ -146,6 +146,7 @@
 | `docs/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
 | `docs/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
 | `docs/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
+| `docs/BATCHES.md` | 批次台账（BATCHES） | 保留 |
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
 | `docs/HANDOFF.md` | 交接文档（2026-11-13 00:32 · F1 后、可交接版本） | 保留 |
@@ -174,16 +175,18 @@
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
 | `docs/org/PLAN-20261113-2.md` | 文件系统规划方案 2026-11-13（第二份） | 保留 |
 | `docs/org/PLAN-20261113-3.md` | 项目重建总方案 2026-11-13（第三份） | 保留 |
+| `docs/org/PLAN-20261113-4.md` | 项目重建总方案（2026-11-13，已与用户逐项核对） | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
 | `docs/org/README.md` | docs/org/ — 组织规划接口 | 保留 |
 | `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
-| `docs/roles/architect.md` | 组织规划（architect）启动提示词 | 保留 |
-| `docs/roles/artisan.md` | 工匠提示词 | 保留 |
+| `docs/roles/README.md` | docs/roles/ 角色卡索引 | 保留 |
+| `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |
+| `docs/roles/a/assistant.md` | 助理（assistant）启动提示词 | 保留 |
+| `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
 | `docs/roles/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
 | `docs/roles/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
 | `docs/roles/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
-| `docs/roles/examiner.md` | 考官提示词 | 保留 |
-| `docs/roles/steward.md` | 执行主管提示词 | 保留 |
+| `docs/roles/org/architect.md` | 组织规划（architect）启动提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
 ## 构建
@@ -294,4 +297,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 230 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 233 个文件（不含 `native-emu/third_party/` 第三方源码）。
