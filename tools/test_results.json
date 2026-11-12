@@ -1,0 +1,17 @@
+{
+  "updated": "2026-11-12 19:20",
+  "kotlin": {
+    "tests": 57,
+    "result": "PASS（0 failure / 0 error）",
+    "at": "2026-11-12 19:19",
+    "command": "cd native-emu && gradle :app:testDebugUnitTest --no-daemon -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2",
+    "note": "BUILD SUCCESSFUL in 44s；数量与结果取自 app/build/test-results/testDebugUnitTest/*.xml"
+  },
+  "python": {
+    "tests": 28,
+    "result": "PASS（28/28）",
+    "at": "2026-11-12 19:20",
+    "command": "python3 run_tests.py",
+    "note": ""
+  }
+}

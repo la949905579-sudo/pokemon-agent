@@ -34,6 +34,7 @@ OVERRIDES = {
     "tools/metrics.py": ("工具", "构建度量：build tag→提交映射、CI 首过率，生成 docs/METRICS.md"),
     "tools/check_ui_state.py": ("工具", "UI 状态读写配对检查（INC-006：mutableStateOf 只写不读）"),
     "tools/precommit_check.sh": ("工具", "提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推"),
+    "tools/test_results.json": ("工具", "本机真实测试结果记录（tools/metrics.py 读入 docs/METRICS.md）"),
     "docs/METRICS.md": ("文档", "构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改）"),
     "start_push.sh": ("平台", "后台常驻的状态推送脚本（setsid，支持 stop）"),
     "memory.py": ("平台", "内存读写的统一入口（按 EMU_BACKEND 分派 RetroArch / NativeEmu）"),

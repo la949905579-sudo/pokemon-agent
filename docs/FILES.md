@@ -144,7 +144,7 @@
 | `docs/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
-| `docs/HANDOFF.md` | 交接文档（2026-11-12 19:20） | 保留 |
+| `docs/HANDOFF.md` | 交接文档（2026-11-12 19:20 整改后） | 保留 |
 | `docs/HANDOVER.md` | 交接标准（HANDOVER） | 保留 |
 | `docs/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
 | `docs/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
@@ -159,10 +159,10 @@
 | `docs/TEAM.md` | 团队手册（TEAM） | 保留 |
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
-| `docs/roles/artisan.md` | 工匠（artisan）提示词 | 保留 |
-| `docs/roles/auditor.md` | 督导（auditor）提示词 | 保留 |
-| `docs/roles/examiner.md` | 考官（examiner）提示词 | 保留 |
-| `docs/roles/steward.md` | 执行主管（steward）提示词 | 保留 |
+| `docs/roles/artisan.md` | 工匠提示词 | 保留 |
+| `docs/roles/auditor.md` | 督导提示词 | 保留 |
+| `docs/roles/examiner.md` | 考官提示词 | 保留 |
+| `docs/roles/steward.md` | 执行主管提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
 ## 构建

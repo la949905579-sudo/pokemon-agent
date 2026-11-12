@@ -22,8 +22,8 @@
 
 - **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 整改提交，写死 hash 会立刻过期）。
   最后一次**代码**提交是 `2c237da`，也是当前最新构建的覆盖上限（见下）。
-  Python 测试 28/28；Kotlin 单测 **57 个**
-  （计数：`grep -rc '@Test' native-emu/app/src/test --include=*.kt` 求和）。
+  Python 测试 28/28；Kotlin 单测**本机实跑 57/57 通过**（2026-11-12 19:19，
+  `:app:testDebugUnitTest` BUILD SUCCESSFUL，结果见 `docs/METRICS.md`）。
 - **最新构建 = 推送 tip `2c237da`**：CI run 43193673121 success（2026-11-12 17:41 +0800），
   Release `build-2c237daebddc30…`（17:43 发布）。该 tag 覆盖 3 个提交：
   `c13ee2e` / `9cfd5d0`（设置页「重置」「退出」）/ `2c237da`。
@@ -52,7 +52,7 @@
 ## 四、关键命令（本机可跑 Kotlin 单测，APK 仍走 CI）
 
 ```bash
-# Kotlin 单测（57 个，2026-11-12 计数；本机实测约 1 分钟，APK 仍走 CI）
+# Kotlin 单测（57 个，2026-11-12 19:19 本机实跑通过 44s；APK 仍走 CI）
 ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
 cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --no-daemon \
   -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2

@@ -207,6 +207,15 @@ def annotate_ci(tags, stats):
         t.ci_first = first == "success"
 
 
+def local_verification():
+    """读 tools/test_results.json：本机真实跑过的测试结果（静态计数不算证据）。"""
+    path = os.path.join(ROOT, "tools", "test_results.json")
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def incidents():
     path = os.path.join(ROOT, "docs", "INCIDENTS.md")
     try:
@@ -251,8 +260,10 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             f"| 最近 20 个 tip | {stats['recent_ok']} / {stats['recent_total']} | {pct(stats['recent_rate'])} | 判断当前趋势用这个 |",
             "",
             f"- 总运行次数 {stats['runs']}，其中重试/重复运行 {stats['retries']} 次。",
-            f"- T4 阈值：全量首过率 < 70% → 启动审查。当前 {pct(stats['rate'])}，"
-            f"**{'需要启动' if stats['rate'] < 0.7 else '未触发'}**。",
+            f"- T4 阈值：全量首过率 < 70% **或 复发率 > 0** → 启动审查。",
+            f"- 当前首过率 {pct(stats['rate'])}（{'触发' if stats['rate'] < 0.7 else '未触发'}）；"
+            f"复发 {inc_relapse} 条（{'触发' if inc_relapse > 0 else '未触发'}）"
+            f" → 合计 **{'需要启动审查' if (stats['rate'] < 0.7 or inc_relapse > 0) else '未触发'}**。",
             "",
         ]
 
@@ -317,9 +328,34 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             "> 必须在标题里写「（复发）」——这是本指标的已知局限，已记入 2026-11-12 整改。",
             "",
         ]
+    local = local_verification()
+    lines += ["## 五、本机验证（最近一次真实运行）", ""]
+    if local:
+        lines += [f"- 更新时间：{local.get('updated', '未知')}", ""]
+        lines += ["| 测试 | 数量 | 结果 | 时间 | 命令 |", "|---|---|---|---|---|"]
+        for key, label in (("kotlin", "Kotlin 单测"), ("python", "Python 离线测试")):
+            t = local.get(key)
+            if not t:
+                lines.append(f"| {label} | — | **未跑/未记录** | — | — |")
+                continue
+            lines.append(
+                f"| {label} | {t.get('tests', '?')} | {t.get('result', '?')} | {t.get('at', '?')} "
+                f"| `{t.get('command', '?')}` |"
+            )
+        notes = [f"{label}：{local[key]['note']}" for key, label in
+                 (("kotlin", "Kotlin"), ("python", "Python"))
+                 if local.get(key, {}).get("note")]
+        lines += ["", *[f"- {n}" for n in notes]]
+        lines += ["", "> 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。", ""]
+    else:
+        lines += [
+            "**未记录**：`tools/test_results.json` 不存在。跑完测试后把结果写进去再生成本文档；",
+            "不要用 grep 计数冒充测试通过。", "",
+        ]
+
     stale = local_stale_tags(tags)
     lines += [
-        "## 五、已知局限",
+        "## 六、已知局限",
         "",
         "- CI 首过率只算“推送 tip 的第一次 Action”，不含本机测试结果；",
         "  文档类推送在 workflow 加 paths 过滤前也会触发构建，早期数据偏噪。",
@@ -330,7 +366,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             f"- 本地还有 {len(stale)} 个远端已删除的 `build-*` tag（历史重写遗留），"
             "本表以远端为准；清理：`git fetch --prune-tags`。",
         ]
-    lines += ["", "## 六、怎么用", "", "```bash",
+    lines += ["", "## 七、怎么用", "", "```bash",
               "python3 tools/metrics.py            # 重新生成本文件",
               "python3 tools/metrics.py --check    # 只看摘要（每周 T4 判定用）",
               "python3 tools/metrics.py --offline  # 没网时只算 tag/覆盖",
