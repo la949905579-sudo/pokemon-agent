@@ -1,4 +1,4 @@
-# 交接文档（2026-11-12 19:20）
+# 交接文档（2026-11-12 19:20 整改后）
 
 > 给下一个会话：先读本文件 + `README.md` + `PROJECT_PLAN.md` + `NATIVE_EMU_TODO.md`。
 
@@ -20,7 +20,9 @@
 
 ## 二·五、构建与发布现状（2026-11-12 19:20 实测）
 
-- **HEAD = `dc6810e`**（交接时点）。Python 测试 28/28；Kotlin 单测 **57 个**
+- **HEAD 以 `git log -1` 为准**（本文件之后仍有 docs/tools 整改提交，写死 hash 会立刻过期）。
+  最后一次**代码**提交是 `2c237da`，也是当前最新构建的覆盖上限（见下）。
+  Python 测试 28/28；Kotlin 单测 **57 个**
   （计数：`grep -rc '@Test' native-emu/app/src/test --include=*.kt` 求和）。
 - **最新构建 = 推送 tip `2c237da`**：CI run 43193673121 success（2026-11-12 17:41 +0800），
   Release `build-2c237daebddc30…`（17:43 发布）。该 tag 覆盖 3 个提交：
