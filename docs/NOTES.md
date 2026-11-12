@@ -515,3 +515,11 @@ python3 logq.py --grep got=2 --json
   **0 = 可走，非 0 = 挡**。
 - Kotlin 侧统一归一化成 **1 = 可走**（`game/MapData.kt`），`MapWalker` 与渲染都按这个约定。
 - 历史坑：曾按「1 = 可走」直接吃 JSON，导致寻路反了。以后加新数据源必须显式归一化。
+
+## 电池存档（2026-11-12 实机验证通过）
+
+- 现象（修前）：游戏内存档只在 RAM，关 App 即丢——代码里从未调 `mCoreAutoloadSave`。
+- 修法：`emu_core.cpp` 在 `mCoreLoadFile` 成功后调 `mCoreAutoloadSave(core_)`，
+  落点 `<ROM目录>/<ROM名>.sav`（不写 filesDir，卸载不丢）。
+- 实测：游戏内存档 → 强杀 → 重开同一 ROM →「继续」进度正常；`.sav` 131072 字节（火红叶绿 Flash 1M）。
+- 日志：`emu.save stage=autoload ok=true`；失败是 `ok=false`，且不阻断启动。
