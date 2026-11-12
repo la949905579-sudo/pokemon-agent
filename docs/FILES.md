@@ -149,7 +149,7 @@
 | `docs/BATCHES.md` | 批次台账（BATCHES） | 保留 |
 | `docs/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/FAQ.md` | FAQ · 常见问题 | 保留 |
-| `docs/HANDOFF.md` | 交接文档（2026-11-13 00:32 · F1 后、可交接版本） | 保留 |
+| `docs/HANDOFF.md` | 交接文档（HANDOFF） | 保留 |
 | `docs/HANDOVER.md` | 交接标准（HANDOVER） | 保留 |
 | `docs/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
 | `docs/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |

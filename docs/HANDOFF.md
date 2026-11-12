@@ -1,286 +1,81 @@
-# 交接文档（2026-11-13 00:32 · F1 后、可交接版本）
+# 交接文档（HANDOFF）
 
-> 给下一个会话：先读本文件 + `README.md` + `PROJECT_PLAN.md` + `NATIVE_EMU_TODO.md`。
+> 2026-11-13 05:2x · 项目重建 P0 提交后交接（本会话结束）
+> 给新会话（新统筹主持）：先读本文件 + `docs/TEAM.md`（§二 重建步骤）+ `docs/HANDOVER.md` + `docs/NATIVE_EMU_TODO.md`。
+> **本文件是交接唯一真源，聊天记录不算。** 历史长文已迁出：上一版交接（F2/A–E 真机记录、T5 豁免对账）见 `git show 35b8fc7:docs/HANDOFF.md`。
 
-## 一、项目是什么
+## 交接（2026-11-13 05:2x）
 
-两个部分，一条 TCP 桥连接：
+- **当前目标**：项目重建 P1「会话重建」——新统筹主持按 `docs/TEAM.md` §二 spawn 助理 + 工匠，开始重建后的第一批功能/迁移批次。
+- **已完成**（带提交号，远端 `origin/master` 即真源）：
+  - `4378149` 项目重建 P0（本批，17 文件 +514/−513）：重写 `TEAM`/`HANDOVER`/`README`/`STRUCTURE`/`org/README`；角色卡按队拆（`docs/roles/a/{assistant,artisan,examiner}.md`、`docs/roles/org/architect.md`、`docs/roles/README.md`）；删旧 `docs/roles/{steward,artisan,examiner,architect}.md`；新建批次台账 `docs/BATCHES.md`；重建总方案 `docs/org/PLAN-20261113-4.md`；`docs/FILES.md` 重生成（233 文件/0 未描述）。
+  - `9c2fc63` F2 招式点击施放（下屏战斗页 4 招点击施放，1 提交 1 构建；真机 4 招全过）。
+  - `35b8fc7` F2 状态同步（CHANGELOG v2026.11.13-1、TODO、HANDOFF 旧版、NOTES、FILES、`tools/test_results.json` 82/29）。
+  - `08a0d74` F1 后 HANDOFF 补录（T5 口径定稿 + 真机字段 + 不要做什么）。
+- **未完成 / 卡住**：
+  - F2 遗留：拒绝路径（未开菜单/回读不一致）与切页·收面板中断**仅单测覆盖、未真机触发**；`ui/BattleMoveAction.kt` 直接读内存的结构债；`MainActivity.kt` 710 行 > 500 上限；A 后轮询未查 cancelled；P3 名表 `id=232` 缺口（界面显示 `#232`）。均记于 `docs/NATIVE_EMU_TODO.md`「批次 F2 遗留」。
+  - 批次 A–E 旧包无独立真机证据（历史日志早于批次 C、OTA 下载失败）；只有 `build-9c2fc63` 上的 A–E 功能点抽查（旧 HANDOFF §二·七，见 `git show 35b8fc7:docs/HANDOFF.md`）。
+  - docs 迁移未做：M1 `history/`+`generated/`、M2 B 队卡迁 `roles/b/`、M6 审查件归并（待独立督导同意）——见 `docs/org/PLAN-20261113-4.md` §六 P2。
+  - 旧 B 队整改 A-10～A-13 是否仍适用，需按新流程复核（新规则：整改并入下一功能批，只有 P0 单开）。
 
-1. **NativeEmu**（`native-emu/`）：自研 Android 双屏 GBA 模拟器（mGBA 内核 + Kotlin/Compose + NDK），上屏游戏，下屏控制台，TCP 桥 `127.0.0.1:55401`
-2. **Pokemon 自动化**（根目录 `*.py`）：火红中文版的读内存/决策/自动化，通过 `EMU_BACKEND=native` 切到 NativeEmu（否则走 RetroArch UDP）
+## 交接前置检查（HANDOVER §二，2026-11-13 05:2x 实测）
 
-仓库：`https://github.com/la949905579-sudo/pokemon-agent`（master）
-
-## 二、当前进度
-
-- **P0 平台**：完成（双屏/渲染/60fps/存档/多指按键/后台保活/固定签名/OTA）
-- **P1 插件化**：完成（`framework/` + `games/pokemon_firered/` + `run_game.py`；测试数量/结果以 `tools/test_results.json` 为准）
-- **B 方案（Kotlin 重写）**：数据层 + 决策层 + UI 集成完成（`native-emu/.../game/`），CI 含 Kotlin 单测
-- **下屏**：左侧内容 + 右侧竖排 Tab（地图/队伍/背包/名字/图鉴/存档/设置/按键）
-- **地图交互**：非战斗常驻页 = 整张城镇图（点格子预览→开始走）；「地图」Tab 置灰不可点；15×9 视口代码保留未接入（批次 E）
-- **战斗页**：点击招式施放（F2，`9c2fc63`）——**需先按 A 展开招式菜单**再点 4 格；仅招式菜单内生效（fail-closed）；真机 4 招通过（见 §二·七）
-
-## 二·五、构建与发布现状（2026-11-13 01:35 实测）
-
-- **写本文件时 HEAD = `9c2fc63`**（批次 F2 代码提交；其上 F1 文档整改 `08a0d74`、F2 状态 docs 提交只改 docs/tools）。
-  最后一次**代码**提交是 `9c2fc63`（F2 招式点击施放）；Python 侧最后代码提交 `81cfb2b`
-  （循环依赖修复），都在最新构建覆盖内（见下）。
-  测试：Python / Kotlin 的**数量与最近一次真实结果见 `tools/test_results.json`**（本机实跑；
-  CI 构建也会跑 Kotlin 单测）。本文不硬编码数字——数字改由该文件单一真源提供。
-- **最新构建 = 推送 tip `9c2fc63`（批次 F2）**：CI run `43266619857` 成功（attempt 1），Release tag
-  `build-9c2fc63…`（2026-11-13 01:12 发布），只覆盖 `9c2fc63` 这一个提交；真机验证见 §二·七。
-  此前：**`build-760b0c2…`（2026-11-12 20:46，批次 E）**，覆盖 `b6e8db3`（D 遗留）、
-  `188bbe9`（地图交换）与 `760b0c2`（文档）；再往前 `build-401aeaa…`（20:33，批次 D）、
-  `build-ccc9bff…`（20:14，批次 C）、`build-930fe29…`（20:06，批次 B）、
-  `build-8082f89…`（19:48，批次 A）、
-  `build-2c237da…`（17:43，覆盖 `c13ee2e` / `9cfd5d0`（重置/退出）/ `2c237da`）。
-- 当前 HEAD 已包含批次 A–E 与 F2 的 `native-emu/**` 改动（`8082f89`、`fdbf448`、`2a0fbc7`、
-  `ea576e9`、`188bbe9`、`9c2fc63`），APK 由 CI 构建；之后再有 docs/tools/py 提交不影响构建。**判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射，不要看「每个提交是否都有 tag」。**
-- CI 触发条件：推送里**包含 `native-emu/**`** 才构建；按推送 tip 打 tag，因此一个 tag 可能
-  覆盖多个提交（2026-11-12 首次审查的误判就出在这里，见 `docs/AUDIT_LOG.md`）。
-- 历史失败（03:51–05:26）的两层原因已修掉，留作教训：
-  1. `MainActivity.kt` 缺 `androidx.compose.foundation.gestures.detectTapGestures` 的 import
-  2. `KeyPadArea` 里残留了一段重复的旧按键布局块，多出一个右花括号 → 528 行
-     `Expecting a top level declaration`（插入新布局时没删旧块）
-- Release 由 CI 自动发布：每次构建成功就发 `build-<sha>`；构建失败不会发（旧错包 `build-c7996e9` 已删）。
-- 工作区干净；`map_cache.txt` 等运行缓存已移出版本库（`.gitignore`）。
-- 教训：本机编不了 Kotlin，改完先做两件小事——grep import、数花括号（`python3 - <<` 小脚本），
-  比反复推空提交省时间。
-
-## 二·六、交接与审查状态（T5 用，2026-11-13）
-
-- **最近审查**：2026-11-12 第二次审查（B 队首轮，`docs/audit/REPORT-20261112.md`），整改清单在
-  `docs/audit/ACTIONS.md`（A 队只读）；本轮 F1 已闭环 A-1/A-2/A-3/A-4/A-9。
-- **冷却期**：两次审查间隔 ≥7 天 → 下次常规审查不早于 **2026-11-19**；T4 红点（INC-007 复发）
-  B 队已登记「延续观察」。
-- **A-7 过线**：主会话 130+ 轮 / 3 亿+ token（占全体 ~59%），按 `docs/HANDOVER.md` §一（>100 轮）应交接。
-- **T5 交接豁免（2026-11-13）**：
-  - 授权：**用户 2026-11-13 会话确认 T5 豁免授权属实**（`AUDIT_LOG` 已留痕）。独立督导「批准」
-    目前仅 `AUDIT_LOG` 自述、仓内无独立痕迹 → 留 2026-11-19 下轮审查核定，不拔高成已独立核实。
-  - 降级采信（统一口径）：**未获书面豁免 或 补核不过 → 降级采信**。`AUDIT_LOG:118` 只写
-    「补核不过」、本文旧版只写「未获豁免」，均按本口径理解；B 队文件只读不改，差异留作下轮更正。
-  - 补核点（2026-11-19 首审）：`HANDOVER.md` §二 **11 条（:55-65，含第 11 条钩子）**；
-    备注 `AUDIT_LOG:114` 的「10 条 :54-64」为 F1 前口径。另：A-1/A-2 闭环、HANDOFF §二·六完整。
-- 交接前置检查见 `docs/HANDOVER.md` §二（11 条，含钩子）。
-
-## 二·七、真机验证记录（ACTIONS 预警 3 补录，2026-11-13）
-
-> 定义：**真机验证** = 装包后实际运行并操作（装 APK → 进战斗/地图操作 → 观察行为）。
-> CI 绿、单测通过都**不算**。每批必须有一条能指到位置的证据（日志片段 / 文件 / 日期+场景+记录人）。
-> 本节由执行主管维护，批次关闭时填；没验就写「未验」，不许写「应该没问题」。
-
-| 批次 | 构建（tag 时间） | CI | 真机验证 | 证据（位置 / 日期 / 场景） |
-|---|---|---|---|---|
-| A | `build-8082f89`（11-12 19:43） | 首过（METRICS §二） | **未验** | 无独立真机记录，见下证据链 |
-| B | `build-930fe29`（11-12 20:04） | 首过 | **未验** | 同上 |
-| C | `build-ccc9bff`（11-12 20:11） | 首过 | **未验** | 20:16–20:45 运行中的包是 C 之前的版本（日志级别/间隔反证） |
-| D | `build-401aeaa`（11-12 20:31） | 首过 | **未验** | 20:41 OTA 检查到该 tag，20:42 下载 IOException，未装 |
-| E | `build-760b0c2`（11-12 20:44） | 首过 | **未验** | 20:46 之后设备无运行日志；整图重绘帧率观察项无数据 |
-| F2 | `build-9c2fc63`（11-13 01:10） | 成功（run 43266619857，attempt 1） | **通过**（4 招各 1 次 / 2 场 / 无 ok=false） | `emu_native.log` 4 条 `battle.move`（本地 01:30–01:32）+ 游戏内实际出招；见下 |
-
-**证据链（2026-11-13 复核）**：
-
-1. 设备日志 `/sdcard/Download/emu_native.log` 时间戳覆盖 2026-11-12 09:59–20:45（本地时），
-   最后一段 19:53–20:45 的 `map.fallback … ok=true` 全是 **WARN 级**，且间隔有 <10s
-   （20:44:25→20:44:32、20:44:56→20:45:01）。批次 C（`2a0fbc7`）此处已改 `Nlog.info`，
-   批次 D（`cbbd1f9`）才改回 `warnThrottled` 并 10s 限流 → 当时运行的包必为**批次 C 之前**
-   （最可能 `build-2c237da`，17:41）。
-2. 设备 OTA 日志 `/sdcard/Download/ota.log`：最后一次安装成功在 09:58（`b53fe92` 时代）；
-   20:14 只检查到 `build-ccc9bff`，20:41 检查到 `build-401aeaa`、20:42:47 下载
-   `IOException` 失败；**没有 A–E 的 install 记录**。
-3. `/sdcard/Download/DSH-Go/` 无 A–E 的 APK 文件（最新旧包 `native-emu-2c237da.apk`，17:43）。
-   批次 E 的「整图重绘帧率」至今没有真机数据。F2 的 `native-emu-9c2fc63.apk` 已于 01:13 下载待装。
-4. 装机前实测（2026-11-13 01:16，NativeEmu「更新」页）：「版本 0.2 (**2c237da**) / 构建 11-12 17:42」
-   → 设备仍是**批次 E 之前**的旧包；A–E 与 F2 均未装机。
-   **装机后（01:2x）**：更新页「版本 0.2 (**9c2fc63**) / 构建 11-13 01:11」→ F2 新包在跑。
-5. 结论：A–E 五批**没有独立真机记录**（`ACTIONS.md` 预警 3 成立）。补录只记证据，不编造结论。
-
-**F2 真机结果（2026-11-13，主持人操作 + 执行主管核日志）**：**通过**。2 场野生战凑齐 4 招，
-逐格点击均 `ok=true`，无 `ok=false`、未重试、未盲按：
-
-| 时间（本地） | idx | turn_before→after | cursor_start→end | steps | ms |
-|---|---|---|---|---|---|
-| 01:30:02 | 1（叫声） | 2→4 | 0→1 | 1 | 794 |
-| 01:30:26 | 0（抓） | 2→4 | 1→0 | 1 | 788 |
-| 01:31:15 | 3（#232） | 2→4 | 0→3 | 2 | 1163 |
-| 01:32:13 | 2（火花） | 2→4 | 0→2 | 1 | 790 |
-
-- 4 条 `battle.move` 字段完整（`BattleMoveAction.logResult` 的 idx/ok/reason/turn_before/turn_after/
-  cursor_start/cursor_end/steps/ms），INFO 级，写 `/sdcard/Download/emu_native.log`（`Nlog.kt:23`），
-  默认 `minLevel=INFO`、5MB 滚动 `.1`；日志为 **UTC** 时间戳。
-- 光标映射实证：idx=1 从 0 右移 1 步、idx=0 左移 1 步、idx=3 先右后下 2 步、idx=2 下移 1 步
-  → 与「0 左上 / 1 右上 / 2 左下 / 3 右下」一致（与 Python `action.use_move` 同源）。
-- 限制：本期只在招式菜单（`turn==2` 且 `main==0`）内可点，**不自动开菜单**（主持 2026-11-13 拍板）。
-
-**A–E 功能点抽查（在同一个新包 `build-9c2fc63` 上，2026-11-13 01:30–01:32）**：
-1. 非战斗常驻页 = 整张城镇图：**通过**
-2. 点格子出黄线预览 + 步数 + 开始走/取消（本轮触发过 20/51/37 步预览）：**通过**
-3. 队伍详情：属性 / Lv / HP / 经验条 / 4 招 PP：**通过**（小火龙 火 Lv15 HP 25/39、
-   经验 2335→2535、抓 PP26 / 叫声 39 / 火花 21 / 第 4 招名表未收录 PP31）
-4. 存档 3 槽：槽 1 = 2026-11-12 20:46、槽 2/3 空；读档恢复：**通过**
-5. 状态通道：顶部常驻 TCP·ROM·map·帧/FPS；临时提示约 2.8s 消失（「走不到这里」「槽 1 已读档」）：**通过**
-
-> 注：以上是**在新包上抽查历史功能点**，不代表 A–E 旧包已验——A–E 仍记「未验」，见上表。
-
-**每批填法（今后）**：真机 = 装包 + 进战斗实测；证据写「日志文件 + 行内容」或
-「截图/文件路径 + 日期时间 + 场景 + 记录人」；`docs/NOTES.md` 有实测小节的写小节名。
-CI 绿只填「CI」列，不填真机列。
-
-**今后落地路径（主持 2026-11-13 拍板：C 为主、A 兜底）**：
-- 出包：CI 成功后执行主管把 `app-debug.apk` 下到 `/sdcard/Download/DSH-Go/native-emu-<sha>.apk`
-  （`publish_release.py` 依赖 token 已废弃，改走 Release 资源公共下载）。
-- 装包确认**不绕过用户**；装好后若手机操控无障碍可用，由执行主管用手机工具实测，
-  否则由用户实测、执行主管核 `emu_native.log` 证据。
-- **F2 真机步骤（已于 2026-11-13 01:30–01:32 完成，结论见上）**：装 `native-emu-9c2fc63.apk` →
-  更新页确认「版本 0.2 (9c2fc63)」→ 下屏「存档」读取槽 1 → 进草丛遇敌 → 按 A 展开招式菜单 →
-  依次点 4 格（4 回合）→ 证据 `grep "battle.move" /sdcard/Download/emu_native.log`；
-  成功 = `ok=true reason=ok turn_before=2 turn_after≠2 cursor_end==idx`（4 条 idx 0..3）。
-- 注：`hintText` 是旧措辞，实际为 `statusBarState`（常驻）+ `statusText`（临时行）。
-- **不回溯证明 A–E 旧包**，旧包仍记「未验」。
-- 建议：每批构建后 24h 内无真机记录 → 批次不标「关闭」，`CHANGELOG` 该条加「真机：未验」。
-
-## 三、下一批范围（与 `docs/audit/ACTIONS.md` 对齐，2026-11-13）
-
-**F1 已完成（本提交）**：A-1 装钩子 / A-2 测试数改引用 `tools/test_results.json` /
-A-3 同步 TODO·STRUCTURE·TEAM / A-4 重生成 METRICS / A-9 修 METRICS 脚本两处 ——
-一个 docs/tools 提交，不触发构建。
-
-**仍未闭环（按 ACTIONS 现状）**：
-- A-10 机械化过期检查（precommit 加文档 greps：硬编码测试数、退役成员名等 = 0；`metrics.py --check` 窗口验真）
-- A-11 `PROJECT_PLAN.md` 阶段更新或标「历史规划」
-- A-12 `docs/AUDIT.md` 的「8 条前置检查」→ 10 条
-- A-13 `docs/AUDIT.md` 旧 `auditor` 名统一为 `audit-inspector`
-- A-5 `docs/audit/REQUEST.md` 增 T4 必填 + 窗口起点验真（A 队 + B 队，下次请求前；**不属 F1**）
-
-**F2 已完成（`9c2fc63`，2026-11-13）**：招式点击施放。范围按主持拍板——**仅当招式菜单已展开
-（`TURN_FLAG==2` 且 `MAIN_CURSOR==0`）时点击施放**，不做「主菜单→自动开招式菜单」；前置任一不满足
-即 fail-closed（不按键）；1 提交 1 构建（CI run 43266619857 成功）；真机结果见 §二·七。
-本批遗留进下一批（详见 `NATIVE_EMU_TODO.md`「批次 F2 遗留」）：`ui/BattleMoveAction.kt` 直接读内存的
-结构债、`MainActivity.kt` 710 行超 500 上限、A 后轮询未查 cancelled、`MoveCaster.kt:51` 注释措辞、
-A 前最后复核与线程层清键/取消无单测；另 P3 招式名表缺口（本轮实测第 4 招 id=232 未收录，显示 `#232`）。
-地图相关**只修 bug、不加交互控件**（用户 2026-11-12 决定）；批次 A–E 无独立真机记录（见 §二·七），
-批次 E 整图重绘帧率待真机观察。
-
-详见 `NATIVE_EMU_TODO.md`。
-
-## 四、关键命令（本机可跑 Kotlin 单测，APK 仍走 CI）
-
-```bash
-# Kotlin 单测（数量/结果见 tools/test_results.json 的 kotlin 字段；APK 仍走 CI）
-ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
-cd native-emu && PATH=/opt/gradle-8.9/bin:$PATH gradle :app:testDebugUnitTest --no-daemon \
-  -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2
-```
-
-## 四·一、关键命令
-
-```bash
-# Python 测试（数量/结果见 tools/test_results.json 的 python 字段）
-python3 run_tests.py
-
-# 状态推送（下屏数据）
-bash /root/workspace/start_push.sh     # 启动常驻（setsid）
-bash /root/workspace/start_push.sh stop
-
-# 构建：推送即触发 CI（.github/workflows/build-native-emu.yml）
-git push
-
-# 下载 + 发布（会检查构建是否成功）
-GITHUB_TOKEN=xxx python3 publish_release.py build-<sha>
-```
-
-## 五、环境与坑
-
-- 手机：Android 16，arm64；本机无法完整编译（NDK 是 x86_64），**一律用 GitHub Actions 构建**
-- 构建产物下载到 `/sdcard/Download/DSH-Go/app-debug.apk`
-- 签名固定：`native-emu/app/keystore.jks`（**口令见 `native-emu/app/keystore-info.txt`，不进仓库**）
-- **mGBA 集成坑**（详见 `native-emu/README.md`）：emµ 与 libmgba 编译宏必须一致、初始化顺序、skipBios、RGB565、存档 API、mCoreFind 竞态
-- 下屏数据：**本地 Kotlin GameState 优先**，Python 推送兜底；地图（minimap）仍靠推送
-- 用户偏好：中文、简洁；**每次构建前先列改动清单确认**（commit message 即 OTA 更新日志）；构建放后台别阻塞
-
-## 六、推送凭据（已改为 SSH，2026-11-12）
-
-- 远端已从 HTTPS 改为 `git@github.com:la949905579-sudo/pokemon-agent.git`。
-- 手机上有 ed25519 密钥：`~/.ssh/github_ed25519`（私钥，600），公钥已加到 GitHub 账号，
-  备注 `dsh-phone`；`~/.ssh/config` 里指定了 `IdentityFile`。
-- **git push 不需要 token**：SSH 直接可用。账号里的旧 token `native-emu-push` 已于 2026-11-12 删除，
-  现在没有任何经典 token。
-- **发 Release 也不需要 token 了**：CI 构建成功后用仓库自带的 `GITHUB_TOKEN` 自动发
-  `build-<sha>`（workflow 里 `permissions: contents: write`），失败不会发（不会出现旧包）。
-- 换设备/换容器时：生成本机密钥 → 把公钥加到 GitHub → 改 remote 为 SSH，
-  不要在聊天或文档里贴私钥。
-
-## 六·五、签名与安全债（2026-11-12 已处置）
-
-- **签名已轮换**：旧 `keystore.jks` 曾随公开仓库泄露，已从版本库移除并换新密钥。
-- 新密钥只存在于两处：GitHub Actions secret（`ANDROID_KEYSTORE_B64` / `STORE_PASSWORD` /
-  `KEY_PASSWORD`，别名 `emu`）和本机 `native-emu/app/`（`keystore.jks` + `keystore-info.txt`，
-  权限 600、均已被 `.gitignore` 忽略）。**不进仓库。**
-- ⚠️ 本机这两份文件是**唯一可恢复副本**：GitHub secret 只写不读。丢了就只能换密钥 → 再卸载重装一次。
-  建议尽快把口令抄进密码管理器，并把 `keystore.jks` 另存一份。
-- **旧包签名不兼容**：换新签名后（2026-11-12 起）出的包都是新签名，升级必须卸载重装（旧 `state1.sav` 会丢）。
-  历史重写后旧 tag 名（如 `build-fab1535`）已不指向现存提交，不要再引用。
-- 构建成功自动发 Release，不会再把失败构建的旧包发出去。
-- 仍然成立的老规矩：凭据/私钥不进仓库、不进文档、不进聊天。
-
-## 六·五·补：2026-11-12 重写过一次历史
-
-- 原因：旧签名私钥 `native-emu/app/keystore.jks` 曾进过公开仓库，已用 `git filter-repo` 从**全部历史**中删除，
-  并强推、删除了指向旧提交的 21 个 `build-*` tag。
-- **副作用：所有 commit hash 变了**，文档里的 hash 已按映射批量替换；如果你在别处有克隆，必须重新拉。
-- 重写前的完整备份：`/root/backups/pokemon-agent-preclean-1112-0944.bundle`（仅在手机上）。
-- 未被清理的：GitHub 上旧的 Release 对象可能仍指向已删 tag（网页上还能点到），需要时可手动删。
-
-## 六·六、GitHub 资源 CDN 在手机上不通
-
-- 现象：App 内 OTA 下载卡 0%，Release 附件直连 `objects.githubusercontent.com` 经常 SSL EOF。
-- 可用做法：走 API 端点 `repos/<o>/<r>/releases/assets/<id>`（带 `Accept: application/octet-stream`）
-  下载，或用文件管理器/代理下好后手动安装。
-- 已知未修：App 的 OTA 没有重试与错误码外显（日志已加，见 `ota.log`）。
-
-## 七、注意
-
-- `BATTLE_FLAG` 战斗中可能短暂为 0（动画/结算），已用 `battle_anim` + 4 秒滞回处理
-- 点击地图前往会**真按方向键**（180ms/步），误触会移动角色
-- 用户手机开着 VPN 时 GitHub API 可能连不上
-
-## 七·五、不要做什么（接手先看，2026-11-13）
-
-- **不要用空提交 / `chore: build` 触发构建**（INC-002）；CI 只在推送含 `native-emu/**` 时构建。
-- **不要 amend / reset / rebase 已推送提交**，只能追加（INC-005）；推送前跑 `tools/precommit_check.sh --push`。
-- **禁止 `git add -A`**：共享工作区，只 `git add <明确路径>`（INC-004/007）。
-- **不要动 `native-emu/app/keystore*` 与凭据**：本机是唯一可恢复副本，丢了只能换签名 + 重装。
-- **不要把批次 A–E 旧包补写成「已验」**：无装机证据，见 §二·七；真机结论只认可指到位置的证据。
-- **不要给 F2 加「自动开招式菜单」**：主持 2026-11-13 拍板的最小范围，见 §三。
-- **不要排已完成项**：存档 3 槽 / 队伍详情 / 行走预览已完成，别重复做。
-- **不要本机编 APK**（NDK 是 x86_64，编不了）；Kotlin 单测可跑，出包只能 CI。
-- **不要改 `docs/audit/`**（B 队活文档，A 队只读）。
-
-## 八、文档地图（按阅读顺序）
-
-| 文档 | 作用 | 什么时候读 |
+| # | 项 | 结果 |
 |---|---|---|
-| `README.md` | 项目总览 + 模块速查 | 第一次接手 |
-| `docs/PROJECT_PLAN.md` | 平台/插件分层与路线图 | 想知道「为什么这么设计」 |
-| `docs/TOOLS.md` | 每个 Python 模块 + NativeEmu 桥/构建/日志 | 动手写代码前 |
-| `docs/NATIVE_EMU_TODO.md` | 模拟器**唯一**的进度与待办真源 | 每次开工先看 |
-| `docs/NATIVE_EMU.md` | 模拟器立项计划（含历史验收标准） | 想回看设计决策 |
-| `docs/NOTES.md` | 内存地址与实测结论（游戏侧） | 改自动化逻辑时 |
-| `docs/ARCHITECTURE.md` | Python 分层与 import 关系 | 重构前 |
-| `docs/CHANGELOG.md` | 行为/接口变更记录 | 发版、写 OTA 说明 |
-| `docs/FAQ.md` | 用户侧常见问题（安装/黑屏/OTA） | 处理实机问题 |
-| `docs/STRUCTURE.md` | 目标目录结构、依赖规则、迁移分期 | 动文件位置/拆分模块前 |
-| `docs/OBSERVABILITY.md` | 日志格式与关键节点清单 | 加日志、排查问题时 |
-| `docs/FILES.md` | **每个文件**的用途与状态（自动生成） | 找不到某个文件干嘛用 |
-| `docs/TEAM.md` | 团队编制与重建步骤 | 新会话第一件事 |
-| `docs/HANDOVER.md` | 交接阈值、前置检查、反模式 | 想换会话之前 |
-| `docs/roles/*.md` | A 队三份提示词（执行主管/工匠/考官）；B 队与组织规划见 `docs/audit/TEAM.md`、`docs/org/README.md` | 重建团队时复制 |
-| `docs/INCIDENTS.md` | 事故复盘：现象/根因/固化 | 出事后 24 小时内写一条 |
-| `docs/AUDIT.md` | 第三方审查的触发条件与判据 | 到触发条件时 |
-| `docs/METRICS.md` | 构建覆盖 + CI 首过率 + token 成本（脚本生成） | 判 T4 / 查某个提交有没有构建 |
-| `docs/audit/ACTIONS.md` | B 队整改清单（A 队只读） | 决定下一批做什么 |
-| `docs/audit/REPORT-*.md` / `COST-*.md` | B 队审查报告与成本巡检 | 复盘、核成本 |
-| `docs/org/` | 组织规划请求与计划（`REQUEST.md` / `PLAN-*.md`） | 跨会话流程与组织问题 |
-| `docs/WORKPLAN.md` | 11-10 的工作计划（部分已被 P1 取代） | 仅追溯历史 |
+| 1 | `git status` 干净 | ✅ 空 |
+| 2 | 提交已推远端 | ✅ `origin/master` = HEAD = `4378149`，`origin/master..HEAD` = 0 |
+| 3 | CI 绿 | ✅ 最近构建 run `43266619857`（`build-9c2fc63`，attempt=1，success）；其后提交均 docs-only，pre-push 判定不触发构建 |
+| 4 | `python3 run_tests.py` | ✅ 29/29 通过（数字以 `tools/test_results.json` 为准） |
+| 5 | TODO/CHANGELOG 与代码同步 | ✅ F2 已于 `35b8fc7` 同步；P0 只改 docs |
+| 6 | `gen_files_index.py` 重生成 + `--check` | ✅ 已重生成（233/0），`--check` exit 0 |
+| 7 | 本文件更新（当前状态/阻塞/下一步/不要做什么） | ✅ 本提交 |
+| 8 | 无未结束后台任务/子代理 | ✅ 旧队三名成员均 inactive；job 仅历史完成/已杀任务 |
+| 9 | `precommit_check.sh --push` | ✅ 推送后复跑通过（见本提交前门禁输出） |
+| 10 | `check_ui_state.py`（有 Kotlin UI 改动） | ✅ 通过，无只写不读 |
+| 11 | 机械闸门已装 | ✅ `.git/hooks/pre-commit`（159B）、`pre-push`（105B）均在 |
 
-**冲突时以代码为准**：`CHANGELOG` 记行为、`NATIVE_EMU_TODO` 记进度，两边不一致先看 `git log`。
+- **交接触发**：用户判定本会话已超 100 轮阈值（HANDOVER §一 硬指标）并要求「只做三件事后交接」。`node tools/session_health.mjs` 对当前会话文件显示健康（轮次 2 / 压缩 0 / 空回合 0，exit 0）——脚本按当前会话文件计数，以用户裁定为准执行交接。
+- **Kotlin 单测**：最近实跑 82/82（`9c2fc63`，MoveCasterTest 11/11）；此后无 Kotlin 改动，见 `tools/test_results.json`。
+- **接手 5 分钟**（HANDOVER §五）：
+  ```bash
+  cd /root/workspace
+  git status --short                                   # 期望空
+  git log -1 --pretty='%h %s'                          # 期望 4378149
+  git rev-list --count origin/master..HEAD             # 期望 0
+  python3 run_tests.py                                 # 期望全过
+  python3 tools/gen_files_index.py --check             # 期望 0
+  ```
+
+## 构建 / 发布现状
+
+- **最新构建 = `build-9c2fc63`**（CI run `43266619857`，success，唯一 1 次构建；Release 自动发布，APK 11,575,075B）。
+- 该构建已装到手机并完成 F2 真机验证（版本 `0.2 (9c2fc63) / 构建 11-13 01:11`）；APK 也在 `/sdcard/Download/DSH-Go/native-emu-9c2fc63.apk`。
+- 判构建覆盖看 `docs/METRICS.md` 的 tag→提交映射；CI 仅在推送含 `native-emu/**` 时构建（按推送 tip 打 tag）。
+
+## 关键决策（为什么）
+
+- **规则文档重写 + 角色卡按队拆**：落实「单会话单身份」；助理每批新开，保护统筹主持寿命；旧名 `builder`/`verifier`/`steward` 永久禁用。
+- **F2 最小范围**：仅招式菜单已展开（`TURN_FLAG==2` 且 `MAIN_CURSOR==0`）时可点；不做主菜单自动打开；fail-closed + 失败即停，避免误操作。
+- **docs 提交每批 ≤1 个**、`BATCHES` 只追加：控制文档反客为主。
+- **B 队文件 A 队只读**（`AUDIT.md`/`AUDIT_LOG.md`/`docs/audit/**`），跨队改动经统筹主持转达独立督导。
+- **本批 P0 未单独叫考官**：按用户指示「本轮只做三件事后交接」；重建规则本身由用户 03:00–05:30 逐项核对定稿（见 PLAN §五）。台账备注同此。
+
+## 下一步建议（给新统筹主持）
+
+1. 按 `docs/TEAM.md` §二 重建：读 `HANDOFF`/`TEAM`/`HANDOVER` → 跑 `run_tests.py` + `session_health.mjs` → spawn `assistant` + `artisan`（考官按批叫）。第一批任务从本文件与 `docs/NATIVE_EMU_TODO.md` 取。
+2. 接手验收过了，再与用户确认下一批。候选：
+   - F2 遗留收尾（异常路径真机 + 结构债）；
+   - 批次 A–E 真机补验，或由用户明确接受「只验当前包」；
+   - P2 迁移 M1/M2/M6（每个迁移单独一批，验收四连）。
+3. 新批必写一条 `docs/BATCHES.md` 记录（只追加）。
+
+## 不要做什么（最值钱）
+
+- **不要在本会话继续干活**（已交接结束，新会话重建后再做）。
+- 不要重排已完成的**存档 3 槽 / 队伍详情 / 地图交互**（用户 11-12 决定：地图只修 bug、不加交互控件）。
+- 不要用空提交触发构建；不要 amend / force push 已推送提交。
+- 不要碰 keystore / token（签名固定，轮换会导致已装 App 无法覆盖升级；口令/密钥不进仓库、文档、聊天）。
+- 不要把批次 A–E 旧包写成「已真机验证」（没有独立证据；只有当前包 `build-9c2fc63` 的功能点抽查）。
+- 不要改 `docs/audit/**` 与 `AUDIT_LOG.md`（A 队只读；需统筹主持转达独立督导）。
+- 不要伪造门禁/测试数字：以 `tools/test_results.json`、`git`、CI run 为准。
+- 不要在 `HANDOFF` 堆积历史长文：上一版见 `git show 35b8fc7:docs/HANDOFF.md`。
