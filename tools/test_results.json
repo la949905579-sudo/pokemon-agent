@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-13 06:40",
+  "updated": "2026-11-13 12:26",
   "kotlin": {
-    "tests": 95,
+    "tests": 101,
     "result": "PASS（0 failure / 0 error）",
-    "at": "2026-11-13 06:38",
-    "command": "GitHub Actions run 43321435153 → gradle :app:testDebugUnitTest :app:assembleDebug（attempt 1）",
-    "note": "CI run 43321435153（commit 8b38330，分支 batch3-f2-cleanup）attempt1 success：build 步骤 success → Kotlin 单测 0 失败 + assembleDebug 成功（无 Release，非 master）；较上次 82 条 +13（批次3 F2 遗留：新增 BattleMoveMenuTest、MoveCastThreadTest，MoveCasterTest 扩充）。条数为静态 @Test 计数，CI 日志不可下载（需 admin），以任务 success 为通过证据。"
+    "at": "2026-11-13 12:25",
+    "command": "GitHub Actions run 43365120600 → gradle :app:testDebugUnitTest :app:assembleDebug（attempt 1，分支 batch4-mainactivity）",
+    "note": "CI run 43365120600（commit 8435b37，分支 batch4-mainactivity）attempt1 success：build 步骤 success → Kotlin 单测 0 失败 + assembleDebug 成功（publish release skipped，非 master）；较上批 95 +6（批次4 新增 StatusParserTest 6 例，MainActivity 拆分为 EmuView/StatusParser/WalkControl/LocalStatus）。条数为静态 @Test 计数，CI 原始日志需登录，以 build 步骤 success 为通过证据。"
   },
   "python": {
     "tests": 29,
