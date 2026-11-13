@@ -72,6 +72,18 @@ class MapDataTest {
     }
 
     @Test
+    fun assetLayerExposesInjectedMapForCrossMapPlan() {
+        val tiles = listOf(listOf(1, 0), listOf(0, 1))
+        MapData.putAssetTilesForTest(0x08260000, tiles)
+        val layer = MapData.assetLayer(0x08260000)!!
+        assertEquals(2, layer.w)
+        assertEquals(2, layer.h)
+        assertTrue(layer.fromAssets)
+        assertEquals(tiles, layer.tiles)
+        assertNull("未注入的图返回 null", MapData.assetLayer(0x08270000))
+    }
+
+    @Test
     fun currentPrefersAssets() {
         val hdr = 0x08250000
         val mapAddr = 0x0825477C

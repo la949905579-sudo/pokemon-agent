@@ -31,6 +31,8 @@ object MapData {
 
     /** 地图数组地址 -> 归一化 tiles（assets 打包的）。 */
     private val assetTiles = HashMap<Int, List<List<Int>>>()
+    /** 地图数组地址 -> (w, h)（assets json 里的尺寸；跨图寻路按任意地图取图用）。 */
+    private val assetSizes = HashMap<Int, Pair<Int, Int>>()
     @Volatile private var assetsLoaded = false
     @Volatile private var cached: Layer? = null
 
@@ -45,9 +47,12 @@ object MapData {
             val names = context.assets.list("maps") ?: return
             for (name in names) {
                 if (!name.startsWith("map_") || !name.endsWith(".json")) continue
+                // map_links.json 是跨图连接表，由 MapLinks 单独加载，这里跳过避免「解析失败」告警
+                if (name == "map_links.json") continue
                 val text = context.assets.open("maps/$name").bufferedReader().use { it.readText() }
                 val layer = parseJson(text) ?: continue
                 assetTiles[layer.addr] = layer.tiles
+                assetSizes[layer.addr] = layer.w to layer.h
             }
             Nlog.info("map.assets", "ok" to true, "loaded" to assetTiles.size)
         } catch (e: Throwable) {
@@ -58,6 +63,7 @@ object MapData {
     @Synchronized
     fun resetForTest() {
         assetTiles.clear()
+        assetSizes.clear()
         assetsLoaded = false
         cached = null
     }
@@ -66,8 +72,22 @@ object MapData {
     @Synchronized
     fun putAssetTilesForTest(addr: Int, tiles: List<List<Int>>) {
         assetTiles[addr] = tiles
+        val w = tiles.firstOrNull()?.size ?: 0
+        if (w > 0) assetSizes[addr] = w to tiles.size
         assetsLoaded = true
         cached = null
+    }
+
+    /**
+     * 按地图地址取 assets（或测试注入）里的整张图；没有该图返回 null。
+     * 跨图寻路用：规划时不能只看当前地图。
+     */
+    @Synchronized
+    fun assetLayer(addr: Int): Layer? {
+        val tiles = assetTiles[addr] ?: return null
+        val size = assetSizes[addr] ?: ((tiles.firstOrNull()?.size ?: 0) to tiles.size)
+        if (size.first <= 0 || size.second <= 0) return null
+        return Layer(addr, size.first, size.second, tiles, true)
     }
 
     // ---------- 解析 ----------

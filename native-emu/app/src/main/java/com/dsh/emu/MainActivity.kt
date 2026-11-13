@@ -54,6 +54,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // 地图数据打包在 APK assets 里（13 张，~70KB），不再依赖 /sdcard 与 Python 推送
         try { com.dsh.emu.game.MapData.loadAssets(this) } catch (_: Throwable) {}
+        // 跨图连接表（assets/maps/map_links.json）：只加载数据，本批不接入 UI 入口
+        try { com.dsh.emu.game.MapLinks.loadAssets(this) } catch (_: Throwable) {}
         try {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
         } catch (_: Throwable) {}
