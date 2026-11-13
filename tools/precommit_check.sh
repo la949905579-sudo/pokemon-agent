@@ -2,20 +2,24 @@
 # 提交 / 推送前的机械检查（INC-002 / INC-004 / INC-005 的固化）。
 #
 # 两个模式：
-#   提交前：tools/precommit_check.sh --scope docs/ tools/ --message "docs: xxx"
-#   推送前：tools/precommit_check.sh --push
+#   提交前：SCOPE_ROLE=assistant tools/precommit_check.sh --scope docs/ tools/ --message "docs: xxx"
+#   推送前：EXAMINER_OK="考官 <hash> 可发布" tools/precommit_check.sh --push   # 或手动带 --examiner-ok="..."
 #
 # 检查项（提交模式）：
 #   1. 空提交：暂存区与 HEAD 无差异 → 拒绝
 #   2. 提交信息为空 / 太短 / 占位（wip、test、build trigger…）→ 拒绝
 #   3. `git add -A` 卷入未声明改动：给了 --scope 时，暂存文件越界 → 拒绝
 #   4. 调试残留 / 凭据入暂存（*.log、*.jks、keystore-info*、*.bak）→ 拒绝
-#   5. 过期文档文案（A-10）：活文档出现旧文件数/旧测试数/退役实例名 → 拒绝
-#      （豁免：docs/history/**、docs/audit/**、docs/generated/**、docs/org/PLAN-*、B 队卡、
-#       「永久禁用/退役名/旧名」所在行、git 历史）
-#   6. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
+#   5. 过期文档文案（A-10）：旧文件数/旧测试数/退役实例名，以及「N 项」「N/N」类
+#      写死数字（上下文防误报；豁免 docs/history、docs/audit、docs/generated、
+#      docs/org/PLAN-*、B 队卡、docs/HANDOVER、「永久禁用/退役名/旧名」行）→ 拒绝
+#   6. 写入范围（A-17）：暂存路径须落在声明的职位写入范围内
+#      （SCOPE_ROLE=<职位|实例名> 或 --role；默认警告，--strict 拒绝；缺省警告）
+#   7. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
 #
 # 检查项（推送模式）：
+#   0. 考官门禁复位（A-18）：docs/BATCHES.md 末行含「待复核/待考官」→ 拒绝，
+#      除非带 --examiner-ok="<回执摘要>"（或环境变量 EXAMINER_OK）；--no-examiner 跳过
 #   1. 远端有本地没有的提交（被 amend/rebase/强推改写过）→ 拒绝
 #   2. 待推提交里有空提交或空信息 → 拒绝
 #   3. 提示本次推送会不会触发 CI（只有触及 native-emu/** 才会）
@@ -36,9 +40,13 @@ SCOPE=()
 INSTALL_HOOKS=0
 ERRORS=0
 WARNINGS=0
+STRICT=0
+ROLE="${SCOPE_ROLE:-}"
+EXAMINER_OK="${EXAMINER_OK:-}"
+NO_EXAMINER=0
 
 usage() {
-    sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,42p' "$0" | sed 's/^# \{0,1\}//'
     exit 2
 }
 
@@ -59,6 +67,12 @@ while [ $# -gt 0 ]; do
             done
             ;;
         --no-scope)     SCOPE=(); shift ;;
+        --strict)       STRICT=1; shift ;;
+        --role)         ROLE="${2:-}"; shift 2 ;;
+        --role=*)       ROLE="${1#*=}"; shift ;;
+        --examiner-ok)  EXAMINER_OK="${2:-}"; shift 2 ;;
+        --examiner-ok=*) EXAMINER_OK="${1#*=}"; shift ;;
+        --no-examiner)  NO_EXAMINER=1; shift ;;
         -h|--help)      usage ;;
         *) echo "未知参数：$1（--help 看用法）" >&2; exit 2 ;;
     esac
@@ -91,6 +105,45 @@ if [ "$INSTALL_HOOKS" = "1" ]; then
     install_hooks
     exit 0
 fi
+
+# ---------- A-17 写入范围 ----------
+# 从 tools/write_scopes.json 取某职位的允许路径（每行一个）；退出码 3=表读取失败，4=无此职位
+write_scope_paths() {
+    python3 - "$ROOT/tools/write_scopes.json" "$1" <<'PY'
+import json, sys
+path, role = sys.argv[1], sys.argv[2]
+try:
+    d = json.load(open(path, encoding="utf-8"))
+except Exception:
+    sys.exit(3)
+roles = d.get("roles", {})
+info = roles.get(role)
+if info is None:
+    for k, v in roles.items():
+        if role in (v.get("aliases") or []):
+            info = v
+            break
+if info is None:
+    sys.exit(4)
+for p in info.get("paths") or []:
+    print(p)
+PY
+}
+
+path_in_patterns() {  # $1=文件；依赖 WRITE_PATTERNS 数组
+    local f="$1" p
+    for p in "${WRITE_PATTERNS[@]}"; do
+        [ "$p" = "*" ] && return 0
+        if [[ "$p" == *"*"* ]]; then
+            [[ "$f" == $p ]] && return 0
+        elif [[ "$p" == */ ]]; then
+            [[ "$f" == "$p"* ]] && return 0
+        else
+            [[ "$f" == "$p" || "$f" == "$p"/* ]] && return 0
+        fi
+    done
+    return 1
+}
 
 # ---------- 提交信息检查 ----------
 check_message() {  # $1 = 文本，$2 = 来源描述
@@ -192,18 +245,23 @@ commit_checks() {
         ok "没有调试日志 / 密钥库进暂存"
     fi
 
-    # 5. 过期文档文案（A-10）：旧文件数 / 旧测试数 / 退役实例名不再靠人记
-    #    豁免：history/audit/generated/org-PLAN/B 队卡、「永久禁用/退役名/旧名」行、git 历史
+    # 5. 过期文档文案（A-10）：旧文件数 / 旧测试数 / 退役实例名 + 写死的「N 项」「N/N」
+    #    防误报：文件级豁免下表的目录；「N 项」允许 指标/保留/核对/生命周期 上下文；
+    #    「N/N」允许 test_results/run_tests/CI/测试/批次/坐标 等上下文；只兜已知过期值不受上下文限制。
     local stale=() f hit
+    local p_exact='57 个|28/28|verifier'
+    local p_items='[0-9]+ 项(?!目)'
+    local p_ratio='(?<![A-Za-z0-9_])[0-9]+/[0-9]+(?![A-Za-z0-9_])'
     while IFS= read -r f; do
         [ -n "$f" ] || continue
         while IFS= read -r hit; do
             [ -n "$hit" ] && stale+=("$hit")
-        done < <(grep -nE '57 个|28/28|verifier' "$f" 2>/dev/null \
-                    | grep -vE '永久禁用|退役名|旧名' \
-                    | sed "s|^|${f}:|")
+        done < <( { grep -nP "$p_exact" "$f" 2>/dev/null | grep -vE '永久禁用|退役名|旧名'
+                    grep -nP "$p_items" "$f" 2>/dev/null | grep -vE '指标|METRICS|保留|核对|生命周期'
+                    grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进'
+                  } | sort -u | sed "s|^|${f}:|" )
     done < <(git ls-files -- 'docs/*.md' 'docs/roles/*.md' 'docs/roles/*/*.md' 'docs/org/*.md' 'README.md' 'AGENTS.md' \
-                 | grep -vE '^docs/(history/|audit/|generated/|roles/b/|org/PLAN-)')
+                 | grep -vE '^(docs/(history/|audit/|generated/|roles/b/|org/PLAN-)|docs/HANDOVER\.md$)')
     if [ "${#stale[@]}" -gt 0 ]; then
         err "活文档过期文案 ${#stale[@]} 处（A-10：旧文件数/旧测试数/退役实例名）："
         printf '      %s\n' "${stale[@]}"
@@ -212,7 +270,44 @@ commit_checks() {
         ok "活文档无过期文案（A-10）"
     fi
 
-    # 6. 工作区漂移（警告）
+    # 7. 写入范围（A-17）：提交路径 ←→ 职位写入范围
+    if [ -z "$ROLE" ]; then
+        if [ "$STRICT" = "1" ]; then
+            err "A-17：--strict 下必须声明职位（SCOPE_ROLE=<职位|实例名> 或 --role <...>）"
+        else
+            warn "A-17：未声明职位（SCOPE_ROLE=... 或 --role），跳过写入范围检查"
+        fi
+    else
+        local scope_out scope_rc=0
+        scope_out="$(write_scope_paths "$ROLE")" || scope_rc=$?
+        case "$scope_rc" in
+            0) ;;
+            4) err "A-17：写入范围表里没有职位「$ROLE」（见 tools/write_scopes.json）" ;;
+            *) warn "A-17：写入范围表读取失败（tools/write_scopes.json），跳过检查" ;;
+        esac
+        local -a WRITE_PATTERNS=()
+        while IFS= read -r pline; do
+            [ -n "$pline" ] && WRITE_PATTERNS+=("$pline")
+        done <<< "$scope_out"
+        if [ "$scope_rc" = "0" ] && [ "${#WRITE_PATTERNS[@]}" -gt 0 ]; then
+            local outside_scope=()
+            for f in "${staged[@]}"; do
+                path_in_patterns "$f" || outside_scope+=("$f")
+            done
+            if [ "${#outside_scope[@]}" -gt 0 ]; then
+                if [ "$STRICT" = "1" ]; then
+                    err "A-17：${#outside_scope[@]} 个文件不在「$ROLE」写入范围（--strict 拒绝）："
+                else
+                    warn "A-17：${#outside_scope[@]} 个文件不在「$ROLE」写入范围（仅警告；代提交/授权须在提交信息标注）："
+                fi
+                printf '      %s\n' "${outside_scope[@]}"
+            else
+                ok "A-17：全部暂存文件在「$ROLE」写入范围内"
+            fi
+        fi
+    fi
+
+    # 8. 工作区漂移（警告）
     local dirty
     dirty="$(git status --porcelain | awk 'substr($0,1,1)==" " || substr($0,1,2)=="??"' | wc -l | tr -d ' ')"
     if [ "$dirty" -gt 0 ]; then
@@ -238,6 +333,24 @@ commit_checks() {
 # ---------- 推送模式 ----------
 push_checks() {
     echo "== 推送前检查 =="
+
+    # 0. 考官门禁复位（A-18）：BATCHES 末行待复核/待考官 → 拒绝，除非有考官回执
+    if [ "$NO_EXAMINER" = "1" ]; then
+        warn "A-18：--no-examiner 跳过考官门禁（仅限非推送/纯清单检查）"
+    else
+        local last_row
+        last_row="$(grep -E '^\|' docs/BATCHES.md 2>/dev/null | tail -1)"
+        if printf '%s' "$last_row" | grep -qE '待[^|]*复核|待考官'; then
+            if [ -n "$EXAMINER_OK" ]; then
+                ok "A-18：BATCHES 末行待复核；考官回执已提供：$EXAMINER_OK"
+            else
+                err "A-18：BATCHES 末行仍「待复核/待考官」，禁止 push；先取考官结论或带 --examiner-ok=\"<回执摘要>\"（或 EXAMINER_OK 环境变量）"
+                echo "      当前末行：$(printf '%s' "$last_row" | cut -c1-80)…"
+            fi
+        else
+            ok "A-18：BATCHES 末行无「待复核/待考官」"
+        fi
+    fi
 
     local upstream remote_sha
     upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"

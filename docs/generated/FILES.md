@@ -26,11 +26,12 @@
 |---|---|---|
 | `tools/check_ui_state.py` | UI 状态读写配对检查（INC-006：mutableStateOf 只写不读） | 保留 |
 | `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/generated/METRICS.md | 保留 |
-| `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推 | 保留 |
+| `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推、过期文案(A-10)、写入范围(A-17)、考官门禁(A-18) | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
 | `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/generated/METRICS.md） | 保留 |
 | `tools/token_baseline.json` | token 成本基线快照（token_report.mjs --write 生成，供 METRICS 引用） | 保留 |
 | `tools/token_report.mjs` | token 成本统计：读会话 usage，按职位/会话/日期汇总，--write 生成基线 | 保留 |
+| `tools/write_scopes.json` | 职位写入范围表（A-17，镜像 docs/TEAM.md §一；改表须同批更新） | 保留 |
 
 ## 平台
 
@@ -163,6 +164,7 @@
 | `docs/audit/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
 | `docs/audit/COST-20261112.md` | 成本巡检 2026-11-12 | 保留 |
 | `docs/audit/REPORT-20261112.md` | 审查报告 2026-11-12（窗口：当日提交，终点 `12afa7c`，审查时 HEAD `3decf36`） | 保留 |
+| `docs/audit/REPORT-20261113.md` | 审查报告 2026-11-13（窗口 `3decf36..ac26275`，45 提交） | 保留 |
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/generated/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
@@ -307,4 +309,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 243 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 245 个文件（不含 `native-emu/third_party/` 第三方源码）。
