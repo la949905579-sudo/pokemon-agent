@@ -3,8 +3,8 @@
 > 由 `tools/metrics.py` 生成，**不要手改**。重新生成：`python3 tools/metrics.py`。
 > 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。
 
-- 生成时间：2026-11-13 12:03（Asia/Shanghai）
-- 生成时 HEAD：`9f35637`（之后若有新提交属正常）
+- 生成时间：2026-11-13 12:20（Asia/Shanghai）
+- 生成时 HEAD：`6ec7350`（之后若有新提交属正常）
 - 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`
 
 ## 一、CI 首次通过率（T4 判据）
@@ -50,13 +50,16 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 
 ## 三、构建覆盖缺口（tag 之后未构建的提交）
 
-最后一个 build tag 之后还有 **1** 个提交未构建：
+最后一个 build tag 之后还有 **4** 个提交未构建：
 
 | 提交 | 时间 | 说明 | 触及 `native-emu/**` |
 |---|---|---|---|
 | `9f35637` | 2026-11-13 07:59 | docs(audit): 台账补 A-7 交接完成与 M1/M6 授权确认；ACTIONS 回填 A-7/A-10/A- | 否 |
+| `401ebfa` | 2026-11-13 12:09 | docs(批次3收尾): 方案箱规则调整(组织规划) + 批次台账/交接收尾(助理) + METRICS 重生成 | 否 |
+| `8b99815` | 2026-11-13 12:17 | chore(tools): A-16 工具链中文职位名补全/成本归因修复 | 否 |
+| `6ec7350` | 2026-11-13 12:19 | refactor(native-emu): 拆分 MainActivity（≈710→≤500 行） | ⚠ 是 |
 
-**构建覆盖完整**：未构建的提交都不触及 `native-emu/**`，不影响 APK。
+**⚠ 覆盖缺口 1 个**：有触及 `native-emu/**` 的提交未构建，需要推送触发 CI。
 
 ## 四、事故与复发率
 
@@ -65,7 +68,7 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 
 ## 五、本机验证（最近一次真实运行）
 
-> 记录来源：`tools/test_results.json` 是**执行主管**在每次真实跑完测试后更新的度量快照
+> 记录来源：`tools/test_results.json` 是**助理**在每次真实跑完测试后更新的度量快照
 > （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，
 > 因此入库保留、便于跨会话核对；不是脚本自动生成。
 
@@ -77,31 +80,33 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 | Python 离线测试 | 29 | PASS（29/29） | 2026-11-13 01:10 | `python3 run_tests.py` |
 
 - Kotlin：CI run 43321435153（commit 8b38330，分支 batch3-f2-cleanup）attempt1 success：build 步骤 success → Kotlin 单测 0 失败 + assembleDebug 成功（无 Release，非 master）；较上次 82 条 +13（批次3 F2 遗留：新增 BattleMoveMenuTest、MoveCastThreadTest，MoveCasterTest 扩充）。条数为静态 @Test 计数，CI 日志不可下载（需 admin），以任务 success 为通过证据。
-- Python：执行主管实跑；F2 未改 Python 侧，数量不变（批次 C 新增 test_bdata_shared.py）
+- Python：助理实跑；F2 未改 Python 侧，数量不变（批次 C 新增 test_bdata_shared.py）
 
 > 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。
 
 ## 六、token 成本（只报告，不设预算红线）
 
-- 基线生成：2026-11-13 00:32（Asia/Shanghai）（`node tools/token_report.mjs --since …` 可重算）
-- 会话数：14；合计 input **2,920,753** / output **1,628,199** / cacheRead **559,374,464** / total **563,923,416**
+- 基线生成：2026-11-13 12:15（Asia/Shanghai）（`node tools/token_report.mjs --since …` 可重算）
+- 会话数：22；合计 input **4,108,090** / output **2,810,770** / cacheRead **781,514,112** / total **788,432,972**
 
 | 职位 | 会话 | input | output | cacheRead | total | total 占比 |
 |---|---|---|---|---|---|---|
-| 主会话（未标注职位） | 4 | 1,358,830 | 674,978 | 339,612,544 | 341,646,352 | 60.6% |
-| 工匠 | 2 | 763,862 | 404,481 | 134,017,152 | 135,185,495 | 24.0% |
-| 执行主管 | 2 | 227,610 | 210,756 | 58,451,072 | 58,889,438 | 10.4% |
-| 考官 | 2 | 366,558 | 151,577 | 16,265,216 | 16,783,351 | 3.0% |
-| 未知职位 | 3 | 167,686 | 169,522 | 10,532,096 | 10,869,304 | 1.9% |
-| 督导 | 1 | 36,207 | 16,885 | 496,384 | 549,476 | 0.1% |
+| 主会话（未标注职位） | 6 | 1,766,285 | 1,153,235 | 447,618,560 | 450,538,080 | 57.1% |
+| 工匠 | 4 | 984,234 | 569,352 | 153,441,024 | 154,994,610 | 19.7% |
+| 助理 | 4 | 560,760 | 519,116 | 127,107,968 | 128,187,844 | 16.3% |
+| 考官 | 4 | 540,332 | 290,016 | 27,868,160 | 28,698,508 | 3.6% |
+| 组织规划 | 1 | 141,199 | 216,515 | 22,986,752 | 23,344,466 | 3.0% |
+| 审查员 | 1 | 61,442 | 36,128 | 1,794,816 | 1,892,386 | 0.2% |
+| 独立督导 | 1 | 36,207 | 16,885 | 496,384 | 549,476 | 0.1% |
+| 成本管理员 | 1 | 17,631 | 9,523 | 200,448 | 227,602 | 0.0% |
 
 | 日期 | total | input | output | cacheRead |
 |---|---|---|---|---|
 | 2026-11-11 | 1,115,333 | 31,286 | 22,159 | 1,061,888 |
 | 2026-11-12 | 538,887,711 | 2,791,889 | 1,476,942 | 534,618,880 |
-| 2026-11-13 | 23,920,372 | 97,578 | 129,098 | 23,693,696 |
+| 2026-11-13 | 248,429,928 | 1,284,915 | 1,311,669 | 245,833,344 |
 
-- 重复读同一文件：额外读 **41** 次（native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt ×20；native-emu/app/src/main/java/com/dsh/emu/Updater.kt ×8；docs/org/PLAN-20261112.md ×3；native-emu/app/src/main/cpp/emu_core.cpp ×2；docs/audit/TEAM.md ×2；docs/roles/architect.md ×1；docs/TEAM.md ×1；docs/NATIVE_EMU_TODO.md ×1；.git/refs/heads/master ×1；docs/org/PLAN-20261112.md ×1；另 1 次分散在其余文件）
+- 重复读同一文件：额外读 **51** 次（native-emu/app/src/main/java/com/dsh/emu/MainActivity.kt ×20；native-emu/app/src/main/java/com/dsh/emu/Updater.kt ×8；docs/TEAM.md ×3；docs/org/PLAN-20261112.md ×3；docs/HANDOFF.md ×2；native-emu/app/src/main/cpp/emu_core.cpp ×2；docs/audit/TEAM.md ×2；native-emu/app/src/main/java/com/dsh/emu/ui/BattlePage.kt ×1；native-emu/app/src/main/java/com/dsh/emu/ui/BattleMoveAction.kt ×1；docs/roles/architect.md ×1；另 8 次分散在其余文件）
 
 > **判定：只报告 + 给改进建议，不设红线。** 按 AUDIT 第八类（成本）执行；跑两轮拿到基线后
 > 再复议是否设预算。明细（含未标注职位的会话）见 `tools/token_baseline.json`。

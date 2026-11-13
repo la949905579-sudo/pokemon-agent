@@ -178,7 +178,7 @@
 | `docs/org/PLAN-20261113-4.md` | 项目重建总方案（2026-11-13，已与用户逐项核对） | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
 | `docs/org/README.md` | docs/org/ — 方案箱（组织规划接口） | 保留 |
-| `docs/org/REQUEST.md` | 组织规划请求 2026-11-13 | 保留 |
+| `docs/org/REQUEST.md` | 组织规划请求 2026-11-13（第 2 号：策略顾问角色卡 + TEAM 扩写） | 保留 |
 | `docs/roles/README.md` | docs/roles/ 角色卡索引 | 保留 |
 | `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |
 | `docs/roles/a/assistant.md` | 助理（assistant）启动提示词 | 保留 |
@@ -271,11 +271,15 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/Species.kt` | 关东 1-151 中文名表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/SwitchDecider.kt` | 换人决策 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/BattleMoveAction.kt` | 战斗页「点击招式」的运行时适配：把 [MoveCaster] 的注入接口接到 JNI 内存/按键， | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/EmuView.kt` | GBA 上屏视图：独立渲染线程按 59.7275fps 跑 runFrame 并把帧缓冲画到 Surface。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/KeyPad.kt` | 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/LocalStatus.kt` | 用 Kotlin GameState 直接读内存，组装下屏用的 JSON（与 Python 推送格式一致）。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MoveCastThread.kt` | 招式施放线程的机械逻辑：方向 → 按键掩码、可中断等待、取消后立即松键。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/SaveSlots.kt` | 即时存档卡槽：3 个槽，文件是 `filesDir/state1.sav` … `state3.sav`。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/StatusParser.kt` | 队伍里的一只；读不到的字段留空/负数，UI 显示 --（见 TeamPage 详情）。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/WalkControl.kt` | 「点击前往」的取消代际：closeKeys()（点 Tab / 载入 ROM / 收按键面板）会把 generation +1， | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/WalkPreview.kt` | 行走预览的折线点：从起点开始按方向序列逐格推进，返回含起点和终点的点列表。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/NlogTest.kt` | 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
@@ -288,6 +292,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/MoveCastThreadTest.kt` | 施放线程机械逻辑的离线单测：假 setKeys / sleep，不加载 native 库、不碰 Android。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/StatusParserTest.kt` | 状态 JSON 解析器离线单测：纯函数，不读实机、不写文件。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/TabsTest.kt` | 离线单测：右侧 Tab 是否可点（「地图」Tab 暂置灰）。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/WalkPreviewTest.kt` | 离线单测：行走预览折线点。 | 保留 |
 
@@ -301,4 +306,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 237 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 242 个文件（不含 `native-emu/third_party/` 第三方源码）。
