@@ -3,8 +3,8 @@
 > 由 `tools/metrics.py` 生成，**不要手改**。重新生成：`python3 tools/metrics.py`。
 > 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。
 
-- 生成时间：2026-11-13 05:49（Asia/Shanghai）
-- 生成时 HEAD：`6841960`（之后若有新提交属正常）
+- 生成时间：2026-11-13 12:03（Asia/Shanghai）
+- 生成时 HEAD：`9f35637`（之后若有新提交属正常）
 - 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`
 
 ## 一、CI 首次通过率（T4 判据）
@@ -14,12 +14,13 @@
 
 | 口径 | 首过 / 总数 | 首过率 | 备注 |
 |---|---|---|---|
-| 全量（139 个推送 tip） | 112 / 139 | 80.6% | 含早期 workflow 未加 paths 过滤时的 docs 推送 |
+| 全量（140 个推送 tip） | 113 / 140 | 80.7% | 含早期 workflow 未加 paths 过滤时的 docs 推送 |
 | 最近 20 个 tip | 19 / 20 | 95.0% | 判断当前趋势用这个 |
 
-- 总运行次数 161，其中重试/重复运行 22 次。
+- 总运行次数 162，其中重试/重复运行 22 次。
+- 数据来源：本地缓存（GitHub API 本次限流/断网，缓存时间 2026-11-13 06:43）
 - T4 阈值：全量首过率 < 70% **或 复发率 > 0** → 启动审查。
-- 当前首过率 80.6%（未触发）；复发 1 条（触发） → 合计 **需要启动审查**。
+- 当前首过率 80.7%（未触发）；复发 1 条（触发） → 合计 **需要启动审查**。
 
 ## 二、build tag → 包含的提交（构建覆盖）
 
@@ -43,27 +44,17 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 | `build-401aeaa5bc3940f59226fe76063409203a547909` | `401aeaa` | 2026-11-12 20:31 | 4 | `1ab5f50`；`cbbd1f9`；`ea576e9`；`401aeaa` | 首过 |
 | `build-760b0c2bd97556b4f1e2dad6cd2c2a5ab91b7a1f` | `760b0c2` | 2026-11-12 20:44 | 4 | `ccf2c8d`；`b6e8db3`；`188bbe9`；`760b0c2` | 首过 |
 | `build-9c2fc63bf532652ec520cb483ffb31464d75cc4d` | `9c2fc63` | 2026-11-13 01:07 | 22 | `0bdd9d2`；`12afa7c`；`09db03f`；`16f52e2`；`3decf36`；`637840a`；`f11b117`；`ab6a9c9`；`a3f4c48`；`7390eb3`；`9dbf7ac`；`0c6253… | 首过 |
+| `build-ff93b780a517eebf4ea58b1d3210e110a7d4267d` | `ff93b78` | 2026-11-13 06:40 | 19 | `35b8fc7`；`bcf2095`；`505c484`；`a499b96`；`59e5201`；`b7a69d7`；`f17cd21`；`3e3717b`；`639e633`；`4378149`；`598cee1`；`684196… | 未知 |
 
-- **单 tag 覆盖多提交的证据**：15 个 build tag 中，11 个覆盖 ≥2 个提交（最多 26 个）。所以“提交数 > tag 数”不等于漏构建。
+- **单 tag 覆盖多提交的证据**：16 个 build tag 中，12 个覆盖 ≥2 个提交（最多 26 个）。所以“提交数 > tag 数”不等于漏构建。
 
 ## 三、构建覆盖缺口（tag 之后未构建的提交）
 
-最后一个 build tag 之后还有 **12** 个提交未构建：
+最后一个 build tag 之后还有 **1** 个提交未构建：
 
 | 提交 | 时间 | 说明 | 触及 `native-emu/**` |
 |---|---|---|---|
-| `35b8fc7` | 2026-11-13 01:33 | docs: F2 真机验证通过 + 状态更新 | 否 |
-| `bcf2095` | 2026-11-13 01:47 | docs: 会话级职位改名（统筹主持/独立督导/组织规划）+ 同步预算 + A-11/A-12/A-13 | 否 |
-| `505c484` | 2026-11-13 01:54 | docs: 两本 TEAM.md 处置方案 1 落地（A 队侧标题+互指；B 队侧待督导补） | 否 |
-| `a499b96` | 2026-11-13 01:56 | docs(audit): 两本 TEAM.md 互指；auditor.md 前置检查 10→11 条 | 否 |
-| `59e5201` | 2026-11-13 02:17 | docs(org): 文件系统规划方案（最小整理/按归属/生命周期三案 + 分阶段推荐） | 否 |
-| `b7a69d7` | 2026-11-13 02:18 | chore: 重生成 FILES 索引（收录文件系统规划提案） | 否 |
-| `f17cd21` | 2026-11-13 02:28 | docs: 文件系统方案 A 落地（docs/README 分区约定 + archive 归档区 + 提案回填） | 否 |
-| `3e3717b` | 2026-11-13 02:38 | docs(org): P1 角色卡按队拆执行清单（仅方案，待统筹主持排期） | 否 |
-| `639e633` | 2026-11-13 03:02 | docs(org): 项目重建总方案（人员/流程/文件 + 4 阶段 + 3 个抉择） | 否 |
-| `4378149` | 2026-11-13 05:16 | docs: 项目重建 P0（规则文档重写 + 角色卡按队拆 + 批次台账） | 否 |
-| `598cee1` | 2026-11-13 05:18 | docs: HANDOFF 交接（2026-11-13 会话结束）+ BATCHES 台账回填 | 否 |
-| `6841960` | 2026-11-13 05:31 | docs(audit): B 队三卡迁入 docs/roles/b/（git mv）+ 引用更新 + 助理改名 + 六节 | 否 |
+| `9f35637` | 2026-11-13 07:59 | docs(audit): 台账补 A-7 交接完成与 M1/M6 授权确认；ACTIONS 回填 A-7/A-10/A- | 否 |
 
 **构建覆盖完整**：未构建的提交都不触及 `native-emu/**`，不影响 APK。
 
@@ -78,14 +69,14 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 > （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，
 > 因此入库保留、便于跨会话核对；不是脚本自动生成。
 
-- 更新时间：2026-11-13 01:11
+- 更新时间：2026-11-13 06:40
 
 | 测试 | 数量 | 结果 | 时间 | 命令 |
 |---|---|---|---|---|
-| Kotlin 单测 | 82 | PASS（0 failure / 0 error） | 2026-11-13 01:09 | `cd native-emu && gradle :app:testDebugUnitTest --no-daemon -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2` |
+| Kotlin 单测 | 95 | PASS（0 failure / 0 error） | 2026-11-13 06:38 | `GitHub Actions run 43321435153 → gradle :app:testDebugUnitTest :app:assembleDebug（attempt 1）` |
 | Python 离线测试 | 29 | PASS（29/29） | 2026-11-13 01:10 | `python3 run_tests.py` |
 
-- Kotlin：执行主管实跑 :app:testDebugUnitTest BUILD SUCCESSFUL（F2）；新增 MoveCasterTest 11 条（3 条 fail-closed 拒绝 + 成功/失败即停/取消/边界）
+- Kotlin：CI run 43321435153（commit 8b38330，分支 batch3-f2-cleanup）attempt1 success：build 步骤 success → Kotlin 单测 0 失败 + assembleDebug 成功（无 Release，非 master）；较上次 82 条 +13（批次3 F2 遗留：新增 BattleMoveMenuTest、MoveCastThreadTest，MoveCasterTest 扩充）。条数为静态 @Test 计数，CI 日志不可下载（需 admin），以任务 success 为通过证据。
 - Python：执行主管实跑；F2 未改 Python 侧，数量不变（批次 C 新增 test_bdata_shared.py）
 
 > 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。

@@ -259,6 +259,7 @@
 | `native-emu/app/src/main/java/com/dsh/emu/Nlog.kt` | 结构化日志（格式见 docs/OBSERVABILITY.md 第一节）：`ISO8601 LEVEL event k=v`。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Addresses.kt` | Kotlin 侧地址表（对应 addresses.py） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/BattleDecider.kt` | 战斗决策（选招/换人评分） | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/BattleMoveMenu.kt` | 招式菜单的只读适配层（ui → game）：界面层通过本对象读菜单状态，不直接碰 [Memo]/地址。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameData.kt` | 静态数据：属性表、招式表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameState.kt` | 读内存解码场景/坐标/队伍/敌方信息（Kotlin 版） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Growth.kt` | 升级经验阈值（Gen III）。 | 保留 |
@@ -272,17 +273,20 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/BattleMoveAction.kt` | 战斗页「点击招式」的运行时适配：把 [MoveCaster] 的注入接口接到 JNI 内存/按键， | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/KeyPad.kt` | 最底边的按键折叠条：点击开合；展开时向下拖拽也能收起。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/MapPage.kt` | 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/ui/MoveCastThread.kt` | 招式施放线程的机械逻辑：方向 → 按键掩码、可中断等待、取消后立即松键。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Pages.kt` | 「存档」页：3 个卡槽，每槽「存档 / 读取 / 删除」；三个破坏性操作都要 3 秒内二次确认。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/SaveSlots.kt` | 即时存档卡槽：3 个槽，文件是 `filesDir/state1.sav` … `state3.sav`。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/WalkPreview.kt` | 行走预览的折线点：从起点开始按方向序列逐格推进，返回含起点和终点的点列表。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/NlogTest.kt` | 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/BattleMoveMenuTest.kt` | 招式菜单适配层离线单测：只替换 [Memo.reader] 的假实现，不加载 native 库、不碰实机。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MoveCasterTest.kt` | MoveCaster 离线单测：全部用假 Io，不加载 native 库、不碰实机。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/ui/MoveCastThreadTest.kt` | 施放线程机械逻辑的离线单测：假 setKeys / sleep，不加载 native 库、不碰 Android。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/SaveSlotsTest.kt` | 离线单测：存档卡槽的文件名 / 空槽文案 / 时间格式。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/TabsTest.kt` | 离线单测：右侧 Tab 是否可点（「地图」Tab 暂置灰）。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/WalkPreviewTest.kt` | 离线单测：行走预览折线点。 | 保留 |
@@ -297,4 +301,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 233 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 237 个文件（不含 `native-emu/third_party/` 第三方源码）。
