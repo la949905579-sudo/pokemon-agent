@@ -135,6 +135,7 @@
 | `native-emu/app/src/main/assets/maps/map_831e8d8.json` | 数据/样例文件 | 保留 |
 | `native-emu/app/src/main/assets/maps/map_831eb98.json` | 数据/样例文件 | 保留 |
 | `native-emu/app/src/main/assets/maps/map_8320d18.json` | 数据/样例文件 | 保留 |
+| `native-emu/app/src/main/assets/maps/map_links.json` | 数据/样例文件 | 保留 |
 | `native-emu/app/src/main/assets/maps/override_82de3e8.json` | 数据/样例文件 | 保留 |
 | `native-emu/app/src/main/assets/maps/override_82fc730.json` | 数据/样例文件 | 保留 |
 
@@ -172,6 +173,7 @@
 | `docs/history/CHANGELOG.md` | CHANGELOG | 保留 |
 | `docs/history/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
 | `docs/history/NOTES.md` | 叶绿内存（实测） | 保留 |
+| `docs/history/RETROSPECTIVE-20261113.md` | 复盘 2026-11-13：docs 占比超 50% | 保留 |
 | `docs/history/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
@@ -263,10 +265,13 @@
 | `native-emu/app/src/main/java/com/dsh/emu/game/Addresses.kt` | Kotlin 侧地址表（对应 addresses.py） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/BattleDecider.kt` | 战斗决策（选招/换人评分） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/BattleMoveMenu.kt` | 招式菜单的只读适配层（ui → game）：界面层通过本对象读菜单状态，不直接碰 [Memo]/地址。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/CrossMapPathfinder.kt` | 跨图 A* 寻路：节点 = (地图地址, tile x, tile y)。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/CrossMapWalker.kt` | 跨图计划的执行器：按 [CrossMapPathfinder.Plan] 逐段按键、处理换图、检测卡住/坐标异常/取消。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameData.kt` | 静态数据：属性表、招式表 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/GameState.kt` | 读内存解码场景/坐标/队伍/敌方信息（Kotlin 版） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Growth.kt` | 升级经验阈值（Gen III）。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/MapData.kt` | 当前地图数据（tile 级），给下屏「当前地图页 / 大地图」用。 | 保留 |
+| `native-emu/app/src/main/java/com/dsh/emu/game/MapLinks.kt` | 一条「换图出口」的目标。复用房间的同一出口可能有多个去向（`targets`）。 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/MapWalker.kt` | 同图 BFS 寻路，输出方向序列 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/Memo.kt` | 内存读取的小封装（u8/u16/块读） | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/game/MoveCaster.kt` | 招式菜单「点击施放」的纯逻辑。 | 保留 |
@@ -287,9 +292,12 @@
 | `native-emu/app/src/test/java/com/dsh/emu/NlogTest.kt` | 离线单测：Nlog 的行格式 / 值清洗 / 滚动与限流判定。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleDeciderTest.kt` | class BattleDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/BattleMoveMenuTest.kt` | 招式菜单适配层离线单测：只替换 [Memo.reader] 的假实现，不加载 native 库、不碰实机。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/CrossMapPathfinderTest.kt` | 跨图 A* 离线单测：假地图图 + 假连接表，不读实机/assets。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/CrossMapWalkerTest.kt` | 跨图执行器离线单测：假世界（内存地图 + 记录按键），不读实机、不写文件。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GameStateTest.kt` | 离线单测：用内存镜像替换 JNI 读取。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/GrowthTest.kt` | 离线单测：成长公式 / ROM BaseStats 定位 / 回退表 / 升级进度。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/MapLinksTest.kt` | 地图连接表离线单测：解析（side/targets/reused/坏条目跳过）与 side 方向映射。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MoveCasterTest.kt` | MoveCaster 离线单测：全部用假 Io，不加载 native 库、不碰实机。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
@@ -309,4 +317,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 245 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 253 个文件（不含 `native-emu/third_party/` 第三方源码）。
