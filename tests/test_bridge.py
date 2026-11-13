@@ -1,6 +1,7 @@
 """离线测试：中间层（注册制 + 裁剪 + 分发）。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import bridge
 import handlers
 

@@ -1,7 +1,8 @@
 """离线测试：数组下标=光标号，active_slot 由 species 驱动。"""
 import struct
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch
 import switch
 

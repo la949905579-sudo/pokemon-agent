@@ -6,27 +6,35 @@
     python3 run_tests.py battle     # 只跑名字含 battle 的
 """
 import glob
+import os
 import subprocess
 import sys
 
-ROOT = "/root/workspace"
+ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
     pat = sys.argv[1] if len(sys.argv) > 1 else ""
-    files = sorted(glob.glob(f"{ROOT}/test_*.py"))
+    files = sorted(glob.glob(f"{ROOT}/tests/test_*.py"))
     if pat:
         files = [f for f in files if pat in f]
     if not files:
         print("没有匹配的测试")
         return 1
 
+    # 测试文件在 tests/ 下，但 root 模块仍在仓库根目录：
+    # 子进程 cwd 固定在 ROOT，并把 ROOT 放进 PYTHONPATH，保证 import 可用。
+    env = dict(os.environ)
+    env["PYTHONPATH"] = ROOT + (
+        os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else ""
+    )
+
     failed = []
     for f in files:
         name = f.rsplit("/", 1)[-1]
         try:
             r = subprocess.run([sys.executable, f], capture_output=True,
-                               text=True, timeout=120)
+                               text=True, timeout=120, cwd=ROOT, env=env)
             ok = r.returncode == 0 and "全部通过" in r.stdout
         except subprocess.TimeoutExpired:
             ok, r = False, None

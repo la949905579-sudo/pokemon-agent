@@ -233,36 +233,36 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
-| `run_tests.py` | 一键跑全部离线测试（按 test_*.py 文件计数） | 保留 |
-| `test_action.py` | 离线测试：action | 保留 |
-| `test_avoid_grass.py` | 离线测试：avoid_grass | 保留 |
-| `test_battle_loop.py` | 离线测试：battle_loop | 保留 |
-| `test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
-| `test_bridge.py` | 离线测试：bridge | 保留 |
-| `test_cursor.py` | 离线测试：cursor | 保留 |
-| `test_decision.py` | 离线测试：decision | 保留 |
-| `test_emu_bridge.py` | 离线测试：emu_bridge | 保留 |
-| `test_extension.py` | 离线测试：extension | 保留 |
-| `test_game_plugin.py` | 离线测试：game_plugin | 保留 |
-| `test_guard.py` | 离线测试：guard | 保留 |
-| `test_info.py` | 离线测试：info | 保留 |
-| `test_intent.py` | 离线测试：intent | 保留 |
-| `test_lead.py` | 离线测试：lead | 保留 |
-| `test_learn.py` | 离线测试：learn | 保留 |
-| `test_log.py` | 离线测试：log | 保留 |
-| `test_loop.py` | 离线测试：loop | 保留 |
-| `test_map_route.py` | 离线测试：map_route | 保留 |
-| `test_moves.py` | 离线测试：moves | 保留 |
-| `test_pathfind.py` | 离线测试：pathfind | 保留 |
-| `test_pokemon_plugin.py` | 离线测试：pokemon_plugin | 保留 |
-| `test_probe.py` | 离线测试：probe | 保留 |
-| `test_runlen.py` | 离线测试：runlen | 保留 |
-| `test_runner.py` | 离线测试：runner | 保留 |
-| `test_switch.py` | 离线测试：switch | 保留 |
-| `test_switch2.py` | 离线测试：switch2 | 保留 |
-| `test_travel.py` | 离线测试：travel | 保留 |
-| `test_turn.py` | 离线测试：turn | 保留 |
-| `test_turns.py` | 离线测试：turns | 保留 |
+| `run_tests.py` | 一键跑全部离线测试（按 tests/test_*.py 文件计数） | 保留 |
+| `tests/test_action.py` | 离线测试：action | 保留 |
+| `tests/test_avoid_grass.py` | 离线测试：avoid_grass | 保留 |
+| `tests/test_battle_loop.py` | 离线测试：battle_loop | 保留 |
+| `tests/test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
+| `tests/test_bridge.py` | 离线测试：bridge | 保留 |
+| `tests/test_cursor.py` | 离线测试：cursor | 保留 |
+| `tests/test_decision.py` | 离线测试：decision | 保留 |
+| `tests/test_emu_bridge.py` | 离线测试：emu_bridge | 保留 |
+| `tests/test_extension.py` | 离线测试：extension | 保留 |
+| `tests/test_game_plugin.py` | 离线测试：game_plugin | 保留 |
+| `tests/test_guard.py` | 离线测试：guard | 保留 |
+| `tests/test_info.py` | 离线测试：info | 保留 |
+| `tests/test_intent.py` | 离线测试：intent | 保留 |
+| `tests/test_lead.py` | 离线测试：lead | 保留 |
+| `tests/test_learn.py` | 离线测试：learn | 保留 |
+| `tests/test_log.py` | 离线测试：log | 保留 |
+| `tests/test_loop.py` | 离线测试：loop | 保留 |
+| `tests/test_map_route.py` | 离线测试：map_route | 保留 |
+| `tests/test_moves.py` | 离线测试：moves | 保留 |
+| `tests/test_pathfind.py` | 离线测试：pathfind | 保留 |
+| `tests/test_pokemon_plugin.py` | 离线测试：pokemon_plugin | 保留 |
+| `tests/test_probe.py` | 离线测试：probe | 保留 |
+| `tests/test_runlen.py` | 离线测试：runlen | 保留 |
+| `tests/test_runner.py` | 离线测试：runner | 保留 |
+| `tests/test_switch.py` | 离线测试：switch | 保留 |
+| `tests/test_switch2.py` | 离线测试：switch2 | 保留 |
+| `tests/test_travel.py` | 离线测试：travel | 保留 |
+| `tests/test_turn.py` | 离线测试：turn | 保留 |
+| `tests/test_turns.py` | 离线测试：turns | 保留 |
 
 ## 游戏
 

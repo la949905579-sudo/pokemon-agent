@@ -4,9 +4,10 @@
 再交给 bdata_shared.mon_from_bytes 解回来，验证等级/HP/招式/PP/物种。
 """
 import struct
+import os
 import sys
 
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bdata_shared import PARTY_MON_SIZE, mon_from_bytes, party_species, _SUBSTRUCT_TABLE
 

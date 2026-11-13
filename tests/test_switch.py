@@ -1,6 +1,7 @@
 """离线逻辑测试：不碰游戏，mock 内存读取验证换人模块。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch
 import switch as auto_battle, state, action
 

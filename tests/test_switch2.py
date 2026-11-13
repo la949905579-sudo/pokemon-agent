@@ -1,6 +1,7 @@
 """离线测试：_pick_and_switch 成功才 invalidate，不维护第二份顺序。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch
 import switch
 import action

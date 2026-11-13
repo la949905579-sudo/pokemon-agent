@@ -1,6 +1,7 @@
 """离线测试：info.scene() 的场景映射。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch
 import info
 

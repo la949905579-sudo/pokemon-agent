@@ -1,4 +1,8 @@
 """emu_bridge 离线单测：mock socket，不连实机。"""
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import socket
 import unittest
 from unittest import mock

@@ -30,7 +30,7 @@ OVERRIDES = {
     "publish_release.py": ("构建", "把 CI 产物发布到 GitHub Release（OTA 更新源）"),
     "push_status.py": ("平台", "把状态推给模拟器下屏（:55401 status 命令）"),
     "run_game.py": ("平台", "插件化入口：EMU_BACKEND=native python3 run_game.py <game_id>"),
-    "run_tests.py": ("测试", "一键跑全部离线测试（按 test_*.py 文件计数）"),
+    "run_tests.py": ("测试", "一键跑全部离线测试（按 tests/test_*.py 文件计数）"),
     "tools/metrics.py": ("工具", "构建度量：CI 首过率、build tag 覆盖、A-21 8 项度量（docs 占比/打回率/窗口复发/空回复/超线会话等），生成 docs/generated/METRICS.md"),
     "tools/check_ui_state.py": ("工具", "UI 状态读写配对检查（INC-006：mutableStateOf 只写不读）"),
     "tools/precommit_check.sh": ("工具", "提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推、过期文案(A-10)、写入范围(A-17)、考官门禁(A-18)"),
@@ -184,7 +184,7 @@ def layer_of(f):
         return "数据"
     if f.startswith("tools/"):
         return "工具"
-    if f.startswith("test_"):
+    if f.startswith("tests/") or f.startswith("test_"):
         return "测试"
     if f.endswith(".py"):
         return "平台"

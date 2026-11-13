@@ -1,6 +1,7 @@
 """离线测试：无草长段、穿草短段。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch
 import pathfind
 

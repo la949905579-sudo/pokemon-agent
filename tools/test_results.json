@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-13 12:26",
+  "updated": "2026-11-13 18:25",
   "kotlin": {
     "tests": 101,
     "result": "PASS（0 failure / 0 error）",
@@ -10,8 +10,8 @@
   "python": {
     "tests": 29,
     "result": "PASS（29/29）",
-    "at": "2026-11-13 01:10",
+    "at": "2026-11-13 18:25",
     "command": "python3 run_tests.py",
-    "note": "助理实跑；F2 未改 Python 侧，数量不变（批次 C 新增 test_bdata_shared.py）"
+    "note": "C1 助理实跑：29 个 test_*.py 迁入 tests/ 后仍 29/29 全过（只搬不改，数量不变）"
   }
 }

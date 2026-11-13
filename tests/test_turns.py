@@ -1,6 +1,7 @@
 """离线测试：带转弯惩罚的寻路。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import nav
 
 # 构造 20x20 全可走地图（metatile 8，elev 3）

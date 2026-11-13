@@ -1,6 +1,7 @@
 """离线测试：跨图 A* 规划（只读连接表，不碰游戏）。"""
+import os
 import sys
-sys.path.insert(0, "/root/workspace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import map_route
 
 R6, VT, R5, ST = 0x82e9260, 0x82e0614, 0x82e833c, 0x83192f0
