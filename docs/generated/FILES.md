@@ -186,6 +186,7 @@
 | `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
 | `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
 | `docs/roles/b/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
+| `docs/roles/org/advisor.md` | 策略顾问（advisor）启动提示词 | 保留 |
 | `docs/roles/org/architect.md` | 组织规划（architect）启动提示词 | 保留 |
 | `native-emu/README.md` | NativeEmu（Android 工程） | 保留 |
 
@@ -306,4 +307,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 242 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 243 个文件（不含 `native-emu/third_party/` 第三方源码）。

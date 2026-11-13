@@ -19,7 +19,7 @@
 | **统筹主持** | `lead` | 是，唯一 | 对接用户、定优先级、派活、拍板、跨会话协调；不读 diff / 构建日志 / 长文档 | 无（保留直接修改权，改后留痕 `HANDOFF`） |
 | **独立督导**（B 队） | `audit-lead` | 否，按需 | 审查、成本巡检、轮次巡检、整改清单 | `docs/audit/AUDIT.md`、`docs/audit/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**` |
 | **组织规划** | `architect` | 否，每任务新开 | 组织架构、流程、文件规范设计 | `docs/TEAM.md`、`docs/roles/a/**`、`docs/roles/org/**`、`docs/PROJECT_PLAN.md`、`docs/WORKPLAN.md`、`docs/STRUCTURE.md`、`docs/org/**` |
-| **策略顾问** | `advisor` | 否，用户需要时开 | 参谋：理需求、挑毛病、核对回执是否可信；不代拍板 | 无（只读） |
+| **策略顾问** | `advisor` | 否，用户点名开（单次 ≤10 轮） | 参谋：理需求、挑毛病、核对回执、给选项、压口径；不代拍板 | 无（只读） |
 
 ### 1.2 成员（子代理；只有会话主持能 spawn，子代理不能再 spawn）
 
@@ -47,6 +47,9 @@
 1. `git status --short` 为空
 2. `git rev-list --count origin/master..HEAD` = 0
 3. `python3 tools/gen_files_index.py --check` = 0
+
+> **策略顾问**：用户点名开。先读 `docs/HANDOFF.md`、`docs/TEAM.md`、`docs/roles/org/advisor.md`；
+> 只读、≤10 行汇报；单次 >10 轮或完成即关，不累积上下文。
 
 ## 三、主流程（12 步）
 
@@ -98,6 +101,15 @@
 4. 请求必须带**事实快照**（HEAD、工作树状态、相关提交号），防止陈旧转达。
 
 边界：审查报告按 B 队手册；同步回执按本节；单会话内汇报按三·七。
+
+## 三·九、策略顾问接口（摘要，详见角色卡）
+
+- **触发**：重大取舍 / 方案评审 / 回执核验 / 复盘 / 用户说不清 —— 一律**用户点名**。
+- **输入**：`HANDOFF`、`TEAM`、方案箱 `REQUEST`、`PLAN-*`、`REPORT-*`、`git log` / `git diff --stat`（只读）。
+- **产出**：≤10 行口述（结论 / 建议 / 风险 / 待确认），**不直接落盘**。
+- **边界**：不派活、不拍板、不写仓库、不跑构建测试、不做日常二传手。
+- **留痕**：需要时由用户或统筹主持写方案箱留痕文件 `docs/org/PLAN-<日期>-advisor.md`。
+- **详见** `docs/roles/org/advisor.md`（本小节只留摘要，避免双份真源）。
 
 ## 四、审查（B 队执行，A 队只读）
 
