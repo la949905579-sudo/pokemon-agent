@@ -24,6 +24,8 @@
 | 规范-docs-A19-20261113 | 2026-11-13 | A-19 规范批（来源＝组织规划）：`TEAM` §一 写入范围补表（统筹主持例外=REQUEST；组织规划+README×2；助理+BATCHES；重建/迁移例外条款）+ §七 度量 8 项定义表/T4 新口径 + §八 复盘件缺失失败模式；新增 `PLAN-20261113-5`（T4 提案）、`PLAN-20261113-6`（A-21 落实清单） | docs=本条（amend 后单条，含交接材料）；tools=`2e70a67` | 待轻量复核 | 提交前 ✅ 推送前 ⏳（待拍板） | 来源＝组织规划正文 + 助理代提交；用户 14:3x 确认落盘；A-19 落地（`TEAM` §一↔`write_scopes` 一致）；tools 含 A-10 误报放行；**A-21 待实现**（按 `PLAN-20261113-6`，留交接后新会话）；docs 本批 1 条 |
 | 工具整改-20261113 | 2026-11-13 | A-23（A-10 只扫暂存+命中行）、A-24（A-18 门禁收窄：仅 native-emu/功能代码需回执，docs/audit/history 放行，`--scope=b-team` 豁免）、A-21（METRICS 8 项指标实现）；docs：METRICS 8 行重生成 + A-5 请求必填模板 | tools=`da9962a`；docs=本条 | 待考官复核 | 提交前 ✅ 推送前 ⏳（A-24 修复后纯 docs/tools 推送应可放行） | 来源=助理；A-23/A-24/A-21 落地；A-5 助理侧部分完成（待独立督导确认）；docs 本批 1 条 |
 | 试点落盘-20261113 | 2026-11-13 | 合同制试点最小集：`docs/contracts/`（README + 合同模板 + C1 机械型 + C2 功能型 + PILOT）+ `.gitignore` 加 `.pilot/` + `FILES` 重生成 | 本条（`git log --oneline -1`） | 可推送（考官 3 轮，0 阻断） | 提交前 ✅ 推送前 ✅ | **§五.4 一次性授权留痕**：2026-11-13 ｜ 授权人：用户 ｜ 范围：仅 `docs/contracts/**`、`.gitignore` 1 行、`docs/generated/FILES.md` 重生成、`docs/BATCHES.md` 追加 1 条（试点文件 5 个，A 写合同 / B 写回执 / 助理提交）；**合同目录只用于试点，结束后归档/回滚**（步骤见 `docs/contracts/PILOT.md` §七） |
+| C1-20261113 | 2026-11-13 | 合同制试点 C1：29 个根 `test_*.py` `git mv` 入 `tests/`（保留历史）+ `run_tests.py` 入口同步；离线 29/29 | `c7538bb` | 可发布 | 提交前 ✅ 推送前 ✅ | 合同:C1；29 个测试文件；29/29；`base..HEAD` 1 提交；不涉 native-emu；已推 origin/master（B 经考官后推） |
+| C2-20261113 | 2026-11-13 | 合同制试点 C2：名表 232 金属爪——`bdata.py` 补数据源 + `native-emu/tools/gen_moves.py` 重建生成链路 + `GameData.kt` 脚本重生成 + Py/Kotlin 单测 | `f4e8bf9` | 可发布 | 提交前 ✅ 推送前 ✅ | 合同:C2；三源一致（PokeAPI metal-claw + Serebii Gen III AttackDex + 52poke）；CI `43458997942` success + Release `build-f4e8bf9`；真机证据 `/sdcard/Download/DSH-Go/C2-realdevice-move4-metalclaw-20261114-0549.jpg`；成本口径修正：cost-after 须在 accepted 后取（C2 回执 00:17 快照 8.8M/批 作废；按 06:07 accepted 后快照重取试点增量 39.9M / 2 批 ≈ 19.9M/批，基线 67.5M/批、阈值 57.35M，OK；数字随会话增长） |
 
 > 追记：批次1 考官结论 = **可发布**（`95b861b`，0 阻断；nit＝`docs/README.md:19` 措辞已在批次2 处理）。
 > 追记：批次1 已推送 origin/master=`95b861b`；考官=可发布（0 阻断）。
@@ -46,3 +48,4 @@
 > 交接触发记录：用户 2026-11-13 14:3x 决定本会话批次结束后交接（`HANDOVER` §二 前置检查 + `TEAM` §二 重建）；A-21（8 项度量实现）留给交接后新会话。
 > 规范-docs-A19 结论追记：考官 task-23 = **可推送**（TEAM §一 ↔ `write_scopes` 10 角色一致、A-10 复测绿、docs 合规）；已推送 origin/master（tools `2e70a67` / docs `1702ae3`）；后续 amend 定稿为 `1702ae3`。
 > 工具整改-20261113 结论追记：考官 task-26 = **可推送**（A-23 只扫暂存+命中行、A-24 门禁收窄三例、A-21 八项指标、METRICS 8 行、A-5 模板均验证通过）；已推送 origin/master=`a88fa4d`（tools `da9962a` / docs `a88fa4d`，含 B 队 `35e5a8d`）。
+

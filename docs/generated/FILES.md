@@ -76,6 +76,7 @@
 | `memory.py` | 内存读写的统一入口（按 EMU_BACKEND 分派 RetroArch / NativeEmu） | 保留 |
 | `move_probe.py` | 战斗出招采集器（只读）。 | 保留 |
 | `native-emu/tools/bridge_client.py` | NativeEmu TCP 桥的 Python 客户端（默认 127.0.0.1:55401）。 | 保留 |
+| `native-emu/tools/gen_moves.py` | 从 bdata.py 的 MOVES / TYPE_CHART 生成 Kotlin 的 GameData.kt（生成表，勿手改）。 | 保留 |
 | `native-emu/tools/patch_mgba.py` | CI 用：给 mGBA 的 _GBACoreInit 插调试日志（崩在 core->init 时定位用）。 | 保留 |
 | `nav.py` | 自适应导航：BFS + 卡住就把那一格当障碍，重新规划。 | 保留 |
 | `pathfind.py` | 快速寻路：BFS 出路径后按同方向段长按连续走。 | 保留 |
@@ -172,7 +173,7 @@
 | `docs/contracts/C2-move-name-232.md` | C2 招式名表 232（功能型） | 保留 |
 | `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
 | `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
-| `docs/contracts/README.md` | 合同制试点目录（docs/contracts） | 保留 |
+| `docs/contracts/README.md` | 合同制目录（docs/contracts） | 保留 |
 | `docs/generated/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
 | `docs/history/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
 | `docs/history/CHANGELOG.md` | CHANGELOG | 保留 |
@@ -253,6 +254,7 @@
 | `tests/test_loop.py` | 离线测试：loop | 保留 |
 | `tests/test_map_route.py` | 离线测试：map_route | 保留 |
 | `tests/test_moves.py` | 离线测试：moves | 保留 |
+| `tests/test_moves_232.py` | 离线测试：moves_232 | 保留 |
 | `tests/test_pathfind.py` | 离线测试：pathfind | 保留 |
 | `tests/test_pokemon_plugin.py` | 离线测试：pokemon_plugin | 保留 |
 | `tests/test_probe.py` | 离线测试：probe | 保留 |
@@ -306,6 +308,7 @@
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapDataTest.kt` | 离线单测：地图 tiles 归一化 / 地址读取 / assets 优先与内存回退。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MapLinksTest.kt` | 地图连接表离线单测：解析（side/targets/reused/坏条目跳过）与 side 方向映射。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/MoveCasterTest.kt` | MoveCaster 离线单测：全部用假 Io，不加载 native 库、不碰实机。 | 保留 |
+| `native-emu/app/src/test/java/com/dsh/emu/game/MoveName232Test.kt` | 名表 232（金属爪）收录：战斗页第 4 招不应再显示占位 "#232"。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/game/SwitchDeciderTest.kt` | class SwitchDeciderTest | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/ActionHintsTest.kt` | 离线单测：设置页重置操作的提示文案。 | 保留 |
 | `native-emu/app/src/test/java/com/dsh/emu/ui/MoveCastThreadTest.kt` | 施放线程机械逻辑的离线单测：假 setKeys / sleep，不加载 native 库、不碰 Android。 | 保留 |
@@ -324,4 +327,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 260 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 263 个文件（不含 `native-emu/third_party/` 第三方源码）。

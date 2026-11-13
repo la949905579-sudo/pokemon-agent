@@ -135,7 +135,7 @@
 - [x] `MainActivity.kt` 710 行超限 → 批次4 拆分至 **311 行**（拆出 `ui/EmuView`/`StatusParser`/`WalkControl`/`LocalStatus`）
 - [x] 轻：A 后轮询未查 cancelled → 已加取消检查（取消即退出，不再空转记 WARN）
 - [x] 轻：`MoveCaster.kt` 注释「MAIN_CURSOR 0=招式」与 `addresses.py` 措辞 → 已统一
-- [x] **仍遗留**：P3 招式名表只有 55 条，真机第 4 招 id=**232** 未收录（战斗页显示 `#232`），补全名表时一并补
+- [x] 招式名表 56 条（含 232 金属爪，2026-11-14 补全并脚本重生成；原缺 232 显示 `#232` 的问题已修）
 - [ ] **仍遗留（A* 跨图）**：6 图缺 assets → 当前 5 图连通域可用；无高度层；`side` 语义待真机；本构建无 UI 入口，真机未覆盖（仅库+单测/CI）
 - 真机：F2 `build-9c2fc63` 2026-11-13 通过（2 场野生战 4 招）；MainActivity 拆分后 `build-5bbe4f4` 2026-11-13 14:0x UI 冒烟通过；批次 A–E 回归记录见 `HANDOFF.md` / `BATCHES.md`
 

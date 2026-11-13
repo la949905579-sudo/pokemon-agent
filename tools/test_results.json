@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-13 18:25",
+  "updated": "2026-11-14 05:56",
   "kotlin": {
-    "tests": 101,
+    "tests": 115,
     "result": "PASS（0 failure / 0 error）",
-    "at": "2026-11-13 12:25",
-    "command": "GitHub Actions run 43365120600 → gradle :app:testDebugUnitTest :app:assembleDebug（attempt 1，分支 batch4-mainactivity）",
-    "note": "CI run 43365120600（commit 8435b37，分支 batch4-mainactivity）attempt1 success：build 步骤 success → Kotlin 单测 0 失败 + assembleDebug 成功（publish release skipped，非 master）；较上批 95 +6（批次4 新增 StatusParserTest 6 例，MainActivity 拆分为 EmuView/StatusParser/WalkControl/LocalStatus）。条数为静态 @Test 计数，CI 原始日志需登录，以 build 步骤 success 为通过证据。"
+    "at": "2026-11-14 05:5x",
+    "command": "GitHub Actions run 43458997942 → gradle :app:testDebugUnitTest :app:assembleDebug（master，C2 推送）",
+    "note": "CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。"
   },
   "python": {
-    "tests": 29,
-    "result": "PASS（29/29）",
-    "at": "2026-11-13 18:25",
+    "tests": 30,
+    "result": "PASS（30/30）",
+    "at": "2026-11-14 05:56",
     "command": "python3 run_tests.py",
-    "note": "C1 助理实跑：29 个 test_*.py 迁入 tests/ 后仍 29/29 全过（只搬不改，数量不变）"
+    "note": "本批助理实跑 30/30：C1 迁入 29 + C2 新增 tests/test_moves_232.py；C1 收拢后入口 glob tests/test_*.py，离线自足。"
   }
 }
