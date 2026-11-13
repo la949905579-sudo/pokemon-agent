@@ -245,23 +245,27 @@ commit_checks() {
         ok "没有调试日志 / 密钥库进暂存"
     fi
 
-    # 5. 过期文档文案（A-10）：旧文件数 / 旧测试数 / 退役实例名 + 写死的「N 项」「N/N」
-    #    防误报：文件级豁免下表的目录；「N 项」允许 指标/保留/核对/生命周期 上下文；
-    #    「N/N」允许 test_results/run_tests/CI/测试/批次/坐标 等上下文；只兜已知过期值不受上下文限制。
+    # 5. 过期文档文案（A-10）：只查本次**暂存**（staged）的活文档（A-23：不再扫他人未提交工作区）
+    #    命中三类并带模式标签：① 已知过期值 ② 「N 项」且行内有测试/检查上下文 ③ 「N/N」写死比例
+    #    豁免：history/audit/generated/org-PLAN/roles-b/HANDOVER；引用旧值行（旧值/过期值/已知）、
+    #    「永久禁用/退役名/旧名」行；「N/N」放行 test_results/CI/测试/批次/坐标 等上下文。
     local stale=() f hit
     local p_exact='57 个|28/28|verifier'
     local p_items='[0-9]+ 项(?!目)'
     local p_ratio='(?<![A-Za-z0-9_])[0-9]+/[0-9]+(?![A-Za-z0-9_])'
-    while IFS= read -r f; do
-        [ -n "$f" ] || continue
+    for f in "${staged[@]}"; do
+        case "$f" in
+            docs/history/*|docs/audit/*|docs/generated/*|docs/org/PLAN-*|docs/roles/b/*|docs/HANDOVER.md) continue ;;
+            docs/*.md|docs/roles/*.md|docs/roles/*/*.md|docs/org/*.md|README.md|AGENTS.md) ;;
+            *) continue ;;
+        esac
         while IFS= read -r hit; do
             [ -n "$hit" ] && stale+=("$hit")
-        done < <( { grep -nP "$p_exact" "$f" 2>/dev/null | grep -vE '永久禁用|退役名|旧名'
-                    grep -nP "$p_items" "$f" 2>/dev/null | grep -vE '指标|METRICS|保留|核对|生命周期'
-                    grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进'
-                  } | sort -u | sed "s|^|${f}:|" )
-    done < <(git ls-files -- 'docs/*.md' 'docs/roles/*.md' 'docs/roles/*/*.md' 'docs/org/*.md' 'README.md' 'AGENTS.md' \
-                 | grep -vE '^(docs/(history/|audit/|generated/|roles/b/|org/PLAN-)|docs/HANDOVER\.md$)')
+        done < <( { grep -nP "$p_exact" "$f" 2>/dev/null | grep -vE '永久禁用|退役名|旧名|旧值|过期值|已知' | sed 's/^/[exact] /'
+                    grep -nP "$p_items" "$f" 2>/dev/null | grep -E '测试|检查|通过|全过|验收|用例' | sed 's/^/[N项] /'
+                    grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进' | sed 's#^#[ratio] #'
+                  } | sed "s|^|${f}:|" )
+    done
     if [ "${#stale[@]}" -gt 0 ]; then
         err "活文档过期文案 ${#stale[@]} 处（A-10：旧文件数/旧测试数/退役实例名）："
         printf '      %s\n' "${stale[@]}"
