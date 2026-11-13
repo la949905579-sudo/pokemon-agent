@@ -44,6 +44,7 @@ STRICT=0
 ROLE="${SCOPE_ROLE:-}"
 EXAMINER_OK="${EXAMINER_OK:-}"
 NO_EXAMINER=0
+SCOPE_MODE=""
 
 usage() {
     sed -n '2,42p' "$0" | sed 's/^# \{0,1\}//'
@@ -67,6 +68,7 @@ while [ $# -gt 0 ]; do
             done
             ;;
         --no-scope)     SCOPE=(); shift ;;
+        --scope=b-team) SCOPE_MODE="b-team"; shift ;;
         --strict)       STRICT=1; shift ;;
         --role)         ROLE="${2:-}"; shift 2 ;;
         --role=*)       ROLE="${1#*=}"; shift ;;
@@ -245,7 +247,8 @@ commit_checks() {
         ok "没有调试日志 / 密钥库进暂存"
     fi
 
-    # 5. 过期文档文案（A-10）：只查本次**暂存**（staged）的活文档（A-23：不再扫他人未提交工作区）
+    # 5. 过期文档文案（A-10/A-23）：**只扫本次暂存**（`git diff --cached --diff-filter=ACMR`）
+    #    的活文档，不扫他人未提交工作区；命中输出「文件:行号 + 命中模式」。
     #    命中三类并带模式标签：① 已知过期值 ② 「N 项」且行内有测试/检查上下文 ③ 「N/N」写死比例
     #    豁免：history/audit/generated/org-PLAN/roles-b/HANDOVER；引用旧值行（旧值/过期值/已知）、
     #    「永久禁用/退役名/旧名」行；「N/N」放行 test_results/CI/测试/批次/坐标 等上下文。
@@ -253,7 +256,11 @@ commit_checks() {
     local p_exact='57 个|28/28|verifier'
     local p_items='[0-9]+ 项(?!目)'
     local p_ratio='(?<![A-Za-z0-9_])[0-9]+/[0-9]+(?![A-Za-z0-9_])'
-    for f in "${staged[@]}"; do
+    local -a staged_docs=()
+    while IFS= read -r f; do
+        [ -n "$f" ] && staged_docs+=("$f")
+    done < <(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)
+    for f in "${staged_docs[@]}"; do
         case "$f" in
             docs/history/*|docs/audit/*|docs/generated/*|docs/org/PLAN-*|docs/roles/b/*|docs/HANDOVER.md) continue ;;
             docs/*.md|docs/roles/*.md|docs/roles/*/*.md|docs/org/*.md|README.md|AGENTS.md) ;;
@@ -338,24 +345,6 @@ commit_checks() {
 push_checks() {
     echo "== 推送前检查 =="
 
-    # 0. 考官门禁复位（A-18）：BATCHES 末行待复核/待考官 → 拒绝，除非有考官回执
-    if [ "$NO_EXAMINER" = "1" ]; then
-        warn "A-18：--no-examiner 跳过考官门禁（仅限非推送/纯清单检查）"
-    else
-        local last_row
-        last_row="$(grep -E '^\|' docs/BATCHES.md 2>/dev/null | tail -1)"
-        if printf '%s' "$last_row" | grep -qE '待[^|]*(复核|考官|CI|真机)'; then
-            if [ -n "$EXAMINER_OK" ]; then
-                ok "A-18：BATCHES 末行待复核；考官回执已提供：$EXAMINER_OK"
-            else
-                err "A-18：BATCHES 末行仍「待复核/待考官」，禁止 push；先取考官结论或带 --examiner-ok=\"<回执摘要>\"（或 EXAMINER_OK 环境变量）"
-                echo "      当前末行：$(printf '%s' "$last_row" | cut -c1-80)…"
-            fi
-        else
-            ok "A-18：BATCHES 末行无「待复核/待考官」"
-        fi
-    fi
-
     local upstream remote_sha
     upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
     [ -z "$upstream" ] && upstream="origin/master"
@@ -366,6 +355,47 @@ push_checks() {
     else
         remote_sha=""
         warn "连不上远端：跳过“远端是否被改写”检查（稍后重试）"
+    fi
+
+    # 0. 考官门禁（A-18/A-24）：**只有本次推送含 native-emu/** 或功能代码才要求回执**；
+    #    纯 docs/、tools/ 推送（含 B 队 audit/history/roles-b 件）放行；`--scope=b-team` 显式豁免。
+    if [ "$NO_EXAMINER" = "1" ]; then
+        warn "A-18/A-24：--no-examiner 跳过考官门禁（仅限非推送/纯清单检查）"
+    elif [ "$SCOPE_MODE" = "b-team" ]; then
+        ok "A-18/A-24：--scope=b-team 显式豁免考官门禁（B 队自审件）"
+    elif [ -z "$remote_sha" ]; then
+        warn "A-18/A-24：远端 tip 未知，无法判定推送范围，跳过考官门禁（重试网络后再判）"
+    else
+        local -a changed=()
+        while IFS= read -r cf; do
+            [ -n "$cf" ] && changed+=("$cf")
+        done < <(git diff --name-only "$remote_sha"..HEAD 2>/dev/null || true)
+        local need_gate=0 f cf_non_docs=()
+        for f in "${changed[@]}"; do
+            case "$f" in
+                docs/*|tools/*) ;;
+                *) need_gate=1; cf_non_docs+=("$f") ;;
+            esac
+        done
+        if [ "${#changed[@]}" -eq 0 ]; then
+            ok "A-18/A-24：无待推送文件改动"
+        elif [ "$need_gate" = "0" ]; then
+            ok "A-18/A-24：本次推送仅 docs/、tools/ 文件（A 队批次外/纯工具），免考官门禁"
+        else
+            echo "  i 本次推送含 native-emu/功能代码 ${#cf_non_docs[@]} 个（例：${cf_non_docs[*]:0:3}），需考官回执"
+            local last_row
+            last_row="$(grep -E '^\|' docs/BATCHES.md 2>/dev/null | tail -1)"
+            if printf '%s' "$last_row" | grep -qE '待[^|]*(复核|考官|CI|真机)'; then
+                if [ -n "$EXAMINER_OK" ]; then
+                    ok "A-18：BATCHES 末行待复核；考官回执已提供：$EXAMINER_OK"
+                else
+                    err "A-18：BATCHES 末行仍「待复核/待考官」，禁止 push；先取考官结论或带 --examiner-ok=\"<回执摘要>\"（或 EXAMINER_OK；或 --scope=b-team）"
+                    echo "      当前末行：$(printf '%s' "$last_row" | cut -c1-80)…"
+                fi
+            else
+                ok "A-18：BATCHES 末行无「待复核/待考官」"
+            fi
+        fi
     fi
 
     # 1. 远端有本地没有的提交 = 分叉 / 被 amend / 强推过（INC-005）

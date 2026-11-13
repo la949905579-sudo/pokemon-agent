@@ -12,6 +12,7 @@
     python3 tools/metrics.py              # 生成 docs/generated/METRICS.md
     python3 tools/metrics.py --check      # 只打印摘要，不写文件
     python3 tools/metrics.py --offline    # 不查 GitHub API（CI 数据标“未知”）
+    python3 tools/metrics.py --write      # 显式生成（默认也写）docs/generated/METRICS.md
     python3 tools/metrics.py --check --window <rev>  # A-10：窗口起点 cat-file 验真 + 报实际提交数
     # T4 口径（A-22）：审查窗口内新增复发 > 0 才触发；窗口起点 = 最新 docs/audit/REPORT-YYYYMMDD.md 日期
 
@@ -309,11 +310,171 @@ def incidents():
     return len(entries), len(relapse), start, len(in_window), source
 
 
+def docs_ratio(start):
+    """① docs 提交占比：窗口（上次完整审查之后）内 docs 提交 / 总提交（git log）。"""
+    if not start:
+        return None
+    args = [f"--since={start} 00:00"]
+    total_s = sh("git", "rev-list", "--count", *args, "HEAD").strip()
+    try:
+        total = int(total_s or 0)
+    except ValueError:
+        return None
+    if total == 0:
+        return {"total": 0, "docs": 0, "pct": None}
+    subjects = sh("git", "log", *args, "--format=%s", "HEAD").splitlines()
+    docs = sum(1 for x in subjects if x.startswith("docs"))
+    return {"total": total, "docs": docs, "pct": docs / total}
+
+
+def batches_review_stats():
+    """③ 打回率：解析 docs/BATCHES.md「考官结论」列（可发布 / 不可发布 / 待复核）。"""
+    path = os.path.join(ROOT, "docs", "BATCHES.md")
+    try:
+        text = open(path, encoding="utf-8").read()
+    except OSError:
+        return None
+    reviews = rejected = pending = 0
+    for line in text.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        if not re.match(r"\d{4}-\d{2}-\d{2}", cells[1] if len(cells) > 1 else ""):
+            continue
+        concl = cells[4]
+        if re.search(r"待[^|]*(复核|考官|CI|真机)", concl) or not concl:
+            pending += 1
+            continue
+        reviews += 1
+        if "不可发布" in concl:
+            rejected += 1
+    return {"reviews": reviews, "rejected": rejected, "pending": pending,
+            "pct": (rejected / reviews) if reviews else None}
+
+
+def blank_reply_stats():
+    """⑥ 空回复次数：调 `session_health.mjs --all --json` 汇总（不可用 → None）。"""
+    try:
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "session_health.mjs"), "--all", "--json"],
+                           cwd=ROOT, capture_output=True, text=True, timeout=90)
+        if r.returncode not in (0, 1):
+            return None
+        data = json.loads(r.stdout)
+        rows = data.get("rows", [])
+        live = [x for x in rows if x.get("hasData")]
+        empty_turns = sum(int((x.get("metrics") or {}).get("emptyTurns", 0)) for x in live)
+        streak2 = sum(1 for x in live if int((x.get("metrics") or {}).get("emptyStreak", 0)) >= 2)
+        return {"sessions": len(live), "emptyTurns": empty_turns, "streak2": streak2}
+    except Exception:
+        return None
+
+
+def transfer_distortion_count():
+    """⑦ 转达失真次数：数 docs/BATCHES.md 备注里「转达失真」（人工项，仅供辅助）。"""
+    path = os.path.join(ROOT, "docs", "BATCHES.md")
+    try:
+        text = open(path, encoding="utf-8").read()
+    except OSError:
+        return None
+    return text.count("转达失真")
+
+
+def over_limit_sessions():
+    """⑧ 超线会话数：读 tools/token_baseline.json 的 bySession（turns > 100）。"""
+    path = os.path.join(ROOT, "tools", "token_baseline.json")
+    try:
+        d = json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    sess = d.get("bySession") or []
+    return {"total": len(sess), "over": sum(1 for x in sess if int(x.get("turns", 0)) > 100),
+            "at": d.get("generatedAt", "未知")}
+
+
+def metrics_eight(stats, inc_total, inc_relapse, inc_start, inc_window):
+    """按 PLAN-20261113-6 汇总 8 项度量（值/类型/阈值/判定）。"""
+    rows = []
+    dr = docs_ratio(inc_start)
+    if dr is None:
+        rows.append(("docs 提交占比", "无数据", "无数据", ">50% → 复盘", "无数据"))
+    elif dr["pct"] is None:
+        rows.append(("docs 提交占比", "无数据（窗口内无提交）", "自动", ">50% → 复盘", "无数据"))
+    else:
+        bad = dr["pct"] > 0.5
+        rows.append(("docs 提交占比", f"{dr['docs']}/{dr['total']} = {pct(dr['pct'])}", "自动", ">50% → 复盘",
+                     "红（复盘）" if bad else "绿"))
+
+    if stats is None:
+        rows.append(("CI 首过率", "无数据", "无数据", "<70% → T4", "无数据"))
+    else:
+        bad = stats["rate"] < 0.7
+        rows.append(("CI 首过率", f"{stats['ok']}/{stats['total']} = {pct(stats['rate'])}", "自动", "<70% → T4",
+                     "红（T4）" if bad else "绿"))
+
+    br = batches_review_stats()
+    if br is None:
+        rows.append(("打回率", "无数据", "无数据", ">30% → T4", "无数据"))
+    elif br["pct"] is None:
+        rows.append(("打回率", f"无数据（已复核 {br['reviews']} 次，待复核 {br['pending']}）", "自动", ">30% → T4", "无数据"))
+    else:
+        bad = br["pct"] > 0.3
+        rows.append(("打回率", f"{br['rejected']}/{br['reviews']} = {pct(br['pct'])}", "自动", ">30% → T4",
+                     "红（T4）" if bad else "绿"))
+
+    if not inc_start:
+        rows.append(("窗口内新增复发数", "无数据（无完整审查窗口）", "无数据", ">0 → T4 硬触发", "无数据"))
+    else:
+        rows.append(("窗口内新增复发数", f"{inc_window}（窗口起点 {inc_start}；累计 {inc_relapse} 仅展示）", "自动",
+                     ">0 → T4 硬触发", "红（T4）" if inc_window > 0 else "绿"))
+
+    rows.append(("交接触发次数", "无数据（人工统计：HANDOFF/巡检记录）", "人工", ">2/窗口 → 复盘", "无数据"))
+    br2 = blank_reply_stats()
+    if br2 is None:
+        rows.append(("空回复次数", "无数据（session_health 不可用）", "无数据", "≥1 告警；连续 2 次 → 交接", "无数据"))
+    elif br2["streak2"] > 0:
+        rows.append(("空回复次数", f"连续空回合会话 {br2['streak2']} 个（有数据会话 {br2['sessions']}）", "自动",
+                     "≥1 告警；连续 2 次 → 交接", "红（交接）"))
+    elif br2["emptyTurns"] > 0:
+        rows.append(("空回复次数", f"空回合 {br2['emptyTurns']} 次（有数据会话 {br2['sessions']}）", "自动",
+                     "≥1 告警；连续 2 次 → 交接", "黄（告警）"))
+    else:
+        rows.append(("空回复次数", "0（有数据会话无空回合）", "自动", "≥1 告警；连续 2 次 → 交接", "绿"))
+
+    td = transfer_distortion_count()
+    rows.append(("转达失真次数", ("无数据" if not td else f"记录 {td} 处（人工核对）"), "人工", ">0 → 复盘", "无数据"))
+
+    ol = over_limit_sessions()
+    if ol is None:
+        rows.append(("超线会话数", "无数据（token_baseline 缺失）", "无数据", ">0 → 告警", "无数据"))
+    else:
+        rows.append(("超线会话数", f"{ol['over']}/{ol['total']}（基线 {ol['at']}）", "自动", ">0 → 告警",
+                     "黄（告警）" if ol["over"] > 0 else "绿"))
+    return rows
+
+
+def m8_table(m8, start):
+    lines = [
+        "## 〇、8 项度量总表（A-21 / PLAN-20261113-6）",
+        "",
+        f"> 窗口起点：{start or '无数据'}（上次完整审查 REPORT）；每项标 自动/人工/无数据，"
+        "**无数据不默认 0、不默认红**（A-22 原则）。",
+        "",
+        "| # | 指标 | 值 | 类型 | 阈值 → 动作 | 判定 |",
+        "|---|---|---|---|---|---|",
+    ]
+    for i, (name, val, typ, threshold, judge) in enumerate(m8, 1):
+        lines.append(f"| {i} | {name} | {val} | {typ} | {threshold} | {judge} |")
+    lines += ["", f"> 8 项齐全：{len(m8)} 行；数据源见各节（CI/BATCHES/INCIDENTS/session_health/token_baseline）。"]
+    return lines
+
+
 def pct(x):
     return f"{x:.1%}"
 
 
-def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, offline):
+def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m8, offline):
     now = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
     head = sh("git", "rev-parse", "--short", "HEAD").strip()
     lines = [
@@ -325,6 +486,10 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_win
         f"- 生成时间：{now}（Asia/Shanghai）",
         f"- 生成时 HEAD：`{head}`（之后若有新提交属正常）",
         "- 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`",
+        "",
+    ]
+    lines += m8_table(m8, inc_start)
+    lines += [
         "",
         "## 一、CI 首次通过率（T4 判据）",
         "",
@@ -556,6 +721,7 @@ def main():
             stats["source"] = source
     annotate_ci(tags, stats)
     inc_total, inc_relapse, inc_start, inc_window, inc_source = incidents()
+    m8 = metrics_eight(stats, inc_total, inc_relapse, inc_start, inc_window)
 
     stale = local_stale_tags(tags)
     print(f"远端 build tag：{len(tags)} 个；未构建提交：{len(uncovered)} 个"
@@ -569,13 +735,23 @@ def main():
         print("CI 首过率：未知（offline 或网络失败）")
     print(f"事故：{inc_total} 条，累计复发 {inc_relapse} 条；"
           + (f"窗口 {inc_start} 内新增复发 {inc_window} 条" if inc_start else "窗口起点无数据"))
+    print("8 项度量（值 / 类型 / 判定）：")
+    for i, (name, val, typ, thr, judge) in enumerate(m8, 1):
+        print(f"  {i}. {name}: {val} [{typ}] → {judge}")
 
-    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, offline)
+    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m8, offline)
     if not check:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(doc.rstrip() + "\n")
         print(f"已写入 {os.path.relpath(OUT, ROOT)}")
+
+    # A-21：--check 先校验 8 项度量齐全（8 行），缺行直接红
+    if check:
+        n_rows = len(re.findall(r"^\| \d+ \|", doc, re.M))
+        if n_rows != 8:
+            print(f"8 项度量未齐全：{n_rows}/8 行（A-21/PLAN-6）", file=sys.stderr)
+            return 1
 
     # T4 判定（A-22）：首过率 < 70% 或 窗口内新增复发 > 0 → exit 1（供 cron/脚本判红）
     red = []
