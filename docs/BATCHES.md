@@ -22,6 +22,7 @@
 | 规范-docs-20261113 | 2026-11-13 | 规范 docs 批：策略顾问角色卡（`docs/roles/org/advisor.md` 新）+ `TEAM` §1.1/§二/三·九 + `docs/roles/README` + `docs/README` §三/§四 扩写；来源＝组织规划正文 + 统筹主持 `REQUEST`（助理代提交） | docs=本提交（`git log --oneline -1`） | 待轻量复核 | 提交前 ✅ 推送前 ⏳（待拍板） | docs 本批 1 条 ≤1（按用户口径规范批）；用户 13:0x 确认「已落盘」；提纲环节由用户直接确认（组织规划未另出提纲文件）；不卷批次4 已提交内容 |
 | 批次5 | 2026-11-13 | 批次5：B 队提前审整改 + A* 跨图移植——tools A-10/A-17/A-18 整改；code CrossMap（MapLinks/CrossMapPathfinder/CrossMapWalker + map_links.json + 12 测试）；docs 收尾 A-2/A-3/A-20/A-21 | tools=`3ba213d`；code=`067a230`；docs=本条 | **待 CI/考官/真机**（收尾追记见下批 docs） | 本批 docs ≤3、本条 #1；A* 限制：6 图缺 assets→5 图连通域、无高度层、side 语义待真机；A-10 扩模式 + WORKPLAN 修复、A-17 写入范围、A-18 推送门禁已落 |
 | 规范-docs-A19-20261113 | 2026-11-13 | A-19 规范批（来源＝组织规划）：`TEAM` §一 写入范围补表（统筹主持例外=REQUEST；组织规划+README×2；助理+BATCHES；重建/迁移例外条款）+ §七 度量 8 项定义表/T4 新口径 + §八 复盘件缺失失败模式；新增 `PLAN-20261113-5`（T4 提案）、`PLAN-20261113-6`（A-21 落实清单） | docs=本条（amend 后单条，含交接材料）；tools=`2e70a67` | 待轻量复核 | 提交前 ✅ 推送前 ⏳（待拍板） | 来源＝组织规划正文 + 助理代提交；用户 14:3x 确认落盘；A-19 落地（`TEAM` §一↔`write_scopes` 一致）；tools 含 A-10 误报放行；**A-21 待实现**（按 `PLAN-20261113-6`，留交接后新会话）；docs 本批 1 条 |
+| 工具整改-20261113 | 2026-11-13 | A-23（A-10 只扫暂存+命中行）、A-24（A-18 门禁收窄：仅 native-emu/功能代码需回执，docs/audit/history 放行，`--scope=b-team` 豁免）、A-21（METRICS 8 项指标实现）；docs：METRICS 8 行重生成 + A-5 请求必填模板 | tools=`da9962a`；docs=本条 | 待考官复核 | 提交前 ✅ 推送前 ⏳（A-24 修复后纯 docs/tools 推送应可放行） | 来源=助理；A-23/A-24/A-21 落地；A-5 助理侧部分完成（待独立督导确认）；docs 本批 1 条 |
 
 > 追记：批次1 考官结论 = **可发布**（`95b861b`，0 阻断；nit＝`docs/README.md:19` 措辞已在批次2 处理）。
 > 追记：批次1 已推送 origin/master=`95b861b`；考官=可发布（0 阻断）。

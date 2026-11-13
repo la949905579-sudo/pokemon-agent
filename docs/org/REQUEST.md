@@ -57,3 +57,15 @@
 2. 落盘范围**仅限**：`docs/roles/org/advisor.md`（新建）、`docs/TEAM.md`、`docs/roles/README.md`；经用户确认追加 `docs/README.md` §三/§四（元数据四选一 + `PLAN-<日期>-advisor.md` 命名）；不改其他文件。
 3. 组织规划**只写不提交**；提交归助理（规范 docs 批，`docs` 每批 ≤1 条，不与批次 3 合并）。
 4. 回执 ≤10 行：结论 / 产物路径:行号 / 待确认 / 风险；**不要复述过程**。
+
+## 六、T4 结果（后续请求必填；A-5）
+
+> 2026-11-13 起，每次跨会话请求（`REQUEST.md`）必须包含本节三字段；缺一不可。
+> A-5 助理侧部分：本节模板已落；脚本侧窗口验真由 `python3 tools/metrics.py --check --window <rev>` 支持。
+> 归属待独立督导确认（A-5 原始要求：`REQUEST` 增必填「T4 结果」+ 窗口起点先 `git cat-file` 验 + 写实际提交数）。
+
+- **T4 结果**：<未触发 / 触发（原因）/ 无数据>（取 `docs/generated/METRICS.md` §〇 第 4 项或 `metrics.py --check`）
+- **窗口起点**：`<rev>`（先 `git cat-file -e <rev>^{commit}` 验真；窗口＝上次完整审查之后）
+- **实际提交数**：`git rev-list --count <rev>..HEAD` = <N>（写请求时实测）
+
+> 参考示例（2026-11-13 15:5x 实测）：T4 **未触发**（窗口 `2026-11-13` 内新增复发 0）；窗口起点 `5bbe4f4`（`git cat-file` ✓）；`5bbe4f4..HEAD` 实际 **10** 个提交（写请求时）。

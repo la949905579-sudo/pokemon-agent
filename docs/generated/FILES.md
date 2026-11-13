@@ -25,7 +25,7 @@
 | 文件 | 用途 | 状态 |
 |---|---|---|
 | `tools/check_ui_state.py` | UI 状态读写配对检查（INC-006：mutableStateOf 只写不读） | 保留 |
-| `tools/metrics.py` | 构建度量：build tag→提交映射、CI 首过率，生成 docs/generated/METRICS.md | 保留 |
+| `tools/metrics.py` | 构建度量：CI 首过率、build tag 覆盖、A-21 8 项度量（docs 占比/打回率/窗口复发/空回复/超线会话等），生成 docs/generated/METRICS.md | 保留 |
 | `tools/precommit_check.sh` | 提交/推送前机械检查：空提交、卷入未声明改动、空信息、强推、过期文案(A-10)、写入范围(A-17)、考官门禁(A-18) | 保留 |
 | `tools/session_health.mjs` | 会话健康检查：给交接提供客观触发依据。 | 保留 |
 | `tools/test_results.json` | 本机真实测试结果记录（tools/metrics.py 读入 docs/generated/METRICS.md） | 保留 |
