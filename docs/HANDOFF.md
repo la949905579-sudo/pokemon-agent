@@ -6,7 +6,7 @@
 
 ## 交接（2026-11-13 15:5x）
 
-- **事实快照**：`origin/master` = HEAD = `a88fa4d`；`origin/master..HEAD` = **0**；工作树空。批次 1–5 + 规范批 A19（`2e70a67`/`1702ae3`）+ 工具整改批（`da9962a`/`a88fa4d`，含 B 队 `35e5a8d`）**全部已推送**。
+- **事实快照**：推送前 `origin/master` = `a88fa4d`；本次**交接收尾 docs 提交**推送后 `origin/master` = HEAD = 该提交（`git log -1` 可查）、`origin/master..HEAD` = **0**；工作树空。批次 1–5 + 规范批 A19（`2e70a67`/`1702ae3`）+ 工具整改批（`da9962a`/`a88fa4d`，含 B 队 `35e5a8d`）**全部已推送**。
 - **当前目标**：工具整改批已推送、考官 task-26 可推送；本**交接收尾 docs**（BATCHES 结论追记 + HANDOFF 快照 + 方案箱索引待办）提交后 → 考官 3 行确认 → push → **交接前置检查 → 交接**（`TEAM` §二 + `HANDOVER` §二）。
 - **审查状态 / 豁免凭据**：2026-11-13 提前审（B 队 `docs/audit/REPORT-20261113.md`，窗口 `3decf36..ac26275`）＝**有条件通过**；整改状态——A-18（push 考官门禁）/A-22（T4 窗口口径）/A-23（A-10 误报）已落地（`26fcef4`/`2e70a67`/`6fdf29e`）；A-2/A-3 已改「以 `tools/test_results.json` 为准」；A-10 已扩并修误报；A-19 本条落地（`TEAM` §一 ↔ `write_scopes` 一致）；A-20 部分（HANDOVER 模板行）；**A-23/A-24/A-21 已落地（`da9962a`）**；**A-5 请求必填模板已落（本条 `REQUEST` §六，待独立督导确认）**。T5 交接豁免见 `docs/audit/AUDIT_LOG.md`。
 - **已完成（批次 1–5，全部在 origin/master，提交号/CI/Release/真机）**：
