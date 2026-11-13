@@ -59,6 +59,7 @@ object GameData {
         116 to Triple("聚气", "一般", 0),
         129 to Triple("高速星星", "一般", 60),
         145 to Triple("泡沫", "水", 20),
+        232 to Triple("金属爪", "钢", 50),
         352 to Triple("水之游", "水", 60),
     )
 
