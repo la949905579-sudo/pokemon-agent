@@ -49,7 +49,7 @@
 5. `docs/NATIVE_EMU_TODO.md` / `docs/history/CHANGELOG.md` 与代码同步
 6. `python3 tools/gen_files_index.py` 重生成，`--check` 返回 0
 7. `docs/HANDOFF.md` 更新：当前状态、阻塞、下一步、**不要做什么**
-8. 没有未结束的后台任务（job）或未完成的子代理
+8. 没有未结束的后台任务（job）或未完成的子代理（合同制 watcher 属运行时、不算未结束 job；交接前须 kill，并在 `HANDOFF` 写「watcher 已 kill / 接管命令」）
 9. `tools/precommit_check.sh --push` 通过（远端未被 amend 改写、待推提交非空、提交信息非空）
 10. 若有 Kotlin UI 改动：`python3 tools/check_ui_state.py` 无「只写不读」状态（INC-006）
 11. 机械闸门已装：`ls .git/hooks/pre-commit .git/hooks/pre-push` 两个都在

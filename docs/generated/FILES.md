@@ -194,7 +194,9 @@
 | `docs/roles/README.md` | docs/roles/ 角色卡索引 | 保留 |
 | `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |
 | `docs/roles/a/assistant.md` | 助理（assistant）启动提示词 | 保留 |
+| `docs/roles/a/contractor.md` | 承包主持（contractor）启动提示词 | 保留 |
 | `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
+| `docs/roles/a/proxy.md` | 代理人（proxy）启动提示词 | 保留 |
 | `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
 | `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
 | `docs/roles/b/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
@@ -327,4 +329,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 263 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 265 个文件（不含 `native-emu/third_party/` 第三方源码）。

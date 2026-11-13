@@ -20,6 +20,8 @@
 | **独立督导**（B 队） | `audit-lead` | 否，按需 | 审查、成本巡检、轮次巡检、整改清单 | `docs/audit/AUDIT.md`、`docs/audit/AUDIT_LOG.md`、`docs/audit/**`、`docs/roles/b/**` |
 | **组织规划** | `architect` | 否，每任务新开 | 组织架构、流程、文件规范设计 | `docs/TEAM.md`、`docs/README.md`、`docs/roles/README.md`、`docs/roles/a/**`、`docs/roles/org/**`、`docs/PROJECT_PLAN.md`、`docs/WORKPLAN.md`、`docs/STRUCTURE.md`、`docs/org/**` |
 | **策略顾问** | `advisor` | 否，用户点名开（单次 ≤10 轮） | 参谋：理需求、挑毛病、核对回执、给选项、压口径；不代拍板 | 无（只读） |
+| **代理人** | `proxy` | 否，用户点名开（合同制 A 侧） | 合同制 A 侧：**唯一用户对接**；写合同与验收结论、只抽查机械项；不读 diff / 构建日志 | `docs/contracts/**` |
+| **承包主持** | `contractor` | 否，每合同新开或按合同段 | 合同制 B 侧：**只读合同执行**；派助理 / 工匠 / 考官、回执与回传；不写合同 | 无固定；按合同 §8 动态授权，`.pilot/` 留痕 |
 
 ### 1.2 成员（子代理；只有会话主持能 spawn，子代理不能再 spawn）
 
@@ -76,7 +78,7 @@
 |---|---|
 | 提交前 | `tools/precommit_check.sh --scope`、`run_tests.py`、无空提交、无范围外文件 |
 | 推送前 | `tools/precommit_check.sh --push`、CI 绿、考官「可发布」、涉及 `native-emu/**` 有真机记录 |
-| 发布前 | `CHANGELOG` / `HANDOFF` 已更新、索引 `--check`=0、tag（按需） |
+| 发布前 | `CHANGELOG` 已更新、`HANDOFF` 已更新（发布/交接前）、索引 `--check`=0、tag（按需） |
 
 - 回滚：未推送 `git reset --hard`；已推送 `git revert`（**禁止 force push**）；已发版撤 tag 并重建上一版，记 `INCIDENTS`。
 - 热修：只修 P0，当天修，仍过门禁 + 考官轻量复核；极端情况允许「先发后补审」，但必须在 `docs/history/INCIDENTS.md` 留痕。
@@ -90,6 +92,7 @@
 | 考官 | **15 行** | 结论 / 证据 / 问题清单 |
 | 组织规划 | **10 行** | 结论 / 方案 / 影响 / 风险 / 待确认 / 产物 |
 | 策略顾问 | **10 行** | 结论 / 建议 / 风险 / 待确认 |
+| 代理人 / 承包主持（合同制） | **10 行** | 结论 / 证据 / 风险 / 待确认；回执另限 ≤10 行 |
 | 独立督导 | 见 `docs/audit/TEAM.md` | 报告 40 行六节等 |
 
 **超额申请（唯一例外通道）**：需要更长时，汇报首行写 `申请 +N 行：<原因>`；审批人＝统筹主持；单次最多 +20 行；同一职位连续 3 次申请 → 改默认上限，而不是每次都批；申请只对本次有效。
@@ -111,6 +114,21 @@
 - **边界**：不派活、不拍板、不写仓库、不跑构建测试、不做日常二传手。
 - **留痕**：需要时由用户或统筹主持写方案箱留痕文件 `docs/org/PLAN-<日期>-advisor.md`。
 - **详见** `docs/roles/org/advisor.md`（本小节只留摘要，避免双份真源）。
+
+## 三·十、合同制（2026-11-14 转常设）
+
+> 来源：2026-11-13 试点 2 个合同（C1/C2）均 accepted + 2026-11-14 用户拍板补账并转常设。合同盒 `docs/contracts/`；本节为唯一真源，角色卡见 `docs/roles/a/proxy.md`、`contractor.md`。
+
+- **角色**：A＝`proxy`（代理人）：**唯一用户对接**，写合同与验收结论；B＝`contractor`（承包主持）：**只读合同执行**，不写合同、不改验收口径；B 的成员沿用助理 / 工匠 / 考官（分工同 §一）。
+- **合同盒与运行态**：合同 spec 入 `docs/contracts/C<id>-<slug>.md`；运行态 `.pilot/<id>/`（`status.json`、`result.md`、成本快照）已 gitignore，不入库。
+- **状态机**：`open → claimed → green | blocked → accepted`；`status.json` 含 `base` / `claimedAt` / `commit` / `session` / `accepted`（验收记录），A 置 accepted。
+- **授权**：B 按合同 §8 写入范围动态授权写代码与台账；范围外改动必须先扩合同，不得夹带。
+- **交接**：手动转达句，或 watcher（`while [ ! -f .pilot/<id>/inbox.ready ]; do sleep 5; done`）。前提：App「后台运行」开启、引擎会话存活、同一触发点每会话 ≤1 轮；属 `HANDOVER` §二.8 豁免项，交接前 kill 并写「watcher 已 kill / 接管命令」；watcher 不可用则用口令兜底（重发转达句）。
+- **每批必带（缺一不算完成）**：`docs/BATCHES.md` 一行（备注 `合同:<id>`）+ `tools/test_results.json` 同步 + `FILES` 重生成；`HANDOFF` 在批次收尾 / 交接前更新，**不要求每批改**。
+- **验收**：机械项写「命令 + 期望值」；判断项写来源与依据；真机项写步骤 + 证据；A 只抽查 1 条机械项，不读 diff / 构建日志 / 长文档。
+- **预算**：回执 ≤10 行 / 合同 ≤60 行 / 单位 1 批（≤1 天）；超限先拆合同或拆批。
+- **成本**：`cost-after` 必须在 A 置 accepted 后取（与真机验收对齐）；判据＝每批增量 ≤ 基线×0.85，基线取开工前当日窗口实测 ÷ 窗口内批次数（不含本批）。
+- **回滚顺序**：先 `git revert` 代码批次 → 再 revert 对应 docs 批次 → 最后 `rm -rf .pilot/`（避免 `BATCHES` / `FILES` 冲突）。
 
 ## 四、审查（B 队执行，A 队只读）
 

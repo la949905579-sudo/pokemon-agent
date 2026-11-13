@@ -2,6 +2,7 @@
 
 > 归属：A 队 ｜ 生命周期：活（试点期） ｜ 维护者：A（代理人）
 > 状态机：`open → claimed → green|blocked → accepted`，运行态见 `.pilot/C1/status.json`。
+> 状态：accepted（试点样本，2026-11-14 转常设后保留）
 
 ## 1–2 合同号 / 类型：C1 ｜ 机械型（本批 1 批，全部机械验收）
 

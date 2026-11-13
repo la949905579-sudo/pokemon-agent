@@ -3,6 +3,7 @@
 > 归属：A 队 ｜ 生命周期：活（试点期） ｜ 维护者：助理
 > 试点：2026-11-13 用户确认（A=代理人 / B=承包主持，2 个合同 C1/C2）；授权范围见 `docs/BATCHES.md` 试点落盘行。
 > 本文件自包含：重建 A/B 会话时复制对应口令即可，不必再读长文档。
+> **2026-11-14 已转常设**：现行规则见 `docs/TEAM.md` §三·十；本文件保留试点记录（C1/C2 已 accepted）。
 
 ## 一、用户转达句（复制发 B）
 
@@ -51,6 +52,8 @@ while [ ! -f .pilot/C2/inbox.ready ]; do sleep 5; done; echo C2_READY
 | 回执/合同行数 | 回执 ≤10 行；合同 ≤60 行 | `wc -l .pilot/<id>/result.md` |
 | docs 提交 | ≤3 条/批（同一会话 ≤1 条） | `git log` |
 
+- 每批必带：`BATCHES` 行（备注 `合同:<id>`）+ `test_results` 同步 + `FILES` 重生成；`HANDOFF` 在批次收尾 / 交接前更新，不要求每批改。
+
 ## 六、成本测量法（开工前定基线，验收后算增量）
 
 ```bash
@@ -65,6 +68,7 @@ node -e 'const fs=require("fs"),b=JSON.parse(fs.readFileSync(".pilot/cost-before
 ```
 
 - 口径：**全量 token 增量 = 窗口内所有会话 total 之和的增量**（after 与 before 的 `days[].totalTokens` 合计之差）；试点共 2 批 → 每批 = 增量 ÷ 2，判定 **每批 ≤ 基线×0.85**。
+- **`cost-after` 必须在 A 置 `accepted` 后取**（与真机验收对齐）；green 时取的快照作废（C2 教训：00:17 快照漏真机验收，8.8M/批 作废重算）。
 - 基线不写死：B 在试点开工前跑上面命令实测，并把结果写入 `.pilot/cost-before.json` 的 `pilotBaseline` 字段（参考核对：2026-11-13 17:5x 当日窗口约 6.000 亿 ÷ 9 条批次记录〔不含本试点落盘行〕≈ 66.7M/批，数字会涨）。
 - A/B 各自把 session id 写进 `result.md` 首行，仅作归因，不改变上式口径。
 

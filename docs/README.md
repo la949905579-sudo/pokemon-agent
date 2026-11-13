@@ -17,6 +17,7 @@
 | `history/` | `CHANGELOG` `INCIDENTS` `RETROSPECTIVE` `NOTES` `ARCHITECTURE` | 已就位（M1，本批迁移） |
 | `generated/` | `FILES` `METRICS` | 已就位（M1，本批迁移） |
 | `roles/` | `a/`（A 队）、`org/`（第三方）、`b/`（B 队）+ `README.md` 索引 | 已就位（`b/` 三卡已迁入） |
+| `contracts/` | 合同制（2026-11-14 转常设）：合同 spec `C<id>-<slug>.md`、`README`、`CONTRACT-TEMPLATE`、`PILOT`；运行态 `.pilot/` 不入库 | 已就位（C1/C2 试点 accepted，规则见 `TEAM` §三·十） |
 | `audit/` | B 队专属：`TEAM` `ACTIONS` `REQUEST` `REPORT-*` `COST-*`、`AUDIT`、`AUDIT_LOG` | 已就位（M6 本批归并：`AUDIT.md`/`AUDIT_LOG.md` 已迁入） |
 | `org/` | **方案箱**——组织规划接口：`REQUEST.md`、`PLAN-<日期>.md`、`README.md` | 已就位 |
 | `archive/` | 已结案、不再维护的文档；门槛：满 30 天或同主题 3 份 | 空，规则生效 |
