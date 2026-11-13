@@ -262,8 +262,8 @@ commit_checks() {
         while IFS= read -r hit; do
             [ -n "$hit" ] && stale+=("$hit")
         done < <( { grep -nP "$p_exact" "$f" 2>/dev/null | grep -vE '永久禁用|退役名|旧名|旧值|过期值|已知' | sed 's/^/[exact] /'
-                    grep -nP "$p_items" "$f" 2>/dev/null | grep -E '测试|检查|通过|全过|验收|用例' | sed 's/^/[N项] /'
-                    grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进' | sed 's#^#[ratio] #'
+                    grep -nP "$p_items" "$f" 2>/dev/null | grep -E '测试|检查|通过|全过|验收|用例' | grep -vE '旧值|过期值|已知' | sed 's/^/[N项] /'
+                    grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进|旧值|过期值|已知' | sed 's#^#[ratio] #'
                   } | sed "s|^|${f}:|" )
     done
     if [ "${#stale[@]}" -gt 0 ]; then
@@ -344,7 +344,7 @@ push_checks() {
     else
         local last_row
         last_row="$(grep -E '^\|' docs/BATCHES.md 2>/dev/null | tail -1)"
-        if printf '%s' "$last_row" | grep -qE '待[^|]*复核|待考官'; then
+        if printf '%s' "$last_row" | grep -qE '待[^|]*(复核|考官|CI|真机)'; then
             if [ -n "$EXAMINER_OK" ]; then
                 ok "A-18：BATCHES 末行待复核；考官回执已提供：$EXAMINER_OK"
             else

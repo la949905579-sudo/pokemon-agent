@@ -13,6 +13,7 @@
     python3 tools/metrics.py --check      # 只打印摘要，不写文件
     python3 tools/metrics.py --offline    # 不查 GitHub API（CI 数据标“未知”）
     python3 tools/metrics.py --check --window <rev>  # A-10：窗口起点 cat-file 验真 + 报实际提交数
+    # T4 口径（A-22）：审查窗口内新增复发 > 0 才触发；窗口起点 = 最新 docs/audit/REPORT-YYYYMMDD.md 日期
 
 数据来源：
 - 远端 tag：`git ls-remote --tags origin`（远端是唯一真源，本地可能有历史重写残留）
@@ -272,22 +273,47 @@ def token_baseline():
         return None
 
 
+def review_window_start():
+    """A-22/一·六：T4 窗口起点 = 上一次完整审查的完成日期（最新 REPORT-YYYYMMDD.md）。"""
+    d = os.path.join(ROOT, "docs", "audit")
+    try:
+        files = [f for f in os.listdir(d) if re.fullmatch(r"REPORT-(\d{8})\.md", f)]
+    except OSError:
+        return None, "无 docs/audit 目录"
+    if not files:
+        return None, "无完整审查记录"
+    latest = max(files)
+    ds = re.search(r"REPORT-(\d{8})", latest).group(1)
+    return f"{ds[:4]}-{ds[4:6]}-{ds[6:]}", f"最新完整审查 {latest}"
+
+
 def incidents():
+    """返回 (事故总数, 累计复发数, 窗口起点, 窗口内新增复发数, 窗口起点来源)。
+
+    A-22（用户 2026-11-13 拍板）：T4 只看「窗口内新增复发 > 0」；累计复发仅展示、不触发。
+    窗口起点缺失 → 返回 None 表示「无数据」，由独立督导核定（不默认 0、也不默认红）。
+    """
     path = os.path.join(ROOT, "docs", "history", "INCIDENTS.md")
     try:
         text = open(path, encoding="utf-8").read()
     except OSError:
-        return 0, 0
+        return 0, 0, None, 0, "无 INCIDENTS 文件"
     entries = re.findall(r"^## (INC-\d+[^\n]*)", text, re.M)
     relapse = [e for e in entries if "复发" in e]
-    return len(entries), len(relapse)
+    start, source = review_window_start()
+    in_window = []
+    for e in relapse:
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", e)
+        if start and m and m.group(1) > start:
+            in_window.append(e)
+    return len(entries), len(relapse), start, len(in_window), source
 
 
 def pct(x):
     return f"{x:.1%}"
 
 
-def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
+def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, offline):
     now = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
     head = sh("git", "rev-parse", "--short", "HEAD").strip()
     lines = [
@@ -318,10 +344,12 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
             f"- 总运行次数 {stats['runs']}，其中重试/重复运行 {stats['retries']} 次。",
             *([f"- 数据来源：本地缓存（GitHub API 本次限流/断网，缓存时间 {stats['source'][6:-1]}）"]
               if str(stats.get("source", "")).startswith("cache") else []),
-            f"- T4 阈值：全量首过率 < 70% **或 复发率 > 0** → 启动审查。",
-            f"- 当前首过率 {pct(stats['rate'])}（{'触发' if stats['rate'] < 0.7 else '未触发'}）；"
-            f"复发 {inc_relapse} 条（{'触发' if inc_relapse > 0 else '未触发'}）"
-            f" → 合计 **{'需要启动审查' if (stats['rate'] < 0.7 or inc_relapse > 0) else '未触发'}**。",
+            f"- T4 阈值（A-22 口径）：全量首过率 < 70% **或 审查窗口内新增复发 > 0** → 启动审查；"
+            f"累计复发仅展示、不触发。",
+            (f"- 当前首过率 {pct(stats['rate'])}（{'触发' if stats['rate'] < 0.7 else '未触发'}）；"
+             + (f"窗口内新增复发 {inc_window} 条（窗口起点 {inc_start}，来源：{inc_source}；累计复发 {inc_relapse} 条不触发）"
+                if inc_start else "窗口起点**无数据**（不默认 0、也不默认红，由独立督导核定）")
+             + f" → 合计 **{'需要启动审查' if (stats['rate'] < 0.7 or inc_window > 0) else ('未判定' if not inc_start else '未触发')}**。"),
             "",
         ]
 
@@ -375,17 +403,18 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline):
     lines += [
         "## 四、事故与复发率",
         "",
-        "定义：复发率 = `docs/history/INCIDENTS.md` 中标题标注「（复发）」的条目数 / 事故总数。",
-        f"当前：事故 **{inc_total}** 条，标注复发的 **{inc_relapse}** 条。",
+        "定义：复发率 = `docs/history/INCIDENTS.md` 中标题标注「复发」的条目数 / 事故总数（**仅展示，不触发**，A-22）。",
+        f"当前：事故 **{inc_total}** 条，累计标注复发的 **{inc_relapse}** 条。",
+        (f"- 审查窗口：起点 **{inc_start}**（{inc_source}）→ 窗口内新增复发 **{inc_window}** 条"
+         f"（T4 只看这个；累计值不触发）。" if inc_start else
+         "- 审查窗口：**无数据**（找不到完整审查记录）→ T4 记「无数据」，不默认 0、也不默认红，由独立督导核定。"),
         "",
     ]
-    if inc_relapse == 0:
-        lines += [
-            "> 注意：这是**登记口径**的数字。2026-11-12 首次审查已口头判定 INC-003 复发，",
-            "> 但事故库没有打标记，所以脚本读到 0。T4 想靠它自动判定，前提是复发条目",
-            "> 必须在标题里写「（复发）」——这是本指标的已知局限，已记入 2026-11-12 整改。",
-            "",
-        ]
+    lines += [
+        "> A-22 口径注：T4 以**窗口内新增复发**判定（起点=最新完整审查 `REPORT-YYYYMMDD.md` 日期），",
+        "> 累计复发仅展示、不触发；复发的识别仍要求条目标题含「复发」，未打标的条目由独立督导人工核定。",
+        "",
+    ]
     local = local_verification()
     lines += ["## 五、本机验证（最近一次真实运行）", "",
               "> 记录来源：`tools/test_results.json` 是**助理**在每次真实跑完测试后更新的度量快照",
@@ -526,7 +555,7 @@ def main():
         if stats:
             stats["source"] = source
     annotate_ci(tags, stats)
-    inc_total, inc_relapse = incidents()
+    inc_total, inc_relapse, inc_start, inc_window, inc_source = incidents()
 
     stale = local_stale_tags(tags)
     print(f"远端 build tag：{len(tags)} 个；未构建提交：{len(uncovered)} 个"
@@ -538,21 +567,24 @@ def main():
               f"（最近 20 个 tip：{pct(stats['recent_rate'])}）")
     else:
         print("CI 首过率：未知（offline 或网络失败）")
-    print(f"事故：{inc_total} 条，标注复发 {inc_relapse} 条")
+    print(f"事故：{inc_total} 条，累计复发 {inc_relapse} 条；"
+          + (f"窗口 {inc_start} 内新增复发 {inc_window} 条" if inc_start else "窗口起点无数据"))
 
-    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, offline)
+    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, offline)
     if not check:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(doc.rstrip() + "\n")
         print(f"已写入 {os.path.relpath(OUT, ROOT)}")
 
-    # T4 判定：首过率 < 70% 或 复发率 > 0 → exit 1（供 cron/脚本判红）
+    # T4 判定（A-22）：首过率 < 70% 或 窗口内新增复发 > 0 → exit 1（供 cron/脚本判红）
     red = []
     if stats and stats["rate"] < 0.7:
         red.append(f"CI 首过率 {pct(stats['rate'])} < 70%")
-    if inc_relapse > 0:
-        red.append(f"复发 {inc_relapse} 条")
+    if inc_start is None:
+        print("T4 窗口：无数据（无完整审查记录），不默认 0、也不默认红——由独立督导核定")
+    elif inc_window > 0:
+        red.append(f"窗口 {inc_start} 内新增复发 {inc_window} 条")
     if check:
         if stats is None:
             # A-4/A-9：--check 拿不到 CI 数据时按“红/未判定”退出，不能静默 exit 0
@@ -560,6 +592,9 @@ def main():
             return 1
         if red:
             print("T4 红：" + "；".join(red))
+            return 1
+        if inc_start is None:
+            print("T4 未判定：窗口起点无数据（不默认红）——需独立督导核定")
             return 1
     return 0
 
