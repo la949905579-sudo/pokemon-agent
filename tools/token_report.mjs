@@ -14,7 +14,9 @@
  *
  * 默认输出里已含“重复读同一文件”统计，不需要额外开关。
  *
- * 职位判断：读会话里的 `subagent/descriptor.label`（考官/工匠/执行主管/督导）；
+ * 职位判断：读会话里的 `subagent/descriptor.label`，取**最靠左**出现的职位词
+ * （中文职位名：统筹主持 / 助理 / 工匠 / 考官 / 独立督导 / 审查员 / 成本管理员 / 组织规划 / 策略顾问；
+ * 旧名 执行主管→助理、验证员/verifier→考官、督导→独立督导 保留兼容）。
  * 没有 descriptor 的会话（主会话）标「主会话（未标注职位）」并按会话 id 单列，不猜。
  */
 import fs from "node:fs";
@@ -55,14 +57,31 @@ function localDate(ms) {
     .format(new Date(ms));
 }
 
+/** 中文职位名 → 匹配词（A-16：补全新名 + 旧名兼容；取最靠左命中，避免「A 队工匠…等执行主管派活」误判）。 */
+const ROLE_PATTERNS = [
+  ["统筹主持", ["统筹主持", "主持"]],
+  ["助理", ["助理", "执行主管", "steward"]],
+  ["工匠", ["工匠", "builder"]],
+  ["考官", ["考官", "验证员", "verifier"]],
+  ["独立督导", ["独立督导", "督导"]],
+  ["审查员", ["审查员"]],
+  ["成本管理员", ["成本管理员"]],
+  ["组织规划", ["组织规划", "组织架构师", "architect"]],
+  ["策略顾问", ["策略顾问", "advisor"]],
+];
+
 function roleFromLabel(label) {
   if (!label) return "主会话（未标注职位）";
-  if (label.includes("考官")) return "考官";
-  if (label.includes("工匠")) return "工匠";
-  if (label.includes("执行主管")) return "执行主管";
-  if (label.includes("督导")) return "督导";
-  if (label.includes("主持")) return "主持";
-  return "未知职位";
+  const l = label.toLowerCase();
+  let best = null; // {pos, idx, role}
+  ROLE_PATTERNS.forEach(([role, pats], idx) => {
+    for (const p of pats) {
+      const pos = l.indexOf(p.toLowerCase());
+      if (pos < 0) continue;
+      if (!best || pos < best.pos || (pos === best.pos && idx < best.idx)) best = { pos, idx, role };
+    }
+  });
+  return best ? best.role : "未知职位";
 }
 
 function sessionFiles() {
