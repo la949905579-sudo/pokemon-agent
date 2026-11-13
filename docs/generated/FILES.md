@@ -90,6 +90,7 @@
 | `state_server.py` | 本地状态服务：给网页「下屏」提供数据与动作接口。 | 保留 |
 | `switch.py` | 换人模块：战斗内部队伍顺序 + 换人动作。 | 保留 |
 | `terrain.py` | 地图通行性：定位地图结构、读取地块、输出九宫格。 | 保留 |
+| `tools/contract_check.py` | 合同制机械校验（TEAM §三·十）：合同 spec + 运行态 status.json。 | 保留 |
 | `tools/gen_files_index.py` | 生成 docs/generated/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
 | `track_route.py` | 后台记录用户操作时的坐标轨迹（带地图 ID，能分辨换图）。 | 保留 |
 | `train.py` | 练级 + 回合观测：走 battle_loop 的 on_round 回调，不再 monkeypatch。 | 保留 |
@@ -242,6 +243,7 @@
 | `tests/test_battle_loop.py` | 离线测试：battle_loop | 保留 |
 | `tests/test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
 | `tests/test_bridge.py` | 离线测试：bridge | 保留 |
+| `tests/test_contract_check.py` | 离线测试：contract_check | 保留 |
 | `tests/test_cursor.py` | 离线测试：cursor | 保留 |
 | `tests/test_decision.py` | 离线测试：decision | 保留 |
 | `tests/test_emu_bridge.py` | 离线测试：emu_bridge | 保留 |
@@ -329,4 +331,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 265 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 267 个文件（不含 `native-emu/third_party/` 第三方源码）。

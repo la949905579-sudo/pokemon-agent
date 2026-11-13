@@ -45,6 +45,22 @@
       "paths": [],
       "note": "只读参谋；意见由用户或统筹主持落盘"
     },
+    "代理人": {
+      "aliases": [
+        "proxy"
+      ],
+      "paths": [
+        "docs/contracts/**"
+      ],
+      "note": "合同制 A 侧：写合同与验收结论（TEAM §三·十）"
+    },
+    "承包主持": {
+      "aliases": [
+        "contractor"
+      ],
+      "paths": [],
+      "note": "合同制 B 侧：只读合同执行；写入按合同 §8 动态授权（TEAM §三·十），不入本表"
+    },
     "助理": {
       "aliases": [
         "assistant"
