@@ -13,3 +13,4 @@ faint*.txt
 *.jks
 keystore-info.txt
 tools/ci_runs_cache.json
+.pilot/

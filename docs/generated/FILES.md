@@ -168,6 +168,11 @@
 | `docs/audit/REPORT-20261113.md` | 审查报告 2026-11-13（窗口 `3decf36..ac26275`，45 提交） | 保留 |
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
+| `docs/contracts/C1-tests-consolidation.md` | C1 测试收拢（tests/ 迁移） | 保留 |
+| `docs/contracts/C2-move-name-232.md` | C2 招式名表 232（功能型） | 保留 |
+| `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
+| `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
+| `docs/contracts/README.md` | 合同制试点目录（docs/contracts） | 保留 |
 | `docs/generated/METRICS.md` | 构建覆盖 + CI 首过率（由 tools/metrics.py 生成，不要手改） | 保留 |
 | `docs/history/ARCHITECTURE.md` | 架构与执行流程（2026-11-09 23:30 快照） | 保留 |
 | `docs/history/CHANGELOG.md` | CHANGELOG | 保留 |
@@ -319,4 +324,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 255 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 260 个文件（不含 `native-emu/third_party/` 第三方源码）。
