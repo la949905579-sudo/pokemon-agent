@@ -14,8 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dsh.emu.EmuStatus
-import com.dsh.emu.WalkPlan
 
 /**
  * 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。

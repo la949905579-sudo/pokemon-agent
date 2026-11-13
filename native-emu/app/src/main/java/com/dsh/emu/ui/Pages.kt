@@ -16,13 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsh.emu.BuildConfig
 import com.dsh.emu.EmuCore
-import com.dsh.emu.EmuView
 import com.dsh.emu.MainActivity
-import com.dsh.emu.TeamMon
 import com.dsh.emu.Updater
-import com.dsh.emu.WalkControl
 import java.io.File
-import com.dsh.emu.EmuStatus
 
 @Composable
 internal fun BarButton(

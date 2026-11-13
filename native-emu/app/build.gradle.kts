@@ -66,6 +66,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     testImplementation("junit:junit:4.13.2")
+    // 本地单测需要可执行的 org.json：android.jar 里的是 stub（方法调用抛 "not mocked"）。
+    // 只影响 testDebugUnitTest 的 classpath，不进 APK。
+    testImplementation("org.json:json:20240303")
 }
 
 // 构建前给 mGBA 插调试日志（定位 core->init 崩溃用）
