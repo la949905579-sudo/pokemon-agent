@@ -24,6 +24,8 @@ C<编号>（编号不复用）｜ 机械型（全项可用命令判定）/ 功�
 - ③ <任务>
 
 ## 7 验收
+> **提交前（B 侧）**：`python3 tools/contract_check.py --contract <本文件> --status .pilot/<id>/status.json` 通过 + 台账自检（`tools/test_results.json` 同步 / `docs/BATCHES.md` 含「合同:<id>」/ `FILES` 重生成）；缺一不得提交。
+
 ### 7.1 机械项（命令 + 期望输出/退出码）
 | # | 命令 | 期望 |
 |---|---|---|

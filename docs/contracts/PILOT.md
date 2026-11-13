@@ -53,6 +53,8 @@ while [ ! -f .pilot/C2/inbox.ready ]; do sleep 5; done; echo C2_READY
 | docs 提交 | ≤3 条/批（同一会话 ≤1 条） | `git log` |
 
 - 每批必带：`BATCHES` 行（备注 `合同:<id>`）+ `test_results` 同步 + `FILES` 重生成；`HANDOFF` 在批次收尾 / 交接前更新，不要求每批改。
+- **提交前自检（B 侧，缺一不得提交）**：跑 `python3 tools/contract_check.py --contract … --status …` 通过 + 台账自检（`test_results` / `BATCHES` 合同号 / `FILES`），见 `docs/TEAM.md` §三·十。
+- **实例名**：A/B 由**用户新开会话**，不适用「同名 teammate 复用 / 每批换实例名」规则（该规则只针对 `TEAM` §一.2 的助理等成员）。
 
 ## 六、成本测量法（开工前定基线，验收后算增量）
 
