@@ -128,17 +128,16 @@
 - [ ] 常驻页与 MAP Tab 两处 TownMapPage 参数块重复约 6 行 → 抽小组件减少漂移
 - [x] ~~`TabsTest` 只覆盖 `isPageTabEnabled`~~ → 无 Compose 测试环境，接受；仅记录（主持裁定）
 
-## 批次 F2 遗留（2026-11-13，`9c2fc63`；考官复核 2026-11-13）
+## 批次 F2 遗留（2026-11-13，`9c2fc63`；批次3 收尾 `97bb03c` 已清大部分）
 
-- [ ] 结构债（中）：`ui/BattleMoveAction.kt:47-48` 直接 `Memo.u8` 读内存——字面不违 STRUCTURE（非 Composable），
-      但突破「ui 不碰内存」意图；建议下沉到 `game/` 适配层，或补规范例外
-- [ ] 单测缺口（中）：A 前最后一次 TURN/MAIN 复核（`MoveCaster.kt:146-148`）与线程层清键/取消无单测；
-      真机重点验「切页/收面板中断」「A 后未推进即停」
-- [ ] `MainActivity.kt` 现 **710 行**，超 `STRUCTURE.md` 500 行上限（既有债，F2 净 +6）
-- [ ] 轻：A 后轮询未查 cancelled（`MoveCaster.kt:156-163`，不再按键、无泄露，但取消后可能空转 8 次记 WARN）
-- [ ] 轻：`MoveCaster.kt:51` 注释「MAIN_CURSOR 0=招式」与 `addresses.py:9`「0=战斗」措辞不一致（取值/逻辑正确）
-- [ ] P3 招式名表只有 55 条：本轮真机第 4 招 id=**232** 未收录（战斗页显示 `#232`），补全名表时一并补
-- 真机：**2026-11-13 通过**（`build-9c2fc63`，2 场野生战凑齐 4 招、逐格 ok=true、无 ok=false；证据见 `HANDOFF.md` §二·七）
+- [x] 结构债（中）：`ui/BattleMoveAction.kt` 直接 `Memo.u8` 读内存 → 已下沉到 `game/` 适配层（`game/BattleMoveMenu.kt`），ui 只调用；新增离线单测
+- [x] 单测缺口（中）：MoveCaster 复核 + 线程层清键/取消单测已补（Kotlin 单测 95→101→113）
+- [x] `MainActivity.kt` 710 行超限 → 批次4 拆分至 **311 行**（拆出 `ui/EmuView`/`StatusParser`/`WalkControl`/`LocalStatus`）
+- [x] 轻：A 后轮询未查 cancelled → 已加取消检查（取消即退出，不再空转记 WARN）
+- [x] 轻：`MoveCaster.kt` 注释「MAIN_CURSOR 0=招式」与 `addresses.py` 措辞 → 已统一
+- [ ] **仍遗留**：P3 招式名表只有 55 条，真机第 4 招 id=**232** 未收录（战斗页显示 `#232`），补全名表时一并补
+- [ ] **仍遗留（A* 跨图）**：6 图缺 assets → 当前 5 图连通域可用；无高度层；`side` 语义待真机；本构建无 UI 入口，真机未覆盖（仅库+单测/CI）
+- 真机：F2 `build-9c2fc63` 2026-11-13 通过（2 场野生战 4 招）；MainActivity 拆分后 `build-5bbe4f4` 2026-11-13 14:0x UI 冒烟通过；批次 A–E 回归记录见 `HANDOFF.md` / `BATCHES.md`
 
 ## 结构债（考官 2026-11-12 发现）
 

@@ -180,6 +180,8 @@
 | `docs/org/PLAN-20261113-2.md` | 文件系统规划方案 2026-11-13（第二份） | 保留 |
 | `docs/org/PLAN-20261113-3.md` | 项目重建总方案 2026-11-13（第三份） | 保留 |
 | `docs/org/PLAN-20261113-4.md` | 项目重建总方案（2026-11-13，已与用户逐项核对） | 保留 |
+| `docs/org/PLAN-20261113-5.md` | T4 判据修订提案（2026-11-13） | 保留 |
+| `docs/org/PLAN-20261113-6.md` | A-21 度量落地清单（给助理） | 保留 |
 | `docs/org/PLAN-20261113.md` | 组织规划答复 2026-11-13（对 REQUEST 的答复） | 保留 |
 | `docs/org/README.md` | docs/org/ — 方案箱（组织规划接口） | 保留 |
 | `docs/org/REQUEST.md` | 组织规划请求 2026-11-13（第 2 号：策略顾问角色卡 + TEAM 扩写） | 保留 |
@@ -317,4 +319,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 253 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 255 个文件（不含 `native-emu/third_party/` 第三方源码）。

@@ -3,6 +3,35 @@
 版本规则：日期版 `YYYY.MM.DD-N`，git tag 为 `vYYYY.MM.DD-N`。
 只记录**行为/接口变化**；重构细节看 commit。commit 前缀：`feat:` / `fix:` / `refactor:` / `docs:` / `test:`。
 
+## v2026.11.13-4（NativeEmu v0.2 · versionName 0.2 · 批次5：A* 跨图寻路库 + 执行器）
+### 新增
+- 跨图寻路 Kotlin 移植：`game/MapLinks`（解析 `assets/maps/map_links.json`）、`game/CrossMapPathfinder`（跨图 A*）、
+  `game/CrossMapWalker`（逐段执行/换图/卡住检测/取消）；`MainActivity` 仅 +2 行加载，**未接 UI**
+
+### 限制
+- 6 图缺 assets → 当前 5 图连通域可用；**无高度层**；`side` 语义待真机；本构建无 UI 入口，真机未覆盖（仅库+单测/CI）
+
+### 测试
+- Kotlin 单测 113（+12：CrossMap* / MapLinks 测试）；CI run `43375557906` success；
+  Release `build-5bbe4f4…`（APK 11,592,027B；下载 HEAD content-length 实测，digest `sha256:bd88f0cb…`；本机 API 403 未独立核）；真机回归冒烟见 `HANDOFF.md`
+
+## v2026.11.13-3（NativeEmu v0.2 · versionName 0.2 · 批次4：MainActivity 拆分 + 工具链 A-16）
+### 变更
+- `MainActivity.kt` ≈710→311 行：拆出 `ui/EmuView`（独立渲染线程）、`ui/StatusParser`、`ui/WalkControl`、`ui/LocalStatus`
+
+### 修复 / 工具
+- A-16 工具链中文职位名 / 成本归因：未知职位 4 会话→0（`token_report`/`metrics`/`test_results` 同步）
+
+### 测试
+- Kotlin 101（+6 `StatusParserTest`）；CI `43365120600`；Release `build-112817b…`；真机 12:49–12:53
+
+## v2026.11.13-2（NativeEmu v0.2 · versionName 0.2 · 批次3：F2 遗留收尾）
+### 变更 / 修复
+- `BattleMoveAction` 内存读写下沉 `game/BattleMoveMenu.kt`；A 后轮询加 cancelled 检查；注释口径与 `addresses.py` 统一
+
+### 测试
+- Kotlin 95（+13）；CI `43321435153`；Release `build-ff93b78…`；真机 06:55–06:58（3 招/切页不卡键）
+
 ## v2026.11.13-1（NativeEmu v0.4.2 · 批次 F2 招式点击施放）
 ### 新增
 - 下屏战斗页 4 个招式格**可点击施放**：逐格短按方向键、每步回读光标，二次确认后才按 A 出招；
