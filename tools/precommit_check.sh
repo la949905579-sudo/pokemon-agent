@@ -262,7 +262,7 @@ commit_checks() {
         while IFS= read -r hit; do
             [ -n "$hit" ] && stale+=("$hit")
         done < <( { grep -nP "$p_exact" "$f" 2>/dev/null | grep -vE '永久禁用|退役名|旧名|旧值|过期值|已知' | sed 's/^/[exact] /'
-                    grep -nP "$p_items" "$f" 2>/dev/null | grep -E '测试|检查|通过|全过|验收|用例' | grep -vE '旧值|过期值|已知' | sed 's/^/[N项] /'
+                    grep -nP "$p_items" "$f" 2>/dev/null | grep -E '测试|检查|通过|全过|验收|用例' | grep -vE '旧值|过期值|已知|度量|指标|前置|字段|定义|口令|重建' | sed 's/^/[N项] /'
                     grep -nP "$p_ratio" "$f" 2>/dev/null | grep -vE 'test_results|run_tests|CI |CI run|首过|复发|测试|单测|验证|通过|双证|可发布|批次|并入|\.kt:|正常|快进|旧值|过期值|已知' | sed 's#^#[ratio] #'
                   } | sed "s|^|${f}:|" )
     done

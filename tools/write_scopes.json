@@ -1,21 +1,34 @@
 {
-  "_comment": "A-17 职位写入范围表（镜像 docs/TEAM.md §一 1.1/1.2）。唯一真源仍是 docs/TEAM.md；改 TEAM §一时须同批更新本文件。paths 支持精确路径、目录前缀（以 / 结尾）与通配符；\"*\" = 不限（统筹主持保留直接修改权）。",
+  "_comment": "A-17 职位写入范围表（镜像 docs/TEAM.md §一 1.1/1.2）。唯一真源仍是 docs/TEAM.md；改 TEAM §一时须同批更新本文件（A-19 教训）。paths 支持精确路径、目录前缀（以 / 结尾）与通配符；\"*\" = 不限。",
   "source": "docs/TEAM.md §一（1.1 会话 / 1.2 成员）",
   "roles": {
     "统筹主持": {
-      "aliases": ["lead"],
-      "paths": ["*"],
-      "note": "统筹主持保留直接修改权，改后须在 docs/HANDOFF.md 留痕"
+      "aliases": [
+        "lead"
+      ],
+      "paths": [
+        "docs/org/REQUEST.md"
+      ],
+      "note": "其余无（A-19：仅方案箱请求文件例外）；保留直接修改权，改后须在 docs/HANDOFF.md 留痕"
     },
     "独立督导": {
-      "aliases": ["audit-lead"],
-      "paths": ["docs/audit/**", "docs/roles/b/**"],
+      "aliases": [
+        "audit-lead"
+      ],
+      "paths": [
+        "docs/audit/**",
+        "docs/roles/b/**"
+      ],
       "note": "B 队文件：审查件与 B 队角色卡"
     },
     "组织规划": {
-      "aliases": ["architect"],
+      "aliases": [
+        "architect"
+      ],
       "paths": [
         "docs/TEAM.md",
+        "docs/roles/README.md",
+        "docs/README.md",
         "docs/roles/a/**",
         "docs/roles/org/**",
         "docs/PROJECT_PLAN.md",
@@ -23,15 +36,19 @@
         "docs/STRUCTURE.md",
         "docs/org/**"
       ],
-      "note": "组织/流程/文件规范设计；只写不提交"
+      "note": "组织/流程/文件规范设计（A-19 起含 docs/README.md、docs/roles/README.md）；只写不提交"
     },
     "策略顾问": {
-      "aliases": ["advisor"],
+      "aliases": [
+        "advisor"
+      ],
       "paths": [],
       "note": "只读参谋；意见由用户或统筹主持落盘"
     },
     "助理": {
-      "aliases": ["assistant"],
+      "aliases": [
+        "assistant"
+      ],
       "paths": [
         "tools/**",
         "docs/generated/**",
@@ -44,33 +61,52 @@
       "note": "状态类文档 + tools/ + 生成物（只经脚本）；代提交其它来源文档须授权并在提交信息标注来源"
     },
     "工匠": {
-      "aliases": ["artisan"],
-      "paths": ["native-emu/**", "tests/**"],
+      "aliases": [
+        "artisan"
+      ],
+      "paths": [
+        "native-emu/**",
+        "tests/**"
+      ],
       "note": "只改代码与测试"
     },
     "考官": {
-      "aliases": ["examiner"],
+      "aliases": [
+        "examiner"
+      ],
       "paths": [],
       "note": "只读复核，不写文件"
     },
     "审查员": {
-      "aliases": ["auditor"],
+      "aliases": [
+        "auditor"
+      ],
       "paths": [],
       "note": "只读；报告文字交独立督导落盘"
     },
     "成本管理员": {
-      "aliases": ["audit-cost"],
+      "aliases": [
+        "audit-cost"
+      ],
       "paths": [],
       "note": "只读"
     },
     "分工规划员": {
-      "aliases": ["role-planner"],
-      "paths": ["docs/org/**"],
+      "aliases": [
+        "role-planner"
+      ],
+      "paths": [
+        "docs/org/**"
+      ],
       "note": "只写 docs/org/ 草稿"
     },
     "结构规划员": {
-      "aliases": ["struct-planner"],
-      "paths": ["docs/org/**"],
+      "aliases": [
+        "struct-planner"
+      ],
+      "paths": [
+        "docs/org/**"
+      ],
       "note": "只写 docs/org/ 草稿"
     }
   }
