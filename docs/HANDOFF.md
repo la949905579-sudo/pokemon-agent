@@ -1,6 +1,6 @@
 # HANDOFF（换会话先读这个）
 
-- **状态**（2026-11-14 21:4x）：**模式已固化**（单会话 + 本地循环）；HEAD=`3f36e7a`＝origin/master；工作树空；未推送 0；无进行中任务。
+- **状态**（2026-11-14 23:0x）：**模式已固化**（单会话 + 本地循环）；HEAD＝origin/master（最新**代码/发布**提交 `3f36e7a`，其后只有文档收口提交）；工作树空；未推送 0；无进行中任务。
 - **最新发布**：Release `build-3f36e7a…`（含**横屏纯画面 + 触屏所见即所得**，已 OTA 装机并真机验收）。
 - **结构**：`native-emu/` = Android App（Kotlin + Compose + mGBA C/C++ 核心）；`pyplatform/` = Python 旧自动化（冻结）；数据 `games/pokemon_firered/{maps,battles,dialogs,data/moves.json}`；`tests/` = 31 个 Python 离线测试；入口 `run_tests.py`；`tools/` = `emu_probe.py` / `gen_moves_data.py`。
 - **构建/验证**：Kotlin 单测本机可跑（aapt2 走 qemu wrapper，命令见 `AGENTS.md`）；**APK/NDK 必须走 CI**（push 触发）；Python 旧层 `python3 run_tests.py`。
