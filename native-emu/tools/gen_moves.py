@@ -47,7 +47,7 @@ DEFENSE_ORDER = {
 
 
 def load_data():
-    sys.path.insert(0, str(ROOT))
+    sys.path.insert(0, str(ROOT / "pyplatform"))
     import bdata
 
     moves = bdata.MOVES
