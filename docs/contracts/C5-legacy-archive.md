@@ -15,7 +15,7 @@ C5 ｜ 功能型（判断项：旧引用是否清零、归档正文是否零改�
 2026-11-12 旧方案（主持/执行主管/工匠/考官/督导 + TEAM §三 12 步主流程）已被 2026-11-14 合同制（A 代理人 / B 承包商 / TEAM §三·十~十二）取代，但旧口径仍散在 TEAM §二/§三、角色卡索引、HANDOVER、全局 AGENTS.md。目标：**单一真源**——旧主流程归档、旧职位引用清零、全局文件同步，新会话只按合同制重建。
 ## 6 任务清单（WBS）
 - ① **停用旧主流程**：`docs/TEAM.md` §三（12 步）正文移入 `docs/archive/TEAM-主流程-12步-20261112.md`（只移动、不改一字）；§三 原位留 3 行「已归档 + 现行见 §三·十一/§三·十二 + 归档路径」；§二 重建步骤改合同制口径（A 代理人 + B 承包商，删「spawn 助理与工匠」旧打包说法）。归档为「用户拍板停用」例外，不受 archive 门槛限制，`BATCHES` 留痕。
-- ② **旧职位引用清理（活体文档）**：「统筹主持 / 执行主管 / 独立督导（B 队）」改为合同制职位（A 代理人 / B 承包商 / 审计督导子会话），范围＝`docs/TEAM.md`、`docs/HANDOVER.md`、`docs/roles/README.md`、`docs/README.md`、`docs/STRUCTURE.md`、`docs/org/README.md`、`docs/org/REQUEST.md`、`docs/roles/a/{assistant,artisan,examiner}.md`、`docs/roles/org/{architect,advisor}.md`；**保留** 助理 / 工匠 / 考官 / 真机执行（B 成员沿用）。豁免：`docs/history/**`、`docs/audit/**` 正文、`docs/org/PLAN-*`、`docs/BATCHES.md`（历史台账）、`docs/generated/**`（生成物，含派生旧名不算活体引用）、`docs/contracts/C1–C4` 与 `PILOT.md`（样本不回改）。
+- ② **旧职位引用清理（活体文档）**：「统筹主持 / 执行主管 / 独立督导（B 队）」改为合同制职位（A 代理人 / B 承包商 / 审计督导子会话），范围＝`docs/TEAM.md`、`docs/HANDOVER.md`、`docs/roles/README.md`、`docs/README.md`、`docs/STRUCTURE.md`、`docs/org/README.md`、`docs/org/REQUEST.md`、`docs/roles/a/assistant.md`、`docs/roles/a/artisan.md`、`docs/roles/a/examiner.md`、`docs/roles/org/advisor.md`、`docs/roles/org/architect.md`；**保留** 助理 / 工匠 / 考官 / 真机执行（B 成员沿用）。豁免：`docs/history/**`、`docs/audit/**` 正文、`docs/org/PLAN-*`、`docs/BATCHES.md`（历史台账）、`docs/generated/**`（生成物，含派生旧名不算活体引用）、`docs/contracts/C1–C4` 与 `PILOT.md`（样本不回改）。
 - ③ **审计/督导归属（用户拍板）**：`docs/roles/README.md` 表把独立督导/审查员/成本管理员标「停设（B 队旧编制），职责转 A 队」；`docs/roles/b/audit-lead.md` 顶部加 3 行停用说明 + 新入口；新增 `docs/roles/a/supervisor.md`（审计督导子会话卡：代理人按需 spawn、fresh、只读、≤5 行回执、按 `docs/audit/AUDIT.md` 触发）；`docs/TEAM.md` §四 补归属句。**不改 `docs/audit/**` 正文**。
 - ④ **全局 AGENTS.md 同步**：`cp /root/.dsh/AGENTS.md /root/.dsh/AGENTS.md.bak-20261114`；删除首行 dsh-app 受管标记；「会话寿命与角色分工（2026-11-12）」整段改为合同制口径（代理人对接用户 / 承包商执行 / B 成员沿用 / 回执 ≤10 行）。文件不入库，回执记**备份路径 + 改后 git 外 diff 摘要（≤3 行）**。
 - ⑤ **C4 成本复盘对策落地**：按 `docs/history/RETROSPECTIVE-20261114-C4-cost.md` §三，本合同 §9 已写「真机首跑预检」与「spawn 显式标职位」；本批无真机项，不重开 C4。
@@ -39,7 +39,7 @@ C5 ｜ 功能型（判断项：旧引用是否清零、归档正文是否零改�
 ### 7.4 成本判据（双判据）
 - 每批增量 ≤ 基线×0.85 且 ≤30M/批；基线见 `.pilot/C5/cost-before.json`（A 已落）；`cost-after` 在 accepted 后由 B 取写 `.pilot/C5/cost.json`。
 ## 8 写入范围
-- 允许：`docs/contracts/C5-legacy-archive.md`、`docs/TEAM.md`、`docs/HANDOVER.md`、`docs/roles/README.md`、`docs/roles/a/supervisor.md`（新）、`docs/roles/a/{assistant,artisan,examiner}.md`、`docs/roles/org/{architect,advisor}.md`、`docs/org/REQUEST.md`、`docs/roles/b/audit-lead.md`、`docs/README.md`、`docs/STRUCTURE.md`、`docs/org/README.md`、`docs/history/RETROSPECTIVE-20261114-C4-cost.md`、`docs/archive/TEAM-主流程-12步-20261112.md`（新）、`docs/BATCHES.md`、`docs/HANDOFF.md`、`docs/generated/FILES.md`、`docs/generated/METRICS.md`（经脚本）、`tools/test_results.json`、`/root/.dsh/AGENTS.md`（+ 备份，不入库）
+- 允许：`docs/contracts/C5-legacy-archive.md`、`docs/TEAM.md`、`docs/HANDOVER.md`、`docs/roles/README.md`、`docs/roles/a/supervisor.md`（新）、`docs/roles/a/assistant.md`、`docs/roles/a/artisan.md`、`docs/roles/a/examiner.md`、`docs/roles/org/advisor.md`、`docs/roles/org/architect.md`、`docs/org/REQUEST.md`、`docs/roles/b/audit-lead.md`、`docs/README.md`、`docs/STRUCTURE.md`、`docs/org/README.md`、`docs/history/RETROSPECTIVE-20261114-C4-cost.md`、`docs/archive/TEAM-主流程-12步-20261112.md`（新）、`docs/BATCHES.md`、`docs/HANDOFF.md`、`docs/generated/FILES.md`、`docs/generated/METRICS.md`（经脚本）、`tools/test_results.json`、`/root/.dsh/AGENTS.md`（+ 备份，不入库）
 - 不允许：`native-emu/**`、`docs/audit/**`、`docs/roles/b/auditor.md`、`docs/roles/b/audit-cost.md`、`docs/history/**` 旧文正文、`docs/org/PLAN-*`、C1–C4 合同与 `PILOT.md`、keystore/签名；`.pilot/**` 不入库
 ## 9 禁止项
 - 不改 C1–C4 样本合同与已推提交；不改 `docs/audit/**` 正文；不手改生成物；不伪造测试/成本数字；不空提交、不 force push；不夹带范围外改动；不改实现代码。
@@ -47,6 +47,7 @@ C5 ｜ 功能型（判断项：旧引用是否清零、归档正文是否零改�
 - 真机类工作本批不做；后续真机项开工前须先确认 NativeEmu 前台（C4 复盘教训），回执写「首跑 PASS/FAIL + 重试次数」。
 - 治理批 1 助理 + 1 考官（无工匠、无 realdevice）；spawn 子会话时显式写职位（降低「未标注职位」占比）。
 ## 10 变更规则
+- 2026-11-14 12:3x A 修订 §8：花括号写法展开为显式路径（`contract_check` 按字面/glob 匹配、不支持 `{a,b}`），实际授权范围不变（同一批文件，仅记账格式修正）。
 - 2026-11-14 12:3x A 修订 M4：原命令未排除 §6 豁免区（audit/history/org-PLAN/archive/合同 spec 自身引用），不可满足；改为限活体文件，验收实质不变（B 已按 §6 豁免口径执行并在 BATCHES 留痕）。
 - B 可改执行路径；不可改验收口径、写入范围、目标；范围外先停手扩合同。
 - 不可行：1 轮内 `.pilot/C5/status.json` 置 `blocked` + 回执 ≤3 行原因，停手等 A 裁定。
