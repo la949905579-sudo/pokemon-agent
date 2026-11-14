@@ -19,7 +19,8 @@
 - 2026-11-15 **横屏战斗背包/队伍子菜单点选（翻口袋 + 道具行 + 队伍格子）**：新增 `game/SubmenuState.kt`——用 `gWindows[0]` 几何识别背包 `(11,1)18×12` / 队伍 `(1,3)10×7`（`E83==0` 走标准是/否）；真机标定 `gBagMenuState`：pocket=0x0203AD02、各口袋光标=0x0203AD04+2*pocket、队伍光标=0x0203B0A9(7=取消)。
   - 背包：◀▶ 箭头 (8,72)/(72,72) 点按=按 LEFT/RIGHT 翻口袋（回读 pocket）；列表行（win0 内区、行高 16）点按=回第一行逐行挪光标→二次确认→按 A（取消行=合上背包）；滚动箭头 (160,8)/(160,104) 排除行热区、点按=挪一格不按 A；底部条按图标态区分——光标在道具行（道具说明态）只提示，在「取消」行/空口袋（「合上背包」态）按 B 合上。
   - 队伍：大框 (1,3) / 右侧 5 行（行高 24）点按=挪光标→按 A；空位（slot≥队伍数）只提示；底部「取消」按钮 (24,17)6×2 按 B 返回。
-  - 单测 171/171 绿（新增 `SubmenuStateTest`、`TouchMap` 子菜单热区、`partyCount`）；fresh 复核轮（2 必修已修）+ delta 复核。
+  - 单测 172/172 绿（新增 `SubmenuStateTest`、`TouchMap` 子菜单热区、`partyCount`）；fresh 复核 2 轮（首轮 2 必修 + delta 2 必修全修）。
+  - **>6 件道具滚动修复**（delta 复核必修）：真机标定 `+8+2p`=可视行、`+14+2p`=滚动偏移（写 8 件测试道具实测：DOWN 一次 abs=行+滚动恰 +1）；背包定位/末行探针/滚动箭头全部改用 abs（`SubmenuState.bagRow/bagScroll/bagAbs`）。真机闭环：滚动偏移=1 时点可见第 6 行 → `wysiwyg.bagitem targetAbs=6` → 用掉全复药、HP 23→35/35、道具槽 id19 消失；滚到底时点可见「取消」→ `targetAbs=8` 正确合上背包。
   - 真机（`build-e3be008`，已装机版本 0.2 (e3be008)）：日志 `wysiwyg.bagpocket ok=true`（口袋 0→1→2→1→0 往返 6 次）、`wysiwyg.bagbar onCancelRow=true`（空口袋合上）、`onCancelRow=false restoreRow=0`（道具说明态连点 3 次只提示不关）、`wysiwyg.bagitem ok=true`（取消行 A 合上）、`wysiwyg.party empty_slot`（空位不按 A）、`wysiwyg.submenu ok=true kind=party`（取消返回）；截图 `wysiwyg2-*.jpg`（横屏 moves/bag、竖屏 party）。
   - 未真机验：有效队伍换人（当时槽 1 无战斗、槽 2 队伍仅 1 只）、>6 种道具的滚动手感、双打队伍布局（识别不到时只保留底部取消，不会错按）。
 - 2026-11-15 **横屏 WYSIWYG 补完（对话选项 + 战斗菜单其余项）**：新增 `game/MenuState.kt`（实测标定的 `sMenu@0x0203ADE4` / `gWindows@0x020204B4`：光标、选项数、行高、窗口几何 → 选项行命中）、`Addresses.BATTLE_MENU_FLAG=0x02023E83`；横屏对话/战斗「是/否」选项可点选（回读光标→逐行挪→二次确认→按 A，任何一步不满足只提示不按 A）；战斗主菜单「背包/宝可梦/逃跑」点选（E83!=0 才是真主菜单，按项回读 `TURN_FLAG/MAIN_CURSOR`）；背包/队伍子菜单点底部条 = 按 B 退出（取消条分区：背包 y≥114、队伍 y≥121）；`Wysiwyg` 加取消代际（离开横屏/开设置面板停手）。
