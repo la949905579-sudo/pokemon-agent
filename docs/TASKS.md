@@ -4,9 +4,7 @@
 > 当前状态：**无进行中任务**（M4/M5、名表 354 已完成，见 done）；等用户点名下一步。
 
 ## doing
-- **自动化开关（自动战斗）**：设置页加「自动战斗」开关；Kotlin 后台循环：战斗菜单展开时按 `BattleDecider` 选最优招式 → 复用 `BattleMoveAction` 施放；主菜单/对话时按 A 推进；fail-closed，连续失败 3 次自动停；ROM 载入/重置/退出时静默取消。
-  验收：本地 Kotlin 单测（planner 纯逻辑 + 现有战斗测试）全绿；CI 构建成功；真机冒烟：战斗中点开关后自动出招并打完一场，状态行有反馈。
-  范围：`game/AutoBattlePlanner.kt`（新）、`ui/AutoBattle.kt`（新）、`ui/Pages.kt`（设置页开关）、`MainActivity.kt`（载入 ROM 取消）、`app/src/test/.../AutoBattlePlannerTest.kt`（新）。
+（无）
 
 ## todo（按优先级）
 1. **横屏 + 触屏所见即所得**
@@ -22,5 +20,6 @@
 
 ## done
 - 2026-11-14 工作流重设计（单会话 + 本地构建/真机自测循环；归档旧治理文档；删除治理工具链；Python 冻结）。
+- 2026-11-14 **自动战斗开关**：设置页开关 + `ui/AutoBattle.kt` 后台循环（`AutoBattlePlanner`/`BattleDecider` 选招 → `BattleMoveAction` 施放；主菜单/对话 A 推进；连续 3 次失败自停；ROM 载入/重置/退出取消）；本地 Kotlin 单测绿；CI `1f305ad` success；**真机实测通过**：OTA 到新包后 2 场野生战均自动完成（`emu_native.log`：`battle.move idx=3 ok=true turn_before=2 turn_after=4`，转场 1→2→4；无 auto.battle 错误；开关开/关正常）。
 - 2026-11-14 **名表 354**：补全 354 条（官方中文名 + Gen3 威力，`past_values` 还原）；数据源 `games/pokemon_firered/data/moves.json` + 生成器 `tools/gen_moves_data.py`（`--check` 通过）；`bdata.py` 改读 JSON、`GameData.kt` 重生成；新增 Kotlin `MoveTable354Test`；Python 测试更新（354 条 / 官方译名 / Gen3 数值，31/31 绿；Kotlin 单测绿）。
 - 2026-11-14 **M4/M5 迁移**：45 个根 `.py` → `pyplatform/`；`maps/`/`battles/`/`dialogs/` → `games/pokemon_firered/`；路径引用同步（`plugin.py`/`terrain.py`/`start_push.sh`/`run_tests.py`/30 个测试 sys.path）；验收：Python 31/31 绿、import 冒烟过。
