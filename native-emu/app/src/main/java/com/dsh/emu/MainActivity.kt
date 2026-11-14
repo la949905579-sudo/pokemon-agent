@@ -1,5 +1,6 @@
 package com.dsh.emu
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -182,6 +184,12 @@ fun AppScreen(activity: MainActivity) {
             val now = EmuCore.frameCount()
             frame = now; fps = (now - last).toInt(); last = now
         }
+    }
+
+    // 横屏：纯游戏画面 + 点击映射 + 半透明设置图标（覆盖层面板）；竖屏保持原双屏 UI。
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        LandscapeScreen(activity, emuView, romReady, status)
+        return
     }
 
     Column(Modifier.fillMaxSize().background(BG)) {

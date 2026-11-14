@@ -326,7 +326,7 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
  * 顺序不能反——先 stop() 走 core deinit，mGBA 在 savedata unmap 时 msync 写回 .sav；
  * 直接杀进程的话，游戏内存档可能还在页缓存里丢一部分。
  */
-private fun exitApp(activity: MainActivity, emuView: EmuView) {
+internal fun exitApp(activity: MainActivity, emuView: EmuView) {
     // 1) 刷盘：deinit core（含 savedata unmap + msync）
     try { EmuCore.stop() } catch (_: Throwable) {}
     // 2) 停渲染线程 / 状态（行走代际 +1 让后台线程立刻退）
