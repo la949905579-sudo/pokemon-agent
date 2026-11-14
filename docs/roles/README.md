@@ -5,9 +5,9 @@
 
 | 队 | 职位 | 实例名 | 角色卡 |
 |---|---|---|---|
-| A 队 | **助理** | `assistant` | `docs/roles/a/assistant.md` |
-| A 队 | **工匠** | `artisan` | `docs/roles/a/artisan.md` |
-| A 队 | **考官** | `examiner` | `docs/roles/a/examiner.md` |
+| B 成员（承包商 spawn） | **助理** | `assistant` | `docs/roles/a/assistant.md` |
+| B 成员（承包商 spawn） | **工匠** | `artisan` | `docs/roles/a/artisan.md` |
+| B 成员（承包商 spawn） | **考官** | `examiner` | `docs/roles/a/examiner.md` |
 | A 队 | **代理人** | `proxy` | `docs/roles/a/proxy.md` |
 | A 队 | **承包商** | `contractor` | `docs/roles/a/contractor.md` |
 | A 队 | **真机执行** | `device` | `docs/roles/a/realdevice.md` |

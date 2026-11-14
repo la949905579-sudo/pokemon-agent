@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 14:42",
+  "updated": "2026-11-14 14:57",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -8,10 +8,10 @@
     "note": "CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。"
   },
   "python": {
-    "tests": 37,
-    "result": "PASS（37/37）",
-    "at": "2026-11-14 14:42",
+    "tests": 38,
+    "result": "PASS（38/38）",
+    "at": "2026-11-14 14:57",
     "command": "python3 run_tests.py",
-    "note": "C8 规范批（纯 docs/规则，无 tests 变更；37 例沿用 C7）提交前实跑 37/37；全部离线。"
+    "note": "C9 遗留收口小批（新增 tests/test_metrics.py 4 例：数据源标签 / live / cache / 无缓存兜底）提交前实跑 38/38；全部离线（mock get_json + tempdir 假缓存，不联网）。"
   }
 }

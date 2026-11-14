@@ -201,6 +201,21 @@ def fetch_runs():
             return None, None
 
 
+def data_source_label(source, offline=False):
+    """CI 数据源固定标签（C9）：`live` / `cache(<fetchedAt>)` / `offline` / `未知`。
+
+    source 取自 `fetch_runs()` 返回值（`live` 或 `cache(<fetchedAt>)`）；offline=`--offline` 未取 CI。
+    纯函数，供 `--check` / 常规输出与 METRICS 文档共用（测试离线可测）。
+    """
+    if offline:
+        return "offline（--offline 未取 CI）"
+    if not source:
+        return "未知（未取到 CI 数据）"
+    if source.startswith("cache("):
+        return source  # 已是 cache(<fetchedAt>) 原样展示，不重排时刻
+    return "live" if source == "live" else str(source)
+
+
 def ci_stats(runs):
     """按推送 tip 分组，取每个 tip 的第一次 Action 结论算首过率。"""
     if runs is None:
@@ -605,6 +620,8 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_win
         "",
         "## 一、CI 首次通过率（T4 判据）",
         "",
+        f"- 数据源：{data_source_label((stats or {}).get('source'), offline)}",
+        "",
     ]
     if offline or not stats:
         lines += ["**未知**：本次未取到 GitHub Actions 数据（`--offline` 或网络/限流失败）。", ""]
@@ -824,6 +841,7 @@ def main():
             print(f"⚠ tag {t.name} 指向的提交 {t.sha[:7]} 不在本地，先 git fetch", file=sys.stderr)
     fill_commits(tags)
     uncovered = uncovered_commits(tags)
+    source = None
     if offline:
         stats = None
     else:
@@ -845,6 +863,7 @@ def main():
               f"（最近 20 个 tip：{pct(stats['recent_rate'])}）")
     else:
         print("CI 首过率：未知（offline 或网络失败）")
+    print(f"数据源：{data_source_label(source, offline)}")  # C9：CI 数据来源固定输出
     print(f"事故：{inc_total} 条，累计复发 {inc_relapse} 条；"
           + (f"窗口 {inc_start} 内新增复发 {inc_window} 条" if inc_start else "窗口起点无数据"))
     print("度量总表（8 项权威 + 合同制 2 项）：")

@@ -184,6 +184,7 @@
 | `docs/contracts/C6-governance-tools.md` | C6 治理工具批 v1.6：写范围表对齐 + 合同工具三修 + 快照追记 | 保留 |
 | `docs/contracts/C7-token-roles.md` | C7 成本归因修复：token_report 职位映射对齐新编制 | 保留 |
 | `docs/contracts/C8-a-boundary.md` | C8 流程规范同步：代理人职责边界收窄 + C7 成本复盘落盘 | 保留 |
+| `docs/contracts/C9-hygiene.md` | C9 遗留收口小批：HANDOFF 文字更正 + 组织文档矛盾 + metrics 数据源行 | 保留 |
 | `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
 | `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
 | `docs/contracts/README.md` | 合同制目录（docs/contracts） | 保留 |
@@ -277,6 +278,7 @@
 | `tests/test_log.py` | 离线测试：log | 保留 |
 | `tests/test_loop.py` | 离线测试：loop | 保留 |
 | `tests/test_map_route.py` | 离线测试：map_route | 保留 |
+| `tests/test_metrics.py` | 离线测试：metrics | 保留 |
 | `tests/test_moves.py` | 离线测试：moves | 保留 |
 | `tests/test_moves_232.py` | 离线测试：moves_232 | 保留 |
 | `tests/test_pathfind.py` | 离线测试：pathfind | 保留 |
@@ -353,4 +355,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 289 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 291 个文件（不含 `native-emu/third_party/` 第三方源码）。
