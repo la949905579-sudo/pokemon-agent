@@ -34,8 +34,16 @@ object GameState {
     /** 回合阶段（1=主菜单 2=招式 4=动画 0=开场）。 */
     fun turnFlag(): Int = Memo.u8(Addresses.TURN_FLAG)
 
-    /** 战斗主菜单标志（E83）：1=真正的战斗主菜单；0=战斗里的「是/否」选项框。 */
+    /** 战斗菜单标志（E83）：0=战斗里的「是/否」选项框；非 0（实测 4）=真正的战斗菜单。 */
     fun battleMenuFlag(): Int = Memo.u8(Addresses.BATTLE_MENU_FLAG)
+
+    /** 真正的战斗主菜单（E82==1 且 E83!=0）——可以点「战斗/背包/宝可梦/逃跑」。 */
+    fun inBattleMainMenu(): Boolean =
+        inBattle() && turnFlag() == 1 && battleMenuFlag() != 0
+
+    /** 战斗里的「是/否」选项框（E82==1 且 E83==0）——不能当主菜单按 A，否则默认确认。 */
+    fun inBattleChoice(): Boolean =
+        inBattle() && turnFlag() == 1 && battleMenuFlag() == 0
 
     /** 对话框是否打开。 */
     fun inDialog(): Boolean = Memo.u8(Addresses.DIALOG_FLAG) != 0

@@ -34,6 +34,25 @@ class GameStateTest {
     }
 
     @Test
+    fun battleMenuVsChoiceByE83() {
+        // 真机实测：战斗主菜单/招式/背包/队伍 E82=1,E83=4；选项框 E82=1,E83=0
+        put(Addresses.BATTLE_FLAG, 1)
+        put(Addresses.TURN_FLAG, 1)
+        put(Addresses.BATTLE_MENU_FLAG, 4)
+        assertTrue(GameState.inBattleMainMenu())
+        assertFalse(GameState.inBattleChoice())
+
+        put(Addresses.BATTLE_MENU_FLAG, 0)
+        assertFalse(GameState.inBattleMainMenu())
+        assertTrue(GameState.inBattleChoice())
+
+        // 不在战斗时两者都不成立
+        put(Addresses.BATTLE_FLAG, 0)
+        assertFalse(GameState.inBattleMainMenu())
+        assertFalse(GameState.inBattleChoice())
+    }
+
+    @Test
     fun coordsSubTractTileOffset() {
         putU16(Addresses.X_ADDR, 20)
         putU16(Addresses.Y_ADDR, 15)

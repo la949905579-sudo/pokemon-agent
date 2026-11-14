@@ -14,7 +14,7 @@ import com.dsh.emu.game.MoveCaster
  * 场景判定由 [GameState.scene] 给出，动作分派：
  * - `battle_moves`：MAIN_CURSOR==0 时点 2×2 招式格 → [BattleMoveAction.cast]（自带逐格回读）；
  *   MAIN_CURSOR==1/2（背包/队伍子菜单）时点底部「取消/合上」条 → 按 B 退出；
- * - `battle_main`：E83==1 才是真主菜单，点「战斗 / 背包 / 宝可梦 / 逃跑」→ 回读 MAIN_CURSOR、
+ * - `battle_main`：E83!=0 才是真主菜单，点「战斗 / 背包 / 宝可梦 / 逃跑」→ 回读 MAIN_CURSOR、
  *   逐格挪到目标 → 二次确认 → 按 A → 按项回读验证；E83==0 是战斗里的「是/否」选项框，
  *   走 [MenuState] 标准是/否点选（不支持就不按 A）；
  * - `battle_intro` / `battle_end`：点任意处 = 短按 A 推进文字；
@@ -36,7 +36,6 @@ internal object Wysiwyg {
     private const val MAX_STEPS = 8
     private const val TURN_MAIN_MENU = 1
     private const val TURN_MOVES_MENU = 2
-    private const val BATTLE_MENU_MAIN = 1
     /** 战斗主菜单「战斗/背包/宝可梦」打开子菜单的等待上限（背包/队伍可能比招式菜单慢）。 */
     private const val OPEN_SUBMENU_MS = 3000L
     /** 「战斗」打开招式菜单的等待上限。 */
@@ -82,7 +81,7 @@ internal object Wysiwyg {
             }
             "battle_main" -> {
                 val idx = TouchMap.mainMenuIndexAt(gx, gy)
-                val isMainMenu = GameState.battleMenuFlag() == BATTLE_MENU_MAIN
+                val isMainMenu = GameState.battleMenuFlag() != 0
                 Nlog.info(
                     "wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy,
                     "menu" to (idx ?: -1), "mainMenu" to isMainMenu,
@@ -225,8 +224,7 @@ internal object Wysiwyg {
         activity.statusText.value = "该选项框横屏暂不支持，请竖屏"
     }
 
-    private fun inBattleMainMenu(): Boolean =
-        GameState.turnFlag() == TURN_MAIN_MENU && GameState.battleMenuFlag() == BATTLE_MENU_MAIN
+    private fun inBattleMainMenu(): Boolean = GameState.inBattleMainMenu()
 
     /**
      * 按目标项回读验证：
@@ -268,8 +266,9 @@ internal object Wysiwyg {
                 sleep(A_MS)
                 EmuCore.setKeys(0)
                 if (cancelled(myGen)) return@Thread
+                // B 返回主菜单有延迟（实测最长约 2.5s），窗口给到 3.6s。
                 var ok = false
-                for (i in 0 until VERIFY_TIMES) {
+                for (i in 0 until 24) {
                     sleep(VERIFY_MS)
                     if (GameState.turnFlag() == TURN_MAIN_MENU) {
                         ok = true
