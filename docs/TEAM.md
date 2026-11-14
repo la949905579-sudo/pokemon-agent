@@ -22,6 +22,7 @@
 | **策略顾问** | `advisor` | 否，用户点名开（单次 ≤10 轮） | 参谋：理需求、挑毛病、核对回执、给选项、压口径；不代拍板 | 无（只读） |
 | **代理人** | `proxy` | 否，用户点名开（合同制 A 侧；**>50 轮或压缩≥1 交接**） | 合同制 A 侧：**唯一用户对接**；写合同与验收结论、只抽查机械项；不读 diff / 构建日志 | `docs/contracts/**` |
 | **承包商** | `contractor` | 否，**每合同新开**；同合同段复用 ≤3 合同或 >30 轮即轮换 | 合同制 B 侧：**只读合同执行**；派助理 / 工匠 / 考官、回执与回传；不写合同 | 无固定；按合同 §8 动态授权，`.pilot/` 留痕 |
+| **真机执行** | `device` | 否，真机项时新开、用完即关 | 只跑 `tools/emu_probe.py` 取真机证据；回执 ≤5 行 + ≤2 证据路径；不判断验收 | 无（只读执行；证据只回不写） |
 
 ### 1.2 成员（子代理；只有会话主持能 spawn，子代理不能再 spawn）
 
@@ -154,6 +155,16 @@
 - **台账脚本化**：提交前必跑 `python3 tools/batch_facts.py`（事实快照）与 `python3 tools/batch_close.py --batch "<批次名>" --dry-run`（台账收尾检查 / `BATCHES` 行草稿）；**缺一不得提交**。
   - 参数速查：`batch_facts --full`＝附 `METRICS --check`（联网耗时）；`batch_close --contract <id>`＝校合同 accepted / `contract_check`、`--regen`＝重生成 `FILES` / `METRICS`、`--run-tests`＝实跑测试核数、`--dry-run`＝默认只打印不写文件。
 - **治理节奏**：治理批每周 / 每功能批 **≤1 次**，小修不单开（攒进下一功能批）；**B 侧小合同（≤3 文件改动）默认不 spawn 助理 / 工匠**，B 直接执行 + 考官 1 个（确需 spawn 则 `result.md` 说明理由；见 `docs/roles/a/contractor.md`）。
+
+## 三·十二、v1.3 token 预算（2026-11-14 用户拍板）
+
+> 目标：下一批 A ≤5M/批、真机 ≤2 turn/≤5 行回执、每合同成本有数。与 §三·十 / §三·十一 并用，冲突时以本节为预算细则、验收口径仍按合同 §7。
+
+- **裁决会话（A / B）**：**0 截图、0 长文**（不读 diff / 构建日志 / 长文档）；证据**只给路径**，要细节让执行会话回贴；A 裁决每批目标 **≤5M token**。
+- **零轮询**：等待只允许**单次阻塞等待**（一次 ≤20min，如 `wait_agent` / watcher 循环），禁止 sleep 轮询 / 反复读屏；超时先回一行状态再续等。
+- **真机取证**：交「**真机执行**」（`device`，fresh 会话，只跑 `python3 tools/emu_probe.py --check-move <id> [--expect-name <名>]`）；回执 ≤5 行 + ≤2 条证据路径；截图约定 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`。
+- **每合同成本**：`python3 tools/cost_snapshot.py --contract <id>`（读 `tools/token_report.mjs --json`）生成 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold` + `byRole`）；**accepted 后取**，无快照按「无数据」。
+- **成本判据不变**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；基线取 `.pilot/cost-before.json` 的 `pilotBaseline`。
 
 ## 四、审查（B 队执行，A 队只读）
 

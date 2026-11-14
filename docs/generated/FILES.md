@@ -93,6 +93,8 @@
 | `tools/batch_close.py` | 台账收尾检查 + BATCHES 行草稿（简化流程 v1.2，TEAM §三·十一）。 | 保留 |
 | `tools/batch_facts.py` | 精简事实快照（TEAM §三·十一）：HEAD/工作树/未推送/最近 3 提交/test_results/索引/合同/BATCHES。 | 保留 |
 | `tools/contract_check.py` | 合同制机械校验（TEAM §三·十）：合同 spec + 运行态 status.json。 | 保留 |
+| `tools/cost_snapshot.py` | 每合同成本快照（合同 C3 §6③ / TEAM §三·十二）：`--contract <id>` 生成 `.pilot/<id>/cost.json`。 | 保留 |
+| `tools/emu_probe.py` | 真机招式取证（合同 C3 §6②）：读 MY_BATTLE+0x0C 的 4 个 u16 招式 id，对照 bdata.MOVES。 | 保留 |
 | `tools/gen_files_index.py` | 生成 docs/generated/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
 | `track_route.py` | 后台记录用户操作时的坐标轨迹（带地图 ID，能分辨换图）。 | 保留 |
 | `train.py` | 练级 + 回合观测：走 battle_loop 的 on_round 回调，不再 monkeypatch。 | 保留 |
@@ -174,6 +176,7 @@
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/contracts/C1-tests-consolidation.md` | C1 测试收拢（tests/ 迁移） | 保留 |
 | `docs/contracts/C2-move-name-232.md` | C2 招式名表 232（功能型） | 保留 |
+| `docs/contracts/C3-token-optimization.md` | C3 流程优化 v1.3：真机执行 + 成本归因 + 等待/证据规范 | 保留 |
 | `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
 | `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
 | `docs/contracts/README.md` | 合同制目录（docs/contracts） | 保留 |
@@ -200,6 +203,7 @@
 | `docs/roles/a/contractor.md` | 承包商（contractor）启动提示词 | 保留 |
 | `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
 | `docs/roles/a/proxy.md` | 代理人（proxy）启动提示词 | 保留 |
+| `docs/roles/a/realdevice.md` | 真机执行（device）启动提示词 | 保留 |
 | `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
 | `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
 | `docs/roles/b/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
@@ -247,9 +251,11 @@
 | `tests/test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
 | `tests/test_bridge.py` | 离线测试：bridge | 保留 |
 | `tests/test_contract_check.py` | 离线测试：contract_check | 保留 |
+| `tests/test_cost_snapshot.py` | 离线测试：cost_snapshot | 保留 |
 | `tests/test_cursor.py` | 离线测试：cursor | 保留 |
 | `tests/test_decision.py` | 离线测试：decision | 保留 |
 | `tests/test_emu_bridge.py` | 离线测试：emu_bridge | 保留 |
+| `tests/test_emu_probe.py` | 离线测试：emu_probe | 保留 |
 | `tests/test_extension.py` | 离线测试：extension | 保留 |
 | `tests/test_game_plugin.py` | 离线测试：game_plugin | 保留 |
 | `tests/test_guard.py` | 离线测试：guard | 保留 |
@@ -334,4 +340,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 270 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 276 个文件（不含 `native-emu/third_party/` 第三方源码）。

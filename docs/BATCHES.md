@@ -53,3 +53,5 @@
 > 规范-docs-A19 结论追记：考官 task-23 = **可推送**（TEAM §一 ↔ `write_scopes` 10 角色一致、A-10 复测绿、docs 合规）；已推送 origin/master（tools `2e70a67` / docs `1702ae3`）；后续 amend 定稿为 `1702ae3`。
 > 工具整改-20261113 结论追记：考官 task-26 = **可推送**（A-23 只扫暂存+命中行、A-24 门禁收窄三例、A-21 八项指标、METRICS 8 行、A-5 模板均验证通过）；已推送 origin/master=`a88fa4d`（tools `da9962a` / docs `a88fa4d`，含 B 队 `35e5a8d`）。
 
+| C3-流程优化v1.3-20261114 | 2026-11-14 | 治理批 v1.3：真机执行角色 + emu_probe + cost_snapshot + TEAM §三·十二 token 预算；docs=8、tools=4、tests=2（共 14 文件） | 单提交（`git log -1` 可查） | 待复核（考官） | 提交前 ✅ 推送前 ⏳（等考官，不 push） | 合同:C3；授权留痕：v1.2 治理批 1 助理 + 1 考官、无工匠，tools/tests 由助理代做（TEAM §三·十一/合同 §9）；docs 来源：B（承包商）按合同 §8 动态授权（组织规划范围，代提交）；成本快照待 accepted 后取｜A-10 误报：合同 §6⑥ 快照数字补上下文词「测试快照」，非口径变更 |
+

@@ -49,4 +49,7 @@ python3 tools/contract_check.py --contract docs/contracts/C1-tests-consolidation
 - 每批必带：`BATCHES` 行（备注 `合同:<id>`）+ `test_results` 同步 + `FILES` 重生成；`HANDOFF` 在批次收尾 / 交接前更新，不要求每批改。
 - 合同只约束本批；变更须 A 书面同意并留痕。
 - **成本判据（双判据，唯一口径）**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；`cost-after` 在 accepted 后取；成本快照存 `.pilot/<id>/cost.json`（`{windowTotal,baselinePerBatch,delta,perBatch,threshold}`），无快照按「无数据」处理、不默认 0/红。
+- **成本快照工具（v1.3）**：`python3 tools/cost_snapshot.py --contract <id>` 读 `tools/token_report.mjs --json`，生成上述 5 字段 + `byRole`；`perBatch` 按 `BATCHES` 里 `合同:<id>` 行数折算；accepted 后取。
+- **真机项执行（v1.3）**：真机项交「真机执行」（实例 `device`，fresh 会话）按合同 §7.3 跑 `python3 tools/emu_probe.py --check-move <id>`；回执 `PASS/FAIL <id> <name>` + 截图 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`，A/B 只记结果、不代跑。
+- **v1.3 预算规则**：裁决会话 0 截图 / 0 长文、证据只给路径、零轮询（单次等待 ≤20min）、A ≤5M/批目标，见 `docs/TEAM.md` §三·十二。
 - **度量 2 项（同口径）**：合同一次通过率＝首轮 accepted 占比（分母=accepted 合同；<70%→复盘）；每合同成本＝accepted 合同 perBatch 均值（超 30M 或基线×0.85 记超）；数据源 `.pilot/*/status.json`、`.pilot/*/cost.json`。

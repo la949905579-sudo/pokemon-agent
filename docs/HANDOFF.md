@@ -13,6 +13,13 @@
 - **审查**：最近完整审查 `docs/audit/REPORT-20261113.md` = **有条件通过**；冷却中（见「审查状态」）。
 - **合同制**：C1 `c7538bb`、C2 `f4e8bf9` 均 **accepted**；2026-11-14 转常设（`docs/TEAM.md` §三·十）。
 
+### C3 开工快照（2026-11-14 08:5x，B 实测）
+
+- **HEAD / 推送**：HEAD `916fb2d`；`origin/master..HEAD` = 0；`git status --short` 仅未提交的合同 `docs/contracts/C3-token-optimization.md`（本批入库）。
+- **测试 / 索引**：python 32/32（`python3 run_tests.py`，`tools/test_results.json` 同步）；kotlin 115（CI 快照）；`python3 tools/gen_files_index.py --check` = 0。
+- **合同制**：C1、C2 已 accepted；C3 = 治理批 v1.3，state `claimed`（真机执行 + `emu_probe` + `cost_snapshot` + token 预算规则）。
+- **下一步**：C3 执行（1 助理 + 1 考官，无工匠；tools/tests 由助理代做）；真机项 §7.3 由用户/A 执行；accepted 由 A 置。
+
 ## 当前目标
 
 - 本批（收尾）：纯 docs 收口——重写 HANDOFF、重生成 METRICS、回填 ACTIONS 状态、org 索引、TEAM 三处小补、合同模板/PILOT 自检行、FILES 重生成、BATCHES 追加。**考官 2026-11-14 复核「可推送」（0 阻断），已 push origin/master**。
