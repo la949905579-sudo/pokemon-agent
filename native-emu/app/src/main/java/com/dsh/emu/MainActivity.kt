@@ -187,20 +187,23 @@ fun AppScreen(activity: MainActivity) {
     }
 
     // 横屏：纯游戏画面 + 点击映射 + 半透明设置图标（覆盖层面板）；竖屏保持原双屏 UI。
-    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        LandscapeScreen(activity, emuView, romReady, status)
-        return
-    }
+    // 关键：EmuView 始终在同一个 Composition 位置（上屏 Box），旋转只改尺寸、不重建/搬家，
+    // 否则同一个 SurfaceView 被两个 AndroidView 节点先后接管会在切换帧撞「已有父容器」。
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Column(Modifier.fillMaxSize().background(BG)) {
-        // 上屏
+        // 上屏（横屏时 = 整屏；竖屏时 = 上半屏）
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black), contentAlignment = Alignment.Center) {
             AndroidView(factory = { emuView }, modifier = Modifier.fillMaxSize())
-            if (!romReady) Text("点 MENU → ROM 选择游戏", color = DIM, fontSize = 12.sp)
+            if (landscape) {
+                LandscapeOverlays(activity, emuView, status)
+            } else if (!romReady) {
+                Text("点 MENU → ROM 选择游戏", color = DIM, fontSize = 12.sp)
+            }
         }
 
-        // 下屏：左侧内容 + 右侧竖排 Tab + 最底边常驻按键折叠条
-        Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
+        // 下屏：左侧内容 + 右侧竖排 Tab + 最底边常驻按键折叠条（横屏整块不显示）
+        if (!landscape) Column(Modifier.weight(1f).fillMaxWidth().background(PANEL)) {
             // 顶部常驻状态行：桥状态 + ROM 名（两个独立通道，互不覆盖）+ 地图坐标 + 帧率
             val bridgeState = activity.bridgeState.value
             val romState = activity.romState.value

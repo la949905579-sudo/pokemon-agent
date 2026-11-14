@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -31,24 +30,25 @@ import com.dsh.emu.EmuCore
 import com.dsh.emu.MainActivity
 
 /**
- * 横屏纯游戏画面模式：
- * - 游戏画面整屏铺满（[EmuView]），除一个半透明设置图标外不显示任何 App 控件；
+ * 横屏纯游戏画面上的覆盖层：
+ * - 游戏画面（[EmuView]）由外层 [MainActivity] 的 AppScreen 渲染，这里只叠透明的点击层、
+ *   一个半透明设置图标和半透明设置面板（速度 / 自动战斗 / 载入 ROM / 更新 / 重置 / 退出）；
  * - 屏幕点击 = 游戏画面实际位置操作（映射见 [TouchMap] / [Wysiwyg]）；
- * - 设置图标打开半透明覆盖层（速度 / 自动战斗 / 载入 ROM / 更新 / 重置 / 退出）；
  * - 进入横屏时隐藏系统栏，退出横屏恢复。
  *
- * 竖屏完全不走这里（[MainActivity] 的 AppScreen 分支），行为不变。
+ * 竖屏不组合这一层（AppScreen 分支），竖屏行为不变。
  */
 @Composable
-internal fun LandscapeScreen(
+internal fun LandscapeOverlays(
     activity: MainActivity,
     emuView: EmuView,
-    romReady: Boolean,
     status: EmuStatus,
 ) {
     var panelOpen by remember { mutableStateOf(false) }
+    // 覆盖层与外层上屏 Box 同尺寸，所以这个尺寸就是 EmuView 的绘制尺寸（做视口→游戏像素换算）。
     val viewSize = remember { mutableStateOf(IntSize.Zero) }
     val latestStatus = rememberUpdatedState(status)
+    val romReady = activity.romReadyState.value
     ImmersiveGame(activity)
     // 从竖屏切过来时按键面板会被折起：清掉可能残留的按键掩码（否则角色会一直走）
     LaunchedEffect(Unit) { EmuCore.setKeys(0) }
@@ -62,11 +62,7 @@ internal fun LandscapeScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        AndroidView(
-            factory = { emuView },
-            modifier = Modifier.fillMaxSize().onSizeChanged { viewSize.value = it },
-        )
+    Box(Modifier.fillMaxSize().onSizeChanged { viewSize.value = it }) {
         if (!romReady) {
             Text(
                 "点右上 ⚙ 载入 ROM",
