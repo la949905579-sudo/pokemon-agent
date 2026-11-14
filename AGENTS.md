@@ -32,3 +32,8 @@
 
 ## 文档
 - `docs/TASKS.md`（任务 / 验收）｜`docs/HANDOFF.md`（≤20 行现状，换会话先读）｜`docs/ARCH.md`（架构 / 语言 / 构建）｜`docs/CHANGELOG.md`（每发布 3–5 行）。
+
+## 会话交接（换会话时）
+1. 先读 `docs/HANDOFF.md` + `docs/TASKS.md`（各 1 分钟）。
+2. 开工自检：`git status` 空、`git rev-list --count origin/master..HEAD`=0、单测绿；任一红先修再开工。
+3. 本模式已定型（2026-11-14）：单会话、任务卡驱动、CI 出包、真机自测；**不要**恢复 A/B 合同 / 审计 / 台账（历史在 `docs/archive/2026-11/`）。
