@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 06:08",
+  "updated": "2026-11-14 07:50",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -10,8 +10,8 @@
   "python": {
     "tests": 31,
     "result": "PASS（31/31）",
-    "at": "2026-11-14 06:08",
+    "at": "2026-11-14 07:50",
     "command": "python3 run_tests.py",
-    "note": "本批助理实跑 31/31：C1 迁入 29 + C2 新增 tests/test_moves_232.py + 本批新增 tests/test_contract_check.py（7 例，contract_check 校验器测试，含 accepted 缺 by/verdict 反例）；离线自足（tempfile 假仓库）。"
+    "note": "本批助理实跑 31/31（文件数不变）：C1 迁入 29 + tests/test_moves_232.py + tests/test_contract_check.py（9 例：原 7 + attempts 非法 / cost.json 缺字段 2 例）；离线自足（tempfile 假仓库）。"
   }
 }

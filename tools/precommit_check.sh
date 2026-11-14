@@ -13,9 +13,11 @@
 #   5. 过期文档文案（A-10）：旧文件数/旧测试数/退役实例名，以及「N 项」「N/N」类
 #      写死数字（上下文防误报；豁免 docs/history、docs/audit、docs/generated、
 #      docs/org/PLAN-*、B 队卡、docs/HANDOVER、「永久禁用/退役名/旧名」行）→ 拒绝
-#   6. 写入范围（A-17）：暂存路径须落在声明的职位写入范围内
+#   6. 合同运行态（TEAM §三·十）：暂存 docs/contracts/C<id>-*.md（仅 A/M；D/R 跳过）→
+#      要求 .pilot/<id>/status.json 存在且 contract_check 通过，否则拒绝
+#   7. 写入范围（A-17）：暂存路径须落在声明的职位写入范围内
 #      （SCOPE_ROLE=<职位|实例名> 或 --role；默认警告，--strict 拒绝；缺省警告）
-#   7. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
+#   8. 工作区还有未提交改动 / 文件被部分暂存 → 警告（可能卷进队友改动）
 #
 # 检查项（推送模式）：
 #   0. 考官门禁复位（A-18）：docs/BATCHES.md 末行含「待复核/待考官」→ 拒绝，
@@ -279,6 +281,41 @@ commit_checks() {
         echo "      改源头文档；历史记录/旧规划豁免（见脚本头注释）"
     else
         ok "活文档无过期文案（A-10）"
+    fi
+
+    # 6. 合同运行态（TEAM §三·十）：暂存 docs/contracts/C<id>-*.md（仅 A/M）时，
+    #    必须有 .pilot/<id>/status.json 且 contract_check 通过；否则拒绝（提示扩合同/补运行态）。
+    #    D/R（删除/改名，如 git revert 删合同）跳过，避免回滚被误拦；
+    #    模板 CONTRACT-TEMPLATE.md 不是编号合同，跳过；无暂存合同也跳过。
+    local -a staged_contracts=()
+    local cf cid cmsg crc cst
+    for cf in "${staged[@]}"; do
+        case "$cf" in
+            docs/contracts/C[0-9]*-*.md)
+                cst="$(git diff --cached --name-status -- "$cf" | cut -f1)"
+                case "$cst" in
+                    A|M) staged_contracts+=("$cf") ;;
+                esac
+                ;;
+        esac
+    done
+    if [ "${#staged_contracts[@]}" -gt 0 ]; then
+        for cf in "${staged_contracts[@]}"; do
+            cid="$(basename "$cf" | sed -n 's/^\(C[0-9][0-9]*\)-.*/\1/p')"
+            [ -z "$cid" ] && continue
+            if [ ! -f ".pilot/$cid/status.json" ]; then
+                err "合同运行态缺失：暂存 $cf 但无 .pilot/$cid/status.json（先扩合同/补运行态再提交）"
+                continue
+            fi
+            cmsg="$(python3 tools/contract_check.py --contract "$cf" --status ".pilot/$cid/status.json" 2>&1)"
+            crc=$?
+            if [ "$crc" -ne 0 ]; then
+                err "合同校验未过：$cf（.pilot/$cid/status.json）"
+                printf '%s\n' "$cmsg" | tail -5 | sed 's/^/      /'
+            else
+                ok "合同校验通过：$cf（.pilot/$cid/status.json）"
+            fi
+        done
     fi
 
     # 7. 写入范围（A-17）：提交路径 ←→ 职位写入范围

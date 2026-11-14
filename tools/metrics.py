@@ -454,19 +454,131 @@ def metrics_eight(stats, inc_total, inc_relapse, inc_start, inc_window):
     return rows
 
 
-def m8_table(m8, start):
+# 合同制 v1.1 附加 2 项（TEAM §三·十；§七 8 项仍为权威，本脚本不改 §七 口径）
+CONTRACT_COST_CAP = 30_000_000  # 30M/批
+BASE_METRICS = ("docs 提交占比", "CI 首过率", "打回率", "窗口内新增复发数",
+                "交接触发次数", "空回复次数", "转达失真次数", "超线会话数")
+CONTRACT_METRICS = ("合同一次通过率", "每合同成本")
+
+
+def pilot_dir():
+    return os.path.join(ROOT, ".pilot")
+
+
+def contract_status_files():
+    """.pilot/*/status.json → [(id, dict)]；目录/文件缺失返回 []（不默认 0）。"""
+    d = pilot_dir()
+    try:
+        ids = sorted(x for x in os.listdir(d)
+                     if os.path.isfile(os.path.join(d, x, "status.json")))
+    except OSError:
+        return []
+    rows = []
+    for cid in ids:
+        try:
+            st = json.load(open(os.path.join(d, cid, "status.json"), encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(st, dict):
+            rows.append((cid, st))
+    return rows
+
+
+def contract_pass_rate():
+    """⑨ 合同一次通过率：分母＝accepted 合同（open/claimed 在飞不计入，避免误红）；一次通过＝attempts（缺省 1）==1。"""
+    accepted = first = 0
+    for _, st in contract_status_files():
+        if st.get("state") != "accepted":
+            continue
+        accepted += 1
+        att = st.get("attempts", 1)
+        if isinstance(att, int) and not isinstance(att, bool) and att == 1:
+            first += 1
+    if accepted == 0:
+        return None
+    return {"total": accepted, "first": first, "pct": first / accepted}
+
+
+def contract_cost():
+    """⑩ 每合同成本：accepted 合同的 `.pilot/*/cost.json` 的 perBatch 均值与超阈值合同数。"""
+    d = pilot_dir()
+    try:
+        ids = sorted(x for x in os.listdir(d)
+                     if os.path.isfile(os.path.join(d, x, "cost.json")))
+    except OSError:
+        return None
+    rows = []
+    for cid in ids:
+        st_path = os.path.join(d, cid, "status.json")
+        st = {}
+        if os.path.isfile(st_path):
+            try:
+                st = json.load(open(st_path, encoding="utf-8"))
+            except (OSError, ValueError):
+                st = {}
+        if not isinstance(st, dict) or st.get("state") != "accepted":
+            continue  # 只算 accepted 合同（在飞 / 未验收样本不计入，避免误红）
+        try:
+            c = json.load(open(os.path.join(d, cid, "cost.json"), encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(c, dict) or not isinstance(c.get("perBatch"), (int, float)):
+            continue
+        per = c["perBatch"]
+        base = c.get("baselinePerBatch")
+        over = per > CONTRACT_COST_CAP or (
+            isinstance(base, (int, float)) and per > base * 0.85)
+        rows.append({"id": cid, "perBatch": per, "over": over})
+    if not rows:
+        return None
+    return {"total": len(rows),
+            "mean": sum(r["perBatch"] for r in rows) / len(rows),
+            "over": sum(1 for r in rows if r["over"])}
+
+
+def fmt_m(n):
+    return f"{n / 1_000_000:.1f}M"
+
+
+def metrics_contract():
+    """合同制 2 项（附加在 8 项之后，编号 9/10）：无数据按 A-22 标「无数据」，不默认 0/红。"""
+    rows = []
+    pr = contract_pass_rate()
+    if pr is None:
+        rows.append(("合同一次通过率", "无数据（无 accepted 合同）", "自动",
+                     "<70% → 复盘", "无数据"))
+    else:
+        rows.append(("合同一次通过率",
+                     f"首轮通过 {pr['first']}/{pr['total']} = {pct(pr['pct'])}（分母=accepted 合同）", "自动",
+                     "<70% → 复盘", "红（复盘）" if pr["pct"] < 0.7 else "绿"))
+
+    cc = contract_cost()
+    if cc is None:
+        rows.append(("每合同成本", "无数据（accepted 合同无 `.pilot/*/cost.json`）", "自动",
+                     ">基线×0.85 或 >30M/批 → 复盘", "无数据"))
+    else:
+        rows.append(("每合同成本", f"accepted 合同均值 {fmt_m(cc['mean'])}/批；超阈值 {cc['over']}/{cc['total']}",
+                     "自动", ">基线×0.85 或 >30M/批 → 复盘",
+                     "红（复盘）" if cc["over"] else "绿"))
+    return rows
+
+
+def metrics_table(rows, start):
     lines = [
-        "## 〇、8 项度量总表（A-21 / PLAN-20261113-6）",
+        "## 〇、度量总表（A-21 8 项 + 合同制 2 项）",
         "",
         f"> 窗口起点：{start or '无数据'}（上次完整审查 REPORT）；每项标 自动/人工/无数据，"
         "**无数据不默认 0、不默认红**（A-22 原则）。",
+        "> 1–8 为权威（`docs/TEAM.md` §七，本批不改）；9–10 为合同制 v1.1 附加（数据源 `.pilot/`，"
+        "定义见 `docs/TEAM.md` §三·十）。",
         "",
         "| # | 指标 | 值 | 类型 | 阈值 → 动作 | 判定 |",
         "|---|---|---|---|---|---|",
     ]
-    for i, (name, val, typ, threshold, judge) in enumerate(m8, 1):
+    for i, (name, val, typ, threshold, judge) in enumerate(rows, 1):
         lines.append(f"| {i} | {name} | {val} | {typ} | {threshold} | {judge} |")
-    lines += ["", f"> 8 项齐全：{len(m8)} 行；数据源见各节（CI/BATCHES/INCIDENTS/session_health/token_baseline）。"]
+    lines += ["", f"> 度量齐全：{len(rows)} 行（8 项权威 + 2 项合同制附加）；"
+              "数据源见各节（CI/BATCHES/INCIDENTS/session_health/token_baseline/.pilot）。"]
     return lines
 
 
@@ -474,7 +586,7 @@ def pct(x):
     return f"{x:.1%}"
 
 
-def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m8, offline):
+def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m_all, offline):
     now = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
     head = sh("git", "rev-parse", "--short", "HEAD").strip()
     lines = [
@@ -488,7 +600,7 @@ def build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_win
         "- 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`",
         "",
     ]
-    lines += m8_table(m8, inc_start)
+    lines += metrics_table(m_all, inc_start)
     lines += [
         "",
         "## 一、CI 首次通过率（T4 判据）",
@@ -721,7 +833,7 @@ def main():
             stats["source"] = source
     annotate_ci(tags, stats)
     inc_total, inc_relapse, inc_start, inc_window, inc_source = incidents()
-    m8 = metrics_eight(stats, inc_total, inc_relapse, inc_start, inc_window)
+    m_all = metrics_eight(stats, inc_total, inc_relapse, inc_start, inc_window) + metrics_contract()
 
     stale = local_stale_tags(tags)
     print(f"远端 build tag：{len(tags)} 个；未构建提交：{len(uncovered)} 个"
@@ -735,22 +847,24 @@ def main():
         print("CI 首过率：未知（offline 或网络失败）")
     print(f"事故：{inc_total} 条，累计复发 {inc_relapse} 条；"
           + (f"窗口 {inc_start} 内新增复发 {inc_window} 条" if inc_start else "窗口起点无数据"))
-    print("8 项度量（值 / 类型 / 判定）：")
-    for i, (name, val, typ, thr, judge) in enumerate(m8, 1):
+    print("度量总表（8 项权威 + 合同制 2 项）：")
+    for i, (name, val, typ, thr, judge) in enumerate(m_all, 1):
         print(f"  {i}. {name}: {val} [{typ}] → {judge}")
 
-    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m8, offline)
+    doc = build_doc(tags, uncovered, stats, inc_total, inc_relapse, inc_start, inc_window, inc_source, m_all, offline)
     if not check:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(doc.rstrip() + "\n")
         print(f"已写入 {os.path.relpath(OUT, ROOT)}")
 
-    # A-21：--check 先校验 8 项度量齐全（8 行），缺行直接红
+    # A-21：--check 先校验度量齐全（8 项权威 + 合同制 2 项附加 = 10 行），缺行直接红
     if check:
         n_rows = len(re.findall(r"^\| \d+ \|", doc, re.M))
-        if n_rows != 8:
-            print(f"8 项度量未齐全：{n_rows}/8 行（A-21/PLAN-6）", file=sys.stderr)
+        missing = [n for n in BASE_METRICS + CONTRACT_METRICS if n not in doc]
+        if n_rows != 10 or missing:
+            print(f"度量未齐全：{n_rows}/10 行；缺 {missing or '无'}（A-21 + 合同制 v1.1）",
+                  file=sys.stderr)
             return 1
 
     # T4 判定（A-22）：首过率 < 70% 或 窗口内新增复发 > 0 → exit 1（供 cron/脚本判红）

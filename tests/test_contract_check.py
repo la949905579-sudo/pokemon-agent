@@ -125,6 +125,23 @@ def case_pass(tmp):
 
 
 @case
+def case_attempts_invalid(tmp):
+    repo, contract, status, _, _ = make_repo(tmp)
+    edit_json(status, lambda d: d.update(attempts=0))
+    rc, out = check(repo, contract, status)
+    return rc != 0 and "attempts" in out, out
+
+
+@case
+def case_cost_missing_fields(tmp):
+    repo, contract, status, _, _ = make_repo(tmp)
+    write(os.path.join(repo, ".pilot", "C1", "cost.json"),
+          json.dumps({"perBatch": 1000000}, ensure_ascii=False))
+    rc, out = check(repo, contract, status)
+    return rc != 0 and "cost.json" in out and "windowTotal" in out, out
+
+
+@case
 def case_missing_field(tmp):
     repo, contract, status, _, _ = make_repo(tmp)
     edit_json(status, lambda d: d.pop("session"))

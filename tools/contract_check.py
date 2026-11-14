@@ -6,8 +6,9 @@
         --status .pilot/C1/status.json [--repo <仓库根>]
 
 校验项：必填标题 / 合同 ≤60 行 / status 字段与状态机 / base 是合法提交 /
-result.md ≤10 行 / accepted 时 BATCHES 含「合同:<id>」且 base..commit 改动落在
-合同「写入范围」（豁免 .pilot/**）。
+attempts（有则须 ≥1 整数；accepted 缺省给警告，兼容 C1/C2 样本）/
+result.md ≤10 行 / cost.json（存在时字段须齐）/ accepted 时 BATCHES 含「合同:<id>」
+且 base..commit 改动落在合同「写入范围」（豁免 .pilot/**）。
 退出码：0 全部通过；1 有阻断；2 用法错误。
 """
 import argparse
@@ -24,6 +25,7 @@ STATES = ("open", "claimed", "green", "blocked", "accepted")
 MAX_CONTRACT_LINES = 60
 MAX_RESULT_LINES = 10
 EXEMPT = (".pilot/",)
+COST_FIELDS = ("windowTotal", "baselinePerBatch", "delta", "perBatch", "threshold")
 
 
 def sh(repo, *args):
@@ -102,6 +104,7 @@ def main(argv=None):
         return 1
 
     errs = []
+    warns = []
     text = read_text(a.contract)
     c_lines = len(text.splitlines())
     if c_lines > MAX_CONTRACT_LINES:
@@ -136,6 +139,12 @@ def main(argv=None):
         for k in ("claimedAt", "session"):
             if not st.get(k):
                 errs.append(f"status 缺 {k}（state={state}）")
+    if "attempts" in st:
+        att = st["attempts"]
+        if not isinstance(att, int) or isinstance(att, bool) or att < 1:
+            errs.append(f"status.attempts 非法：{att!r}（须为 ≥1 的整数）")
+    elif state == "accepted":
+        warns.append("status 缺 attempts（按 1 计；C1/C2 样本兼容，不阻断）")
     if state in ("green", "blocked", "accepted"):
         commit = st.get("commit")
         if not commit:
@@ -150,6 +159,20 @@ def main(argv=None):
             for k in ("by", "verdict"):
                 if not acc.get(k):
                     errs.append(f"accepted 验收记录缺 {k}")
+
+    cost_path = os.path.join(os.path.dirname(a.status), "cost.json")
+    if os.path.isfile(cost_path):
+        try:
+            cost = json.loads(read_text(cost_path))
+        except json.JSONDecodeError as e:
+            errs.append(f"cost.json 不是合法 JSON：{e}")
+        else:
+            if not isinstance(cost, dict):
+                errs.append("cost.json 顶层必须是对象")
+            else:
+                miss = [k for k in COST_FIELDS if k not in cost]
+                if miss:
+                    errs.append(f"cost.json 缺字段：{', '.join(miss)}（须齐 {'/'.join(COST_FIELDS)}）")
 
     result = st.get("result") or os.path.join(os.path.dirname(a.status), "result.md")
     rpath = result if os.path.isabs(result) else os.path.join(repo, result)
@@ -179,10 +202,13 @@ def main(argv=None):
     print(f"合同：{a.contract}（{c_lines} 行）｜ id={cid} ｜ state={state}")
     for e in errs:
         print(f"  ✗ {e}")
+    for w in warns:
+        print(f"  ! {w}")
     if errs:
         print(f"结论：阻断 {len(errs)} 条")
         return 1
-    print("结论：通过（合同 / status / result / BATCHES / 写入范围）")
+    tail = f"（{len(warns)} 个警告）" if warns else ""
+    print(f"结论：通过（合同 / status / attempts / cost / result / BATCHES / 写入范围）{tail}")
     return 0
 
 
