@@ -4,7 +4,9 @@
 > 当前状态：**无进行中任务**（M4/M5、名表 354 已完成，见 done）；等用户点名下一步。
 
 ## doing
-（无）
+- **自动化开关（自动战斗）**：设置页加「自动战斗」开关；Kotlin 后台循环：战斗菜单展开时按 `BattleDecider` 选最优招式 → 复用 `BattleMoveAction` 施放；主菜单/对话时按 A 推进；fail-closed，连续失败 3 次自动停；ROM 载入/重置/退出时静默取消。
+  验收：本地 Kotlin 单测（planner 纯逻辑 + 现有战斗测试）全绿；CI 构建成功；真机冒烟：战斗中点开关后自动出招并打完一场，状态行有反馈。
+  范围：`game/AutoBattlePlanner.kt`（新）、`ui/AutoBattle.kt`（新）、`ui/Pages.kt`（设置页开关）、`MainActivity.kt`（载入 ROM 取消）、`app/src/test/.../AutoBattlePlannerTest.kt`（新）。
 
 ## todo（按优先级）
 1. **横屏 + 触屏所见即所得**

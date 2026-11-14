@@ -292,6 +292,14 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
             activity.speedState.value = next
             emuView.speed = next
         }, contentAlignment = Alignment.Center) { Text("速度 ${speed}x", color = TXT, fontSize = 14.sp) }
+        val auto = AutoBattle.running.value
+        Box(Modifier.fillMaxWidth().weight(1f).background(
+            if (auto) ACCENT else CARD, RoundedCornerShape(10.dp)).clickable {
+            AutoBattle.toggle(activity)
+        }, contentAlignment = Alignment.Center) {
+            Text(if (auto) "自动战斗：开" else "自动战斗：关",
+                color = if (auto) Color.White else TXT, fontSize = 14.sp)
+        }
         Box(Modifier.fillMaxWidth().weight(1f).background(CARD, RoundedCornerShape(10.dp)).clickable {
             onRom()
         }, contentAlignment = Alignment.Center) { Text("载入 ROM", color = TXT, fontSize = 14.sp) }
@@ -301,6 +309,7 @@ internal fun OptionPage(activity: MainActivity, emuView: EmuView, onUpdate: () -
         // 重置 / 退出：整行各一个，样式沿用 BarButton
         BarButton("重置", active = false, modifier = Modifier.fillMaxWidth()) {
             WalkControl.generation++              // 先停掉可能在走的路线
+            AutoBattle.cancel()                    // 重置时停掉自动战斗
             activity.walkPlanState.value = null   // 行走预览也清掉
             val romReady = activity.romReadyState.value
             val ok = romReady && EmuCore.resetGame()
@@ -323,6 +332,7 @@ private fun exitApp(activity: MainActivity, emuView: EmuView) {
     // 2) 停渲染线程 / 状态（行走代际 +1 让后台线程立刻退）
     try { emuView.stop() } catch (_: Throwable) {}
     WalkControl.generation++
+    AutoBattle.cancel()
     activity.walkPlanState.value = null
     activity.romReadyState.value = false
     activity.runningState.value = false

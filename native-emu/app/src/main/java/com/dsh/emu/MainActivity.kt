@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun loadRom(rom: File) {
+        AutoBattle.cancel()
         statusText.value = "载入中..."
         var ok = false
         for (attempt in 0 until 4) {
