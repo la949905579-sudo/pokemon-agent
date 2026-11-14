@@ -1,7 +1,7 @@
 """离线测试：朝向获取 + 决策层转身判断 + 执行层分两步（turn 再 walk）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 from unittest.mock import patch
 import info
 import decision

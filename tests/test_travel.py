@@ -1,7 +1,7 @@
 """离线测试：统一状态快照 + 寻路战斗/对话检测 + travel 组合。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 from unittest.mock import patch
 import pathfind
 import action

@@ -1,7 +1,7 @@
 """离线测试：中间层（注册制 + 裁剪 + 分发）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 import bridge
 import handlers
 

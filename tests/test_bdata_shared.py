@@ -7,7 +7,7 @@ import struct
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 
 from bdata_shared import PARTY_MON_SIZE, mon_from_bytes, party_species, _SUBSTRUCT_TABLE
 

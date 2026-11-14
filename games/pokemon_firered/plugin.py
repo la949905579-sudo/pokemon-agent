@@ -61,7 +61,7 @@ class PokemonFireRedPlugin:
                 return getattr(self, "_mm_last", {})
             if addr not in self._mm_cache:
                 path = os.path.normpath(os.path.join(
-                    os.path.dirname(__file__), "..", "..", "maps", "map_%x.json" % addr))
+                    os.path.dirname(__file__), "maps", "map_%x.json" % addr))
                 tiles = None
                 if os.path.exists(path):
                     with open(path) as f:

@@ -167,7 +167,7 @@ _overrides = {}
 
 
 def _override_path(addr):
-    return f"/root/workspace/maps/override_{addr:x}.json"
+    return f"/root/workspace/games/pokemon_firered/maps/override_{addr:x}.json"
 
 
 def _load_overrides(addr):

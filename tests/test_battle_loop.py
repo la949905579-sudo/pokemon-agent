@@ -1,7 +1,7 @@
 """离线测试：battle_loop 场景分派与关键分支（不碰游戏）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 from unittest.mock import patch
 import auto_battle
 import battle_loop as bl

@@ -1,7 +1,7 @@
 """离线测试：开场选最优首发。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 import decision
 
 # 简化队伍：电(皮卡丘)、虫毒(大针蜂)、水(卡咪龟)、草毒(喇叭芽)

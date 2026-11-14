@@ -2,7 +2,7 @@
 
 Android 上的 GBA 宝可梦模拟器 + 自动化。
 - `native-emu/`：Android App（Kotlin / Jetpack Compose / mGBA C++ 核心，JNI）
-- 根目录 `.py`：Python 旧自动化层（**冻结**：保留但不新增功能）
+- `pyplatform/`：Python 旧自动化层（**冻结**：保留但不新增功能；数据在 `games/pokemon_firered/`）
 - `tests/`：Python 离线测试（旧层）；`native-emu/app/src/test`：Kotlin 单测
 - `docs/`：`TASKS.md`（任务）、`HANDOFF.md`（换会话先读）、`ARCH.md`（架构）、`CHANGELOG.md`、`archive/`（旧文档，只读）
 

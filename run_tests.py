@@ -22,10 +22,10 @@ def main():
         print("没有匹配的测试")
         return 1
 
-    # 测试文件在 tests/ 下，但 root 模块仍在仓库根目录：
-    # 子进程 cwd 固定在 ROOT，并把 ROOT 放进 PYTHONPATH，保证 import 可用。
+    # 测试文件在 tests/ 下；模块已收编到 pyplatform/：
+    # 子进程 cwd 固定在 ROOT，把 ROOT/pyplatform 与 ROOT 放进 PYTHONPATH，保证 import 可用。
     env = dict(os.environ)
-    env["PYTHONPATH"] = ROOT + (
+    env["PYTHONPATH"] = os.path.join(ROOT, "pyplatform") + os.pathsep + ROOT + (
         os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else ""
     )
 

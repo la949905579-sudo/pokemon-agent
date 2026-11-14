@@ -12,5 +12,5 @@ fi
 
 pkill -f "run_game.py" 2>/dev/null
 sleep 1
-(setsid env EMU_BACKEND=native python3 -u run_game.py pokemon_firered > /tmp/push.log 2>&1 < /dev/null &)
+(setsid env EMU_BACKEND=native python3 -u pyplatform/run_game.py pokemon_firered > /tmp/push.log 2>&1 < /dev/null &)
 echo "已启动 (pid $!)，日志 /tmp/push.log"

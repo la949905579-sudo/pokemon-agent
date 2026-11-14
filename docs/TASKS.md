@@ -13,7 +13,7 @@
    - 范围：`native-emu/app/src/main/**`（Compose 布局 + 点击映射 + 热区表资源）；待确认：设置面板形态（覆盖层 / 全屏页）。
 2. **名表 354**：招式名补全（现 56）；先定数据源，生成 JSON 资源进 assets。
 3. **自动化开关**：工具页开关 + Kotlin 协程战斗循环（复用 BattleDecider/SwitchDecider）。
-4. **M4/M5 迁移 + 结构债**：根 `.py` → `platform/`；`EmuView`/`WalkControl` 零散逻辑继续迁出（随触碰模块顺手做）。
+4. **M4/M5 迁移 + 结构债**（进行中）：根 `.py` → `pyplatform/`（命名避 stdlib `platform` 冲突）；数据目录并入 `games/pokemon_firered/`；`EmuView`/`WalkControl` 零散逻辑继续迁出（随触碰模块顺手做）。
 5. **联机**：GBA link cable，方案调研。
 
 ## 暂缓
@@ -21,3 +21,4 @@
 
 ## done
 - 2026-11-14 工作流重设计（单会话 + 本地构建/真机自测循环；归档旧治理文档；删除治理工具链；Python 冻结）。
+- 2026-11-14 **M4/M5 迁移**：45 个根 `.py` → `pyplatform/`；`maps/`/`battles/`/`dialogs/` → `games/pokemon_firered/`；路径引用同步（`plugin.py`/`terrain.py`/`start_push.sh`/`run_tests.py`/30 个测试 sys.path）；验收：Python 31/31 绿、import 冒烟过。

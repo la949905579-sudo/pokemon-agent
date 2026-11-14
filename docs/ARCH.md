@@ -4,7 +4,7 @@
 - **Android App `native-emu/`**：Kotlin + Jetpack Compose；mGBA 核心（C/C++，`app/src/main/cpp` + `third_party/mgba`）经 JNI 调用。
 - **应用内逻辑 `app/src/main/java/com/dsh/emu/`**：`EmuCore`（FFI / 帧循环 / 按键注入）、`BridgeServer`（TCP 桥，供旧 Python 层）、`UiState` / `Updater`（OTA）、`ui/`（下屏各页、`EmuView` 渲染、按键/地图/战斗页）、`game/`（Kotlin 决策层：`Addresses` / `GameState` / `BattleDecider` / `SwitchDecider` / `MapWalker` / `MapLinks` / `CrossMapPathfinder` / `MoveCaster` 等）。
 - **资源**：`assets/`（13 张地图、`map_links.json`、招式/宝可梦名表）；地图数据源在 `maps/`（仓库根，旧 Python 侧）。
-- **Python 旧层（冻结）**：根目录 `.py`（`info/bridge/decision_*/action/nav/pathfind/...`）+ `tests/` 离线测试 + `tools/emu_probe.py`。**不新增功能**；新逻辑一律进 Kotlin。
+- **Python 旧层（冻结）**：`pyplatform/`（`info/bridge/decision_*/action/nav/pathfind/...`，45 模块；命名避开 stdlib `platform`）+ `tests/` 离线测试 + 根 `run_tests.py` + `tools/emu_probe.py`。数据目录在 `games/pokemon_firered/{maps,battles,dialogs}`。**不新增功能**；新逻辑一律进 Kotlin。
 - **CI / 发布**：`.github/workflows/build-native-emu.yml`（push `native-emu/**` → 单测 + assembleDebug → master 上发 `build-<sha>` Release → App OTA）。
 
 ## 语言政策

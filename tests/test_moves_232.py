@@ -1,7 +1,7 @@
 """离线测试：招式名表收录 232（金属爪），战斗页不再显示占位 `#232`。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 
 from bdata import MOVES
 

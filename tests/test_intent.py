@@ -1,7 +1,7 @@
 """离线测试：指令层（生命周期/护栏/优先级/决策接入）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 import intent
 import decision
 

@@ -1,7 +1,7 @@
 """离线数据测试：招式/属性表防手抄错（FireRed = Gen3 数值）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 from bdata import MOVES, SPECIES_TYPES
 
 MOVES_CASES = {

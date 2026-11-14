@@ -1,7 +1,7 @@
 """Pokemon 插件测试（全离线：导入前替换 info/state，避免真实网络访问）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 import unittest
 from unittest import mock
 

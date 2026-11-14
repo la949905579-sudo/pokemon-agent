@@ -1,7 +1,7 @@
 """离线测试：decision 层纯逻辑（不碰游戏）。"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyplatform"))
 import decision
 
 
