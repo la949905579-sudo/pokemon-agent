@@ -16,13 +16,18 @@ object Addresses {
     const val PARTY_MENU_FLAG = 0x03000928
     // 背包菜单状态（item_menu.c 的 gBagMenuState，EWRAM 全局；struct BagStruct 见 item_menu.h）。
     // 2026-11-15 真机标定：+0 bagCallback(4) +4 location +5 bagOpen +6 pocket(u16)；
-    // +8/+10/+12 = 口袋 0/1/2 各自的「列表光标行号」（0=第一件道具，最后一行=「取消/合上背包」）。
-    // 注意上游 BagStruct 的字段名反直觉：真机里充当光标行的数组是声明成 itemsAbove 的那个；
-    // 上游声明在后面的 cursorPos（本机实测 +14 起）才是列表滚动偏移。改名前先看 item_menu.h 与本注释。
+    // +8/+10/+12 = 口袋 0/1/2 的「可视行号」（窗口里高亮第几行，0=第一行），
+    // +14/+16/+18 = 口袋 0/1/2 的「列表滚动偏移」（itemsAbove；道具 >6 件才非 0）。
+    // 绝对行号 abs = 滚动偏移 + 可视行号；「取消」= 最后一行，其 abs 未知（件数不可直读），
+    // 所以判断是否末行用「再按一次 DOWN 后 abs 是否变化」。2026-11-15 用 8 件测试道具真机标定：
+    // row(+8) 与 scroll(+14) 各口袋独立，DOWN 一次 abs 恰 +1（含跨页滚动）。
     const val BAG_MENU_STATE = 0x0203ACFC
     const val BAG_POCKET = BAG_MENU_STATE + 6        // 0x0203AD02：0=道具 1=重要道具 2=精灵球
-    const val BAG_CURSOR_BASE = BAG_MENU_STATE + 8   // 0x0203AD04：口袋 p 的光标 = BASE + 2*p
-    /** 旧地址（口袋 2 的光标）；仅为兼容 Python 旧层保留，Kotlin 侧用 [BAG_CURSOR_BASE]。 */
+    const val BAG_ROW_BASE = BAG_MENU_STATE + 8      // 0x0203AD04：口袋 p 可视行号 = ROW + 2*p
+    const val BAG_SCROLL_BASE = BAG_MENU_STATE + 14  // 0x0203AD0A：口袋 p 滚动偏移 = SCROLL + 2*p
+    /** 旧名（= 可视行号基址）；保留给 Python 旧层对照。 */
+    const val BAG_CURSOR_BASE = BAG_ROW_BASE
+    /** 旧地址（口袋 2 的可视行号）；仅为兼容 Python 旧层保留。 */
     const val BAG_CURSOR = 0x0203AD08
     const val MAIN_CURSOR = 0x02023FF8
     const val MOVE_CURSOR = 0x02023FFC

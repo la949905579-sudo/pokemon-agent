@@ -83,25 +83,39 @@ class SubmenuStateTest {
         }
     }
 
-    /** 背包状态：location=5(battle)、bagOpen=1、pocket=1；各口袋光标 3 / 1 / 0。 */
+    /**
+     * 背包状态：location=5(battle)、bagOpen=1、pocket=1；
+     * 可视行 3/1/0（+8..），滚动偏移 2/0/1（+14..）。
+     * 布局与真机标定一致：+8/+10/+12 行、+14/+16/+18 滚动偏移。
+     */
     private val bagState = byteArrayOf(
         0, 0, 0, 0,          // +0 bagCallback
         5, 1,                // +4 location / +5 bagOpen
         1, 0,                // +6 pocket = 1
-        3, 0,                // +8  口袋 0 光标 = 3
-        1, 0,                // +10 口袋 1 光标 = 1
-        0, 0,                // +12 口袋 2 光标 = 0
+        3, 0,                // +8  口袋 0 可视行 = 3
+        1, 0,                // +10 口袋 1 可视行 = 1
+        0, 0,                // +12 口袋 2 可视行 = 0
+        2, 0,                // +14 口袋 0 滚动偏移 = 2
+        0, 0,                // +16 口袋 1 滚动偏移 = 0
+        1, 0,                // +18 口袋 2 滚动偏移 = 1
     )
 
     @Test
-    fun pocketAndCursor_perPocketSlots() {
+    fun pocketRowAndScroll_perPocketSlots() {
         val original = Memo.reader
         Memo.reader = memReader(Addresses.BAG_MENU_STATE to bagState)
         try {
             assertEquals(1, SubmenuState.pocket())
-            assertEquals(3, SubmenuState.bagCursor(0))
-            assertEquals(1, SubmenuState.bagCursor(1))
-            assertEquals(0, SubmenuState.bagCursor(2))
+            assertEquals(3, SubmenuState.bagRow(0))
+            assertEquals(1, SubmenuState.bagRow(1))
+            assertEquals(0, SubmenuState.bagRow(2))
+            assertEquals(2, SubmenuState.bagScroll(0))
+            assertEquals(0, SubmenuState.bagScroll(1))
+            assertEquals(1, SubmenuState.bagScroll(2))
+            // 绝对行 = 滚动偏移 + 可视行（真机：>6 件道具时 DOWN 会滚窗口，abs 才单调 +1）
+            assertEquals(5, SubmenuState.bagAbs(0))
+            assertEquals(1, SubmenuState.bagAbs(1))
+            assertEquals(1, SubmenuState.bagAbs(2))
         } finally {
             Memo.reader = original
         }
@@ -113,18 +127,34 @@ class SubmenuStateTest {
         Memo.reader = memReader(Addresses.BAG_POCKET to byteArrayOf(7))
         try {
             assertEquals(-1, SubmenuState.pocket())
-            assertEquals(-1, SubmenuState.bagCursor(7))   // 口袋越界不读地址
+            assertEquals(-1, SubmenuState.bagRow(7))      // 口袋越界不读地址
+            assertEquals(-1, SubmenuState.bagScroll(7))
         } finally {
             Memo.reader = original
         }
     }
 
     @Test
-    fun bagCursor_badValueReturnsMinusOne() {
+    fun bagRow_badValueReturnsMinusOne() {
         val original = Memo.reader
-        Memo.reader = memReader(Addresses.BAG_CURSOR_BASE to byteArrayOf(9))
+        Memo.reader = memReader(Addresses.BAG_ROW_BASE to byteArrayOf(9))
         try {
-            assertEquals(-1, SubmenuState.bagCursor(0))   // > 5 行，不猜
+            assertEquals(-1, SubmenuState.bagRow(0))      // > 5 行，不猜
+            assertEquals(-1, SubmenuState.bagAbs(0))      // row 读不到 → abs 也 fail-closed
+        } finally {
+            Memo.reader = original
+        }
+    }
+
+    @Test
+    fun bagAbs_unreadableScrollReturnsMinusOne() {
+        val original = Memo.reader
+        // 只给 row、不给 scroll 区 → abs 必须失败（否则会拿错行按 A）
+        Memo.reader = memReader(Addresses.BAG_ROW_BASE to byteArrayOf(2))
+        try {
+            assertEquals(2, SubmenuState.bagRow(0))
+            assertEquals(-1, SubmenuState.bagScroll(0))
+            assertEquals(-1, SubmenuState.bagAbs(0))
         } finally {
             Memo.reader = original
         }
@@ -154,7 +184,9 @@ class SubmenuStateTest {
         try {
             assertNull(SubmenuState.readKind())
             assertEquals(-1, SubmenuState.pocket())
-            assertEquals(-1, SubmenuState.bagCursor(0))
+            assertEquals(-1, SubmenuState.bagRow(0))
+            assertEquals(-1, SubmenuState.bagScroll(0))
+            assertEquals(-1, SubmenuState.bagAbs(0))
             assertEquals(-1, SubmenuState.partyCursor())
         } finally {
             Memo.reader = original

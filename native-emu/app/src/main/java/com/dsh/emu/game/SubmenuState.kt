@@ -56,11 +56,29 @@ object SubmenuState {
         return if (p in 0 until POCKET_COUNT) p else -1
     }
 
-    /** 指定口袋的列表光标行号（0..BAG_MAX_ROWS-1）；读不到返回 -1。 */
-    fun bagCursor(pocket: Int): Int {
+    /** 指定口袋的「可视行号」（窗口里高亮第几行，0..BAG_MAX_ROWS-1）；读不到返回 -1。 */
+    fun bagRow(pocket: Int): Int {
         if (pocket !in 0 until POCKET_COUNT) return -1
-        val c = Memo.u8(Addresses.BAG_CURSOR_BASE + pocket * 2)
-        return if (c in 0 until BAG_MAX_ROWS) c else -1
+        val r = Memo.u8(Addresses.BAG_ROW_BASE + pocket * 2)
+        return if (r in 0 until BAG_MAX_ROWS) r else -1
+    }
+
+    /** 指定口袋的列表滚动偏移（itemsAbove，>6 件道具时非 0）；读不到返回 -1。 */
+    fun bagScroll(pocket: Int): Int {
+        if (pocket !in 0 until POCKET_COUNT) return -1
+        val s = Memo.u8(Addresses.BAG_SCROLL_BASE + pocket * 2)
+        return if (s in 0..255) s else -1
+    }
+
+    /**
+     * 绝对行号 = 滚动偏移 + 可视行号：点第几件道具、是否到「取消」都按它判断。
+     * 读不到任一项返回 -1（调用方 fail-closed，不按 A）。
+     */
+    fun bagAbs(pocket: Int): Int {
+        val row = bagRow(pocket)
+        val scroll = bagScroll(pocket)
+        if (row < 0 || scroll < 0) return -1
+        return row + scroll
     }
 
     /** 队伍菜单 slotId：0..5，或 [PARTY_CANCEL]；读不到/-1 返回 -1。 */

@@ -339,7 +339,7 @@ internal object Wysiwyg {
     /**
      * 背包点按：
      * - ◀/▶ 箭头（真机 (8,72)/(72,72)）→ 按 LEFT/RIGHT 翻口袋，回读 pocket；
-     * - 道具列表行（win0 内区 x=88..232、行高 16）→ 回首页逐行挪光标 → 二次确认 → 按 A
+     * - 道具列表行（win0 内区 x=88..232、行高 16）→ 按「滚动偏移 + 行」定位到绝对行 → 二次确认 → 按 A
      *   （有道具＝使用道具/打开目标选择；最后一行「取消」＝合上背包）；
      * - 底部条（y≥114）按实机图标态区分：光标在「取消」行/空口袋（显示「合上背包」）→ 按 B 关闭；
      *   光标在道具行（显示道具图标+说明，游戏里不是按钮）→ 只提示，不关。
@@ -392,9 +392,9 @@ internal object Wysiwyg {
      * 点背包底部条：按实机图标态区分——底部条显示「合上背包」+返回图标（光标在最后一行「取消」/空口袋）
      * 才按 B 合上；显示道具图标+说明（光标在道具行）时游戏里不是按钮，只提示不关。
      *
-     * 判断方式（不依赖道具数量地址）：按一次 DOWN 再回读光标——
-     * 光标不动 = 已在最后一行 → 合上背包；光标动了 = 不在最后一行 → 按 UP 还原后提示。
-     * 注：>6 种道具、列表滚动时 DOWN 可能只滚窗口不动光标，此时会按「合上背包」处理（与旧行为一致）。
+     * 判断方式（不依赖道具数量地址）：按一次 DOWN 再回读「绝对行 = 滚动偏移 + 可视行」——
+     * abs 不变 = 已在最后一行 → 合上背包；abs 变了 = 不在最后一行 → 按 UP 还原（校验 abs 回原值）后提示。
+     * 用 abs 而不是可视行，才能区分「真的末行」和「>6 件道具时 DOWN 只滚窗口不动行」。
      */
     private fun closeBagByBar(activity: MainActivity) {
         if (!beginBusy()) return
@@ -406,7 +406,7 @@ internal object Wysiwyg {
                     return@Thread
                 }
                 val pocket = SubmenuState.pocket()
-                val from = if (pocket < 0) -1 else SubmenuState.bagCursor(pocket)
+                val from = if (pocket < 0) -1 else SubmenuState.bagAbs(pocket)
                 if (from < 0) {
                     hint(activity, "读不到背包")
                     return@Thread
@@ -414,7 +414,11 @@ internal object Wysiwyg {
                 pressMask(EmuCore.KEY_DOWN, NAV_TAP_MS)
                 sleep(NAV_SETTLE_MS)
                 if (cancelled(myGen)) return@Thread
-                val down = if (pocket < 0) -1 else SubmenuState.bagCursor(pocket)
+                val down = if (pocket < 0) -1 else SubmenuState.bagAbs(pocket)
+                if (down < 0) {
+                    hint(activity, "读不到背包")
+                    return@Thread
+                }
                 if (down == from) {
                     // 已在最后一行（「取消」/空口袋）：底部条就是「合上背包」→ 按 B 关
                     EmuCore.setKeys(EmuCore.KEY_B)
@@ -425,17 +429,19 @@ internal object Wysiwyg {
                         (k != null && k != SubmenuState.Kind.BAG) || GameState.turnFlag() == TURN_MAIN_MENU
                     }
                     Nlog.info("wysiwyg.bagbar", "ok" to ok, "onCancelRow" to true,
-                        "pocket" to pocket, "row" to from, "turn" to GameState.turnFlag())
+                        "pocket" to pocket, "abs" to from, "turn" to GameState.turnFlag())
                     if (!ok) hint(activity, "没合上背包")
                     return@Thread
                 }
                 // 不在最后一行：底部条是道具说明 → 还原光标，提示点「取消」行
                 pressMask(EmuCore.KEY_UP, NAV_TAP_MS)
                 sleep(NAV_SETTLE_MS)
-                val back = if (pocket < 0) -1 else SubmenuState.bagCursor(pocket)
+                val back = if (pocket < 0) -1 else SubmenuState.bagAbs(pocket)
                 Nlog.info("wysiwyg.bagbar", "ok" to false, "onCancelRow" to false,
-                    "pocket" to pocket, "row" to from, "restoreRow" to back)
-                hint(activity, "这条是道具说明；点「取消」行合上背包")
+                    "pocket" to pocket, "abs" to from, "restoreAbs" to back)
+                if (back < 0) hint(activity, "读不到背包")
+                else if (back != from) hint(activity, "光标没还原，请重新点一下")
+                else hint(activity, "这条是道具说明；点「取消」行合上背包")
             } catch (e: Exception) {
                 Nlog.error("wysiwyg.bagbar", "err" to e.javaClass.simpleName)
             } finally {
@@ -459,7 +465,7 @@ internal object Wysiwyg {
                     return@Thread
                 }
                 val pocket = SubmenuState.pocket()
-                val from = if (pocket < 0) -1 else SubmenuState.bagCursor(pocket)
+                val from = if (pocket < 0) -1 else SubmenuState.bagAbs(pocket)
                 if (from < 0) {
                     hint(activity, "读不到背包光标")
                     return@Thread
@@ -467,7 +473,7 @@ internal object Wysiwyg {
                 pressMask(if (dir < 0) EmuCore.KEY_UP else EmuCore.KEY_DOWN, NAV_TAP_MS)
                 sleep(NAV_SETTLE_MS)
                 if (cancelled(myGen)) return@Thread
-                val to = if (pocket < 0) -1 else SubmenuState.bagCursor(pocket)
+                val to = if (pocket < 0) -1 else SubmenuState.bagAbs(pocket)
                 Nlog.info(
                     "wysiwyg.bagscroll", "ok" to (to >= 0 && to != from),
                     "from" to from, "to" to to, "dir" to dir,
@@ -522,9 +528,9 @@ internal object Wysiwyg {
     }
 
     /**
-     * 点背包道具行：先回到第一行（UP 到不动），再逐行 DOWN 到第 [row] 行（每步回读），
-     * 二次确认光标仍在目标行才按 A。空行/越界（光标到不了目标行）只提示、绝不按 A。
-     * 回顶部再往下走可以避开列表滚动（itemsAbove≠0）导致的「看得见的行 ≠ 行号」问题。
+     * 点背包道具行：用户点的是「当前可见第 [row] 行」，按绝对行 abs = 当前滚动偏移 + row 定位，
+     * 逐格 UP/DOWN 到目标（每步回读 abs，含跨页滚动），二次确认 abs 不变才按 A。
+     * 空行/越界（abs 到不了目标）只提示、绝不按 A。
      */
     private fun chooseBagRow(activity: MainActivity, row: Int) {
         if (!beginBusy()) return
@@ -540,22 +546,27 @@ internal object Wysiwyg {
                     hint(activity, "读不到背包")
                     return@Thread
                 }
-                if (SubmenuState.bagCursor(pocket) < 0) {
-                    hint(activity, "读不到背包光标")
+                val scrollAtTap = SubmenuState.bagScroll(pocket)
+                if (scrollAtTap < 0) {
+                    hint(activity, "读不到背包滚动")
                     return@Thread
                 }
-                val cur = moveCursorTo(myGen, row) { SubmenuState.bagCursor(pocket) }
-                if (cur != row) {
+                // 可见第 row 行对应的绝对行（点「取消」= 最后一行，其 abs 由滚动偏移算出）
+                val target = scrollAtTap + row
+                val got = navigateBagAbs(myGen, pocket, target)
+                if (got != target) {
                     Nlog.warn(
                         "wysiwyg.bagitem", "ok" to false, "reason" to "cursor",
-                        "pocket" to pocket, "row" to row, "cursor" to cur,
+                        "pocket" to pocket, "row" to row, "targetAbs" to target, "abs" to got,
                     )
                     hint(activity, "这一行没有道具")
                     return@Thread
                 }
                 sleep(120)
                 if (cancelled(myGen)) return@Thread
-                if (SubmenuState.readKind() != SubmenuState.Kind.BAG || SubmenuState.bagCursor(pocket) != row) {
+                if (SubmenuState.readKind() != SubmenuState.Kind.BAG ||
+                    SubmenuState.bagAbs(pocket) != target
+                ) {
                     hint(activity, "光标没稳住")
                     return@Thread
                 }
@@ -567,7 +578,7 @@ internal object Wysiwyg {
                 }
                 Nlog.info(
                     "wysiwyg.bagitem", "ok" to ok, "pocket" to pocket, "row" to row,
-                    "kind" to (SubmenuState.readKind()?.logName ?: "-"),
+                    "targetAbs" to target, "kind" to (SubmenuState.readKind()?.logName ?: "-"),
                     "turn" to GameState.turnFlag(),
                 )
                 if (!ok) hint(activity, "点了没反应")
@@ -645,7 +656,28 @@ internal object Wysiwyg {
     }
 
     /**
-     * 把列表光标挪到第 [target] 行：先 UP 到第一行（不动为止），再逐行 DOWN [target] 次。
+     * 背包：把列表挪到绝对行 [target]（= 滚动偏移 + 可视行）。逐格 UP/DOWN、每步回读 abs，
+     * abs 不变（到头/卡住）或读不到就停；返回最终 abs（调用方据此判断是否到目标）。
+     */
+    private fun navigateBagAbs(myGen: Int, pocket: Int, target: Int): Int {
+        var guard = 0
+        while (guard < 48) {
+            val abs = SubmenuState.bagAbs(pocket)
+            if (abs < 0) return -1
+            if (abs == target) return abs
+            if (cancelled(myGen)) return -1
+            pressMask(if (target > abs) EmuCore.KEY_DOWN else EmuCore.KEY_UP, NAV_TAP_MS)
+            sleep(NAV_SETTLE_MS)
+            val next = SubmenuState.bagAbs(pocket)
+            if (next < 0) return -1
+            if (next == abs) return abs
+            guard++
+        }
+        return SubmenuState.bagAbs(pocket)
+    }
+
+    /**
+     * 把列表光标挪到第 [target] 行（队伍菜单用；队伍不滚动）：先 UP 到第一行（不动为止），再逐行 DOWN [target] 次。
      * 每步都回读；读不到或卡住就返回当前行（调用方据此判断是否到目标）。不按 A。
      */
     private fun moveCursorTo(myGen: Int, target: Int, read: () -> Int): Int {
