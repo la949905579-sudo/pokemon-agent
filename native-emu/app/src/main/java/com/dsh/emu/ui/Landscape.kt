@@ -152,10 +152,10 @@ private fun LandscapePanel(activity: MainActivity, emuView: EmuView, onClose: ()
     }
     Box(Modifier.fillMaxSize().background(Color(0x99000000))) {
         Column(
-            Modifier.align(Alignment.CenterEnd).padding(12.dp).fillMaxHeight(0.94f)
+            Modifier.align(Alignment.CenterEnd).padding(10.dp).fillMaxHeight(0.96f)
                 .widthIn(min = 240.dp, max = 360.dp)
-                .background(Color(0xF21B1B1B), RoundedCornerShape(14.dp)).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .background(Color(0xF21B1B1B), RoundedCornerShape(14.dp)).padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(
                 Modifier.fillMaxWidth(),
@@ -229,7 +229,7 @@ private fun LandscapePanel(activity: MainActivity, emuView: EmuView, onClose: ()
 @Composable
 private fun PanelItem(label: String, active: Boolean = false, onClick: () -> Unit) {
     Box(
-        Modifier.fillMaxWidth().height(40.dp)
+        Modifier.fillMaxWidth().height(34.dp)
             .background(if (active) ACCENT else CARD, RoundedCornerShape(10.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center,
