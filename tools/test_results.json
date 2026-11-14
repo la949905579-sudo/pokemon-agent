@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 13:20",
+  "updated": "2026-11-14 14:42",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -10,8 +10,8 @@
   "python": {
     "tests": 37,
     "result": "PASS（37/37）",
-    "at": "2026-11-14 13:20",
+    "at": "2026-11-14 14:42",
     "command": "python3 run_tests.py",
-    "note": "C7 治理批（新增 test_token_roles.py 6 例：11 角色 / 旧名映射 / 取最靠左 / 未知职位 / fixture 映射前后 totals 相等）提交前实跑 37/37；全部离线（fixture 走 tempdir + TOKEN_REPORT_SESSIONS_ROOT，不读真实 sessions）。"
+    "note": "C8 规范批（纯 docs/规则，无 tests 变更；37 例沿用 C7）提交前实跑 37/37；全部离线。"
   }
 }

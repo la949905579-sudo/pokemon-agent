@@ -55,7 +55,7 @@ C<编号>（编号不复用，正式合同从 C3 起）｜ 机械型（全项可
 
 ## 11 回执
 - 位置：`.pilot/<id>/result.md`（≤10 行；首行 `session: <id> ｜ 状态: ...`）
-- 必含：提交号 / 产物路径 / 门禁结果 / 风险 / 待确认；轮次与成本按 `PILOT.md` 口径。
+- 必含：提交号 / 产物路径 / 门禁结果 / 风险 / 待确认；轮次与成本按 `PILOT.md` 口径；**B 侧回执须贴 M1–M7 命令 + 输出摘要**（测试 / 成本 / 索引数字只引用工具输出，不手写），并回 `cost-before` 四字段（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）。
 - 时间格式：`status.json` 与回执里的时间戳一律 **`YYYY-MM-DD HH:MM`**（Asia/Shanghai），不写 `12:3x` 近似值（C6 v1.6）。
 
 ## 12 承包商启动提示词（骨架）
@@ -67,7 +67,7 @@ C<编号>（编号不复用，正式合同从 C3 起）｜ 机械型（全项可
 你是合同 <编号> 的承包商 <成员>（fresh 会话，执行会话，不做裁决）。工作目录 /root/workspace。
 ① 先读角色卡 docs/roles/<角色>.md + 合同 docs/contracts/<编号>-<slug>.md 全文（重点 §6/§7/§8/§9）
    + docs/TEAM.md §三·十 / §三·十一 / §三·十二。
-② 开工先跑 python3 tools/batch_facts.py 取事实快照；status 已由 A 置 claimed（base / claimedAt / session / attempts）。
+② 开工先跑 python3 tools/batch_facts.py 取事实快照；**B 在 claim 首步**跑 `cost_snapshot --before <编号>`（`python3 tools/cost_snapshot.py --before <编号>`）写 .pilot/<编号>/cost-before.json 并回四字段；status 由 B 置 claimed（base / claimedAt / session / attempts）。
 ③ 按合同 §8 写入范围执行 §6 WBS；禁止碰范围外文件、不伪造测试/成本数字、不 push。
 ④ 完成后按合同 §11 写 .pilot/<编号>/result.md（≤10 行：状态 / 提交号 / 产物 / 门禁 / 风险），并回 A 一行摘要。
 ```

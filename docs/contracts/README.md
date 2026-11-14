@@ -50,8 +50,8 @@ python3 tools/contract_check.py --contract docs/contracts/C1-tests-consolidation
 - 合同只约束本批；变更须 A 书面同意并留痕。
 - **成本判据（双判据，唯一口径）**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；`cost-after` 在 accepted 后取；成本快照存 `.pilot/<id>/cost.json`（`{windowTotal,baselinePerBatch,delta,perBatch,threshold}`），无快照按「无数据」处理、不默认 0/红。
 - **成本快照工具（v1.3）**：`python3 tools/cost_snapshot.py --contract <id>` 读 `tools/token_report.mjs --json`，生成上述 5 字段 + `byRole`；`perBatch` 按 `BATCHES` 里 `合同:<id>` 行数折算；accepted 后取。
-- **开工前成本基线（v1.4）**：A open 后跑 `python3 tools/cost_snapshot.py --before <id>` 落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）；`--contract` 缺省优先读它作基线。claimed 态缺该文件 `contract_check` 记警告，**C5 起改阻断**。
-- **合同收尾（v1.4）**：A 置 accepted 后跑 `python3 tools/contract_close.py <id>`，强校验 accepted / `contract_check` / `BATCHES` / cost 双判据（缺项 exit 1），并打印 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示；**未 accepted（open/claimed/green）记 SKIP 且 exit 0**（提交前预跑只看预览草稿，A 置 accepted 后重跑才做正式校验）；**只打印不改台账**。
+- **开工前成本基线（v1.4；C8 起 B 执行）**：**B 在 claim 首步**跑 `cost_snapshot --before <id>`（`python3 tools/cost_snapshot.py --before <id>`）落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）并回四字段；**A 只收路径与输出、不代跑工具**。`--contract` 缺省优先读它作基线；claimed 态缺该文件 `contract_check` 阻断。
+- **合同收尾（v1.4；C8 起 B 执行）**：A 置 accepted 后由 **B** 跑 `python3 tools/contract_close.py <id>`，强校验 accepted / `contract_check` / `BATCHES` / cost 双判据（缺项 exit 1），并打印 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示；**未 accepted（open/claimed/green）记 SKIP 且 exit 0**（提交前预跑只看预览草稿，A 置 accepted 后重跑才做正式校验）；**只打印不改台账；A 只收路径与输出**。
 - **真机项执行（v1.3）**：真机项交「真机执行」（实例 `device`，fresh 会话）按合同 §7.3 跑 `python3 tools/emu_probe.py --check-move <id>`；**`emu_probe` 工具只读 TCP :55401、不写文件也不截屏**，截图由执行者用手机截并存 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`；回执 `PASS/FAIL <id> <name>` + 截图路径，A/B 只记结果、不代跑。
 - **启动提示词（v1.4）**：A open 后按 `CONTRACT-TEMPLATE.md` §12 骨架产出承包商启动提示词（角色卡 + 合同 + TEAM → `batch_facts` → 写 status → 执行 → 回执），与合同一并交给 B。
 - **v1.3 预算规则**：裁决会话 0 截图 / 0 长文、证据只给路径、零轮询（单次等待 ≤20min）、A ≤5M/批目标，见 `docs/TEAM.md` §三·十二。

@@ -16,12 +16,14 @@
 
 | 职位 | 实例名 | 常驻 | 职责 | 写入范围 |
 |---|---|---|---|---|
-| **代理人**（A，合同制） | `proxy` | 否，用户点名开（**>50 轮或压缩≥1 交接**） | 合同制 A 侧：**唯一用户对接**；写合同与验收结论、只抽查机械项；不读 diff / 构建日志 | `docs/contracts/**` |
+| **代理人**（A，合同制） | `proxy` | 否，用户点名开（**>50 轮或压缩≥1 交接**） | 合同制 A 侧：**只经手 / 需求对接 / 任务派发 / 流程规范 / 结果审核**；**不得从事任何实质性工作**；不读 diff / 构建日志 / 长文档 | `docs/contracts/**` |
 | **承包商**（B，合同制） | `contractor` | 否，**每合同新开**；同合同段复用 ≤3 合同或 >30 轮即轮换 | 合同制 B 侧：**只读合同执行**；派助理 / 工匠 / 考官、回执与回传；不写合同 | 无固定；按合同 §8 动态授权，`.pilot/` 留痕 |
 | **审计督导**（A 队子会话） | `supervisor` | 否，按需（一次性） | 代理人按需 spawn 的审计督导子会话（fresh、只读、≤5 行回执）；按 `docs/audit/AUDIT.md` 触发 | 无（只读；报告由代理人落盘，`docs/audit/**` 归 A 队） |
 | **组织规划** | `architect` | 否，每任务新开 | 组织架构、流程、文件规范设计 | `docs/TEAM.md`、`docs/README.md`、`docs/roles/README.md`、`docs/roles/a/**`、`docs/roles/org/**`、`docs/PROJECT_PLAN.md`、`docs/WORKPLAN.md`、`docs/STRUCTURE.md`、`docs/org/**` |
 | **策略顾问** | `advisor` | 否，用户点名开（单次 ≤10 轮） | 参谋：理需求、挑毛病、核对回执、给选项、压口径；不代拍板 | 无（只读） |
 | **真机执行** | `device` | 否，真机项时新开、用完即关 | 只跑 `tools/emu_probe.py` 取真机证据；回执 ≤5 行 + ≤2 证据路径；不判断验收 | 无（只读执行；证据只回不写） |
+
+- **代理人职责与禁止清单（C8 v1.8，用户 2026-11-14 13:5x 硬性要求）**：代理人只做**五项**——**只经手 / 需求对接 / 任务派发 / 流程规范 / 结果审核**；**不得从事任何实质性工作**（其子代理同）。**禁止**：写实现 / 工具 / 测试 / 文档正文（合同 spec 与验收结论除外）；跑测试 / 构建 / 索引 / `tools/*.py` 工具（含成本快照、合同收尾、`batch_facts`）；做 `git add/commit/push/amend/revert` 等操作；代 B 取证落盘。审核时**至多 1–2 条只读抽验**（如 `git log -1`、`grep` 只读检索、读回执路径）；执行一律交承包商（B，每合同 fresh）。
 
 ### 1.2 成员（子代理；代理人 / 承包商 spawn，子代理不能再 spawn）
 
@@ -115,7 +117,7 @@
 - **交接**：手动转达句，或 watcher（`while [ ! -f .pilot/<id>/inbox.ready ]; do sleep 5; done`）。前提：App「后台运行」开启、引擎会话存活、同一触发点每会话 ≤1 轮；属 `HANDOVER` §二.8 豁免项，交接前 kill 并写「watcher 已 kill / 接管命令」；watcher 不可用则用口令兜底（重发转达句）。
 - **每批必带（缺一不算完成）**：`docs/BATCHES.md` 一行（备注 `合同:<id>`）+ `tools/test_results.json` 同步 + `FILES` 重生成；`HANDOFF` 在批次收尾 / 交接前更新，**不要求每批改**。
 - **B 侧提交前自检（缺一不得提交）**：B 提交前必须跑 `tools/contract_check.py --contract … --status …`，并完成台账自检（`tools/test_results.json` 同步 / `docs/BATCHES.md` 合同号 / `FILES` 重生成）；任一不过先修再提交，不得 `--no-verify` 绕过或无台账提交。
-- **验收**：机械项写「命令 + 期望值」；判断项写来源与依据；真机项写步骤 + 证据；A 只抽查 1 条机械项，不读 diff / 构建日志 / 长文档。
+- **验收（C8 v1.8 收窄）**：机械项写「命令 + 期望值」；判断项写来源与依据；真机项写步骤 + 证据；**A 只读回执与证据 + 至多 1–2 条只读抽验，不跑测试 / 构建 / 写文件**；不读 diff / 构建日志 / 长文档，执行与取证一律由 B 落。
 - **预算**：回执 ≤10 行 / 合同 ≤60 行 / **单位 ≤3 批（每批 ≤1 天；超 3 批拆合同）**。
 - **成本判据（双判据，唯一口径）**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；基线取开工前当日窗口实测 ÷ 窗口内批次数（不含本批）；`cost-after` 必须在 A 置 accepted 后取（与真机验收对齐）；成本快照存 `.pilot/<id>/cost.json`（`{windowTotal,baselinePerBatch,delta,perBatch,threshold}`）。
 - **回滚顺序**：先 `git revert` 代码批次 → 再 revert 对应 docs 批次 → 最后 `rm -rf .pilot/`（避免 `BATCHES` / `FILES` 冲突）。
@@ -153,8 +155,8 @@
 - **每合同成本**：`python3 tools/cost_snapshot.py --contract <id>`（读 `tools/token_report.mjs --json`）生成 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold` + `byRole`）；**accepted 后取**，无快照按「无数据」。
 - **成本归因唯一映射**（C7 v1.7）：职位归因的**唯一映射＝`tools/token_report.mjs` 的 `ROLE_PATTERNS`**（11 规范角色，`node tools/token_report.mjs --roles` 机读，与 `tools/write_scopes.json` 同集）；**改 `TEAM` §一 职位表须同批更新 `ROLE_PATTERNS`（与 `write_scopes` 同等）**，旧名只做兼容映射、不新增角色，`byRole` 口径不得手改。
 - **成本判据不变**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；基线取 `.pilot/cost-before.json` 的 `pilotBaseline`。
-- **开工前成本基线（C4 起）**：A open 后立即跑 `python3 tools/cost_snapshot.py --before <id>` 落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）；claimed 态缺该文件 `contract_check` 记**警告**，**C5 起改阻断**。
-- **收尾自动化**：A 置 accepted 后跑 `python3 tools/contract_close.py <id>`，输出 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示 + cost 摘要（只打印，不改台账，风格同 `batch_close`）。
+- **开工前成本基线（C4 起；C8 改 B 执行）**：**B 在 claim 首步**跑 `cost_snapshot --before <id>`（`python3 tools/cost_snapshot.py --before <id>`）落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）并在回执回四字段；**A 只收路径与输出、不代跑工具**。claimed 态缺该文件 `contract_check` 阻断。
+- **收尾自动化（C8 起 B 执行）**：A 置 accepted 后由 **B** 跑 `python3 tools/contract_close.py <id>`，输出 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示 + cost 摘要（只打印，不改台账，风格同 `batch_close`）；**A 只收路径与输出**。
 - **真机项默认交 realdevice**：真机项默认交「真机执行」（实例 `device`）按合同 §7.3 跑，A/B 只记结果与证据路径、不代跑；无手机工具时回执注明改由用户/A 执行，不阻断。
 - **承包商启动提示词**：A open 后同步产出启动提示词（骨架见 `docs/contracts/CONTRACT-TEMPLATE.md` §12），B 按提示词自启动，减少转达失真。
 - **spawn 显式标职位 + status 时间戳**（C6 v1.6）：`spawn_teammate` 的 `description` 必须以**中文职位名开头**（如「助理：…」「考官：…」），否则 `token_report` 成本归因记「未知职位」（R3）；`.pilot/<id>/status.json` 的 `openedAt` / `claimedAt` / `greenAt` / `pushedAt` / `accepted` 等时间一律写 **`YYYY-MM-DD HH:MM`**（Asia/Shanghai），不用 `12:3x` 近似值。

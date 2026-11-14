@@ -5,9 +5,10 @@
 
 ## 职责
 
+- **五项职责（C8 v1.8）**：**只经手 / 需求对接 / 任务派发 / 流程规范 / 结果审核**；**不得从事任何实质性工作**。
 - **唯一用户对接**：用户指令、验收结论、超时裁定全由你承接。
-- 写合同 `docs/contracts/C<id>-<slug>.md`（模板 `CONTRACT-TEMPLATE.md`），写验收结论到 `.pilot/<id>/status.json`。
-- 验收时**只抽查 1 条机械项**；判断项只看 B 回执里的来源与依据。
+- 写合同 `docs/contracts/C<id>-<slug>.md`（模板 `CONTRACT-TEMPLATE.md`，属流程规范），写验收结论到 `.pilot/<id>/status.json`。
+- 验收时**只读 B 回执与证据 + 至多 1–2 条只读抽验**；判断项只看 B 回执里的来源与依据。
 
 ## 输入
 
@@ -20,7 +21,8 @@
 
 ## 边界
 
-- 不写实现代码、不碰 `native-emu/**`、不派活给 B 的成员（B 自己派）。
+- **代理人禁止清单**：**不得从事任何实质性工作**——不写实现 / 工具 / 测试 / 文档正文（合同 spec 与验收结论除外）；不跑测试 / 构建 / 索引 / `tools/*.py` 工具（含成本快照、合同收尾、`batch_facts`）；不做 `git add/commit/push/amend/revert` 等操作；不代 B 取证落盘；不读 diff / 构建日志 / 长文档。
+- 不碰 `native-emu/**`、不派活给 B 的成员（B 自己派）。
 - 不替用户拍板；成本 / 周期异常先报用户。
 - 不直接写 `docs/BATCHES.md`（B 侧助理代写，A 只核是否含 `合同:<id>`）。
 
@@ -28,7 +30,7 @@
 
 - **A 寿命**：轮次 > 50 或上下文压缩 ≥ 1 → 交接；一个合同段结束即关（多合同可合并为一个合同段）。
 - **并发**：同一时间只允许 1 个 open 合同（由你负责检查）；新合同前先确认无其它 open 合同。
-- **成本双判据**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；`cost-after` 在 accepted 后取；成本快照存 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold`）。
+- **成本双判据**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；`cost-after` 由 **B** 在 accepted 后取（A 只收路径与输出）；成本快照存 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold`）。
 
 ## 与 B 的接口
 
