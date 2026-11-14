@@ -11,14 +11,14 @@
 2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
 3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
 4. **联机**：GBA link cable，方案调研。
-5. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出。
+5. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
 
 ## 暂缓
 - **地图相关功能全部暂缓**（用户 2026-11-14 拍板）：A\* 跨图补采 / UI 入口 / 实机对照、地图新交互控件、地图数据与可视化改进；已实现地图功能保持现状。
 
 ## done
 - 2026-11-15 **横屏 WYSIWYG 补完（对话选项 + 战斗菜单其余项）**：新增 `game/MenuState.kt`（实测标定的 `sMenu@0x0203ADE4` / `gWindows@0x020204B4`：光标、选项数、行高、窗口几何 → 选项行命中）、`Addresses.BATTLE_MENU_FLAG=0x02023E83`；横屏对话/战斗「是/否」选项可点选（回读光标→逐行挪→二次确认→按 A，任何一步不满足只提示不按 A）；战斗主菜单「背包/宝可梦/逃跑」点选（E83!=0 才是真主菜单，按项回读 `TURN_FLAG/MAIN_CURSOR`）；背包/队伍子菜单点底部条 = 按 B 退出（取消条分区：背包 y≥114、队伍 y≥121）；`Wysiwyg` 加取消代际（离开横屏/开设置面板停手）。
-  - fresh 复核：首轮 4 个必修全修（E83 选项框误认、取消条误伤、非标准框误按 A、验证口径）；第二轮 2 必修 + 1 可选已修（`d67eab1`：cancelAll 停三路按键、E83==0 选项框可达、profile!=null 绝不按 A）；真机复验通过（背包/取消条/逃跑/对话选项）；最终 delta 复核进行中。
+  - fresh 复核 3 轮：首轮 4 必修全修；第二轮 2 必修 + 1 可选已修（`d67eab1`：cancelAll 停三路按键、E83==0 选项框可达、profile!=null 绝不按 A），真机复验通过（背包/取消条/逃跑/对话选项/纯文字 profile=null）；第三轮结论**可上线、无必修**（仅 3 条非阻塞清理建议，记入结构债）。
   - 真机验收（build `906d43a`，OTA 失败后用本机 HTTP 兜底装包）：`wysiwyg.dialog ok=true target=1 cursor=1 steps=1 count=2`（对话「否」）；`wysiwyg.battlemenu ok=true target=1/2/3 steps=1/2`（背包/宝可梦/逃跑）；`wysiwyg.submenu ok=true kind=bag/party`（底部取消条）；选项行外点击 `option=-1` 只提示不按 A；截图 `wysiwyg-landscape-bag-20261115.jpg`、`wysiwyg-portrait-20261115.jpg`。
   - 已知未做：背包道具行 / 队伍格子点选、非标准（3+ 选项）选项框（见 todo）。
 - 2026-11-14 **横屏纯画面 + 触屏所见即所得**：横屏整屏铺满游戏画面、隐藏系统栏，仅留半透明设置图标（覆盖层面板：速度/自动战斗/载入 ROM/更新/重置/退出）；触屏映射（招式点按复用 `BattleMoveAction`、点「战斗」回读光标挪位+按 A+回读 `TURN_FLAG==2`、对话/战斗文字点按推进、点地图位置同图 BFS 走过去）；竖屏不变。
