@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 07:50",
+  "updated": "2026-11-14 08:31",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -8,10 +8,10 @@
     "note": "CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。"
   },
   "python": {
-    "tests": 31,
-    "result": "PASS（31/31）",
-    "at": "2026-11-14 07:50",
+    "tests": 32,
+    "result": "PASS（32/32）",
+    "at": "2026-11-14 08:31",
     "command": "python3 run_tests.py",
-    "note": "本批助理实跑 31/31（文件数不变）：C1 迁入 29 + tests/test_moves_232.py + tests/test_contract_check.py（9 例：原 7 + attempts 非法 / cost.json 缺字段 2 例）；离线自足（tempfile 假仓库）。"
+    "note": "本批助理实跑 32/32：C1 迁入 29 + tests/test_moves_232.py + tests/test_contract_check.py（9 例）+ tests/test_batch_tools.py（9 例：batch_facts 3 / batch_close 4 / 纯函数 2）；离线自足（tempfile 假 git 仓库）。"
   }
 }

@@ -90,6 +90,8 @@
 | `state_server.py` | 本地状态服务：给网页「下屏」提供数据与动作接口。 | 保留 |
 | `switch.py` | 换人模块：战斗内部队伍顺序 + 换人动作。 | 保留 |
 | `terrain.py` | 地图通行性：定位地图结构、读取地块、输出九宫格。 | 保留 |
+| `tools/batch_close.py` | 台账收尾检查 + BATCHES 行草稿（简化流程 v1.2，TEAM §三·十一）。 | 保留 |
+| `tools/batch_facts.py` | 精简事实快照（TEAM §三·十一）：HEAD/工作树/未推送/最近 3 提交/test_results/索引/合同/BATCHES。 | 保留 |
 | `tools/contract_check.py` | 合同制机械校验（TEAM §三·十）：合同 spec + 运行态 status.json。 | 保留 |
 | `tools/gen_files_index.py` | 生成 docs/generated/FILES.md：仓库里每个被跟踪文件的用途索引。 | 保留 |
 | `track_route.py` | 后台记录用户操作时的坐标轨迹（带地图 ID，能分辨换图）。 | 保留 |
@@ -240,6 +242,7 @@
 | `run_tests.py` | 一键跑全部离线测试（按 tests/test_*.py 文件计数） | 保留 |
 | `tests/test_action.py` | 离线测试：action | 保留 |
 | `tests/test_avoid_grass.py` | 离线测试：avoid_grass | 保留 |
+| `tests/test_batch_tools.py` | 离线测试：batch_tools | 保留 |
 | `tests/test_battle_loop.py` | 离线测试：battle_loop | 保留 |
 | `tests/test_bdata_shared.py` | 离线测试：bdata_shared | 保留 |
 | `tests/test_bridge.py` | 离线测试：bridge | 保留 |
@@ -331,4 +334,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 267 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 270 个文件（不含 `native-emu/third_party/` 第三方源码）。
