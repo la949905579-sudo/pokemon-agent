@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 12:48",
+  "updated": "2026-11-14 13:20",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -8,10 +8,10 @@
     "note": "CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。"
   },
   "python": {
-    "tests": 36,
-    "result": "PASS（36/36）",
-    "at": "2026-11-14 12:48",
+    "tests": 37,
+    "result": "PASS（37/37）",
+    "at": "2026-11-14 13:20",
     "command": "python3 run_tests.py",
-    "note": "C6 治理批（新增 test_write_scopes.py；contract_check +3 / contract_close +1 / batch_facts +2 用例）提交前实跑 36/36；全部离线。"
+    "note": "C7 治理批（新增 test_token_roles.py 6 例：11 角色 / 旧名映射 / 取最靠左 / 未知职位 / fixture 映射前后 totals 相等）提交前实跑 37/37；全部离线（fixture 走 tempdir + TOKEN_REPORT_SESSIONS_ROOT，不读真实 sessions）。"
   }
 }

@@ -151,6 +151,7 @@
 - **零轮询**：等待只允许**单次阻塞等待**（一次 ≤20min，如 `wait_agent` / watcher 循环），禁止 sleep 轮询 / 反复读屏；超时先回一行状态再续等。
 - **真机取证**：交「**真机执行**」（`device`，fresh 会话，只跑 `python3 tools/emu_probe.py --check-move <id> [--expect-name <名>]`）；回执 ≤5 行 + ≤2 条证据路径；截图约定 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`。
 - **每合同成本**：`python3 tools/cost_snapshot.py --contract <id>`（读 `tools/token_report.mjs --json`）生成 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold` + `byRole`）；**accepted 后取**，无快照按「无数据」。
+- **成本归因唯一映射**（C7 v1.7）：职位归因的**唯一映射＝`tools/token_report.mjs` 的 `ROLE_PATTERNS`**（11 规范角色，`node tools/token_report.mjs --roles` 机读，与 `tools/write_scopes.json` 同集）；**改 `TEAM` §一 职位表须同批更新 `ROLE_PATTERNS`（与 `write_scopes` 同等）**，旧名只做兼容映射、不新增角色，`byRole` 口径不得手改。
 - **成本判据不变**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；基线取 `.pilot/cost-before.json` 的 `pilotBaseline`。
 - **开工前成本基线（C4 起）**：A open 后立即跑 `python3 tools/cost_snapshot.py --before <id>` 落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）；claimed 态缺该文件 `contract_check` 记**警告**，**C5 起改阻断**。
 - **收尾自动化**：A 置 accepted 后跑 `python3 tools/contract_close.py <id>`，输出 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示 + cost 摘要（只打印，不改台账，风格同 `batch_close`）。

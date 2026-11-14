@@ -10,21 +10,29 @@
  *   node tools/token_report.mjs                  # 全量汇总（按职位 / 按会话 / 按天）
  *   node tools/token_report.mjs --since 2026-11-12
  *   node tools/token_report.mjs --json           # 机读 JSON
+ *   node tools/token_report.mjs --roles          # 职位归因表 JSON（规范角色 → 匹配词，机读）
  *   node tools/token_report.mjs --write          # 写 tools/token_baseline.json（供 METRICS 引用）
  *
  * 默认输出里已含“重复读同一文件”统计，不需要额外开关。
  *
- * 职位判断：读会话里的 `subagent/descriptor.label`，取**最靠左**出现的职位词
- * （中文职位名：统筹主持 / 助理 / 工匠 / 考官 / 独立督导 / 审查员 / 成本管理员 / 组织规划 / 策略顾问；
- * 旧名 执行主管→助理、验证员/verifier→考官、督导→独立督导 保留兼容）。
- * 没有 descriptor 的会话（主会话）标「主会话（未标注职位）」并按会话 id 单列，不猜。
+ * 职位判断（**成本归因唯一映射**，TEAM §三·十二）：读会话里的 `subagent/descriptor.label`，
+ * 取**最靠左**出现的职位词（同位置按 ROLE_PATTERNS 顺序取靠前者）。
+ * 规范角色 = 11 个（与 tools/write_scopes.json / docs/TEAM.md §一 同集）：
+ *   代理人 / 承包商 / 审计督导 / 组织规划 / 策略顾问 / 真机执行 / 助理 / 工匠 / 考官 / 分工规划员 / 结构规划员
+ * 旧名兼容映射（历史会话归属不丢）：统筹主持·执行主管→代理人、独立督导·审查员·成本管理员→审计督导、
+ * builder→工匠、steward→助理、verifier→考官（另有 督导→审计督导、验证员→考官、组织架构师→组织规划）。
+ * 没有 descriptor 的会话（主会话）标「主会话（未标注职位）」；有 descriptor 但 label 无职位词→「未知职位」，不猜。
+ *
+ * 测试钩子：`TOKEN_REPORT_SESSIONS_ROOT` 可替换会话根目录（仅供离线单测，不读真实 sessions）。
  */
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
+import { fileURLToPath } from "node:url";
 
-const SESSIONS_ROOT = path.join(os.homedir(), ".dsh", "sessions");
+const SESSIONS_ROOT = process.env.TOKEN_REPORT_SESSIONS_ROOT
+  || path.join(os.homedir(), ".dsh", "sessions");
 const BASELINE_PATH = path.join(import.meta.dirname, "token_baseline.json");
 const TZ = "Asia/Shanghai";
 
@@ -57,20 +65,28 @@ function localDate(ms) {
     .format(new Date(ms));
 }
 
-/** 中文职位名 → 匹配词（A-16：补全新名 + 旧名兼容；取最靠左命中，避免「A 队工匠…等执行主管派活」误判）。 */
+/**
+ * 规范角色（11 个，与 tools/write_scopes.json / docs/TEAM.md §一 同集）→ 匹配词。
+ * 匹配词含旧名以兼容历史会话（C7 合同 §6①）；取最靠左命中，同位置按本数组顺序取前者，
+ * 避免「A 队工匠…等执行主管派活」这类 label 按出现顺序误判。
+ */
 const ROLE_PATTERNS = [
-  ["统筹主持", ["统筹主持", "主持"]],
-  ["助理", ["助理", "执行主管", "steward"]],
-  ["工匠", ["工匠", "builder"]],
-  ["考官", ["考官", "验证员", "verifier"]],
-  ["独立督导", ["独立督导", "督导"]],
-  ["审查员", ["审查员"]],
-  ["成本管理员", ["成本管理员"]],
+  ["代理人", ["代理人", "统筹主持", "主持", "执行主管", "proxy"]],
+  ["承包商", ["承包商", "contractor"]],
+  ["审计督导", ["审计督导", "独立督导", "督导", "审查员", "成本管理员", "supervisor"]],
   ["组织规划", ["组织规划", "组织架构师", "architect"]],
   ["策略顾问", ["策略顾问", "advisor"]],
+  ["真机执行", ["真机执行", "device"]],
+  ["助理", ["助理", "steward", "assistant"]],
+  ["工匠", ["工匠", "builder", "artisan"]],
+  ["考官", ["考官", "验证员", "verifier", "examiner"]],
+  ["分工规划员", ["分工规划员", "role-planner"]],
+  ["结构规划员", ["结构规划员", "struct-planner"]],
 ];
 
-function roleFromLabel(label) {
+export { ROLE_PATTERNS };
+
+export function roleFromLabel(label) {
   if (!label) return "主会话（未标注职位）";
   const l = label.toLowerCase();
   let best = null; // {pos, idx, role}
@@ -250,6 +266,11 @@ function printHuman(agg) {
 
 function main() {
   const args = process.argv.slice(2);
+  // --roles：只输出职位归因表（规范角色 → 匹配词），不扫会话、不需要 --since（合同 C7 §7.1 M4）。
+  if (args.includes("--roles")) {
+    console.log(JSON.stringify(Object.fromEntries(ROLE_PATTERNS), null, 2));
+    return 0;
+  }
   const sinceIdx = args.indexOf("--since");
   const since = sinceIdx >= 0 ? args[sinceIdx + 1] : null;
   if (since && !/^\d{4}-\d{2}-\d{2}$/.test(since)) {
@@ -295,4 +316,7 @@ function main() {
   return 0;
 }
 
-process.exit(main());
+// 仅直接执行时跑 main；被 import（离线单测）时只暴露 ROLE_PATTERNS / roleFromLabel。
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  process.exit(main());
+}

@@ -182,6 +182,7 @@
 | `docs/contracts/C4-closeout-v14.md` | C4 治理批 v1.4：收尾自动化 + 成本基线门禁 + 真机执行实战 | 保留 |
 | `docs/contracts/C5-legacy-archive.md` | C5 旧方案归档：停用旧主流程 + 旧职位引用清理 + 全局 AGENTS 同步 | 保留 |
 | `docs/contracts/C6-governance-tools.md` | C6 治理工具批 v1.6：写范围表对齐 + 合同工具三修 + 快照追记 | 保留 |
+| `docs/contracts/C7-token-roles.md` | C7 成本归因修复：token_report 职位映射对齐新编制 | 保留 |
 | `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
 | `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
 | `docs/contracts/README.md` | 合同制目录（docs/contracts） | 保留 |
@@ -283,6 +284,7 @@
 | `tests/test_runner.py` | 离线测试：runner | 保留 |
 | `tests/test_switch.py` | 离线测试：switch | 保留 |
 | `tests/test_switch2.py` | 离线测试：switch2 | 保留 |
+| `tests/test_token_roles.py` | 离线测试：token_roles | 保留 |
 | `tests/test_travel.py` | 离线测试：travel | 保留 |
 | `tests/test_turn.py` | 离线测试：turn | 保留 |
 | `tests/test_turns.py` | 离线测试：turns | 保留 |
@@ -349,4 +351,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 285 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 287 个文件（不含 `native-emu/third_party/` 第三方源码）。
