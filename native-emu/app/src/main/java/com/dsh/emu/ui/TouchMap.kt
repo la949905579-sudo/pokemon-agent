@@ -64,14 +64,23 @@ internal object TouchMap {
     val DIALOG_ZONE = Zone(0, 104, GAME_W, GAME_H)
 
     /**
-     * 战斗子菜单（背包 / 队伍）底部「合上背包 / 选择宝可梦或取消」条：
-     * 横屏没有 B 键，点这条 = 取消（按 B），避免被困在子菜单里。
-     * 实测：背包底条从 y≈111 起、队伍底条从 y≈121 起，取 y≥120 覆盖两者。
+     * 战斗子菜单底部取消条（横屏没有 B 键，点这条 = 按 B 取消，避免被困在子菜单里）。
+     * 分开标定，避免把背包列表 / 队伍格子的下半屏点击误当成取消：
+     * - 背包「合上背包」条：真机实测 y≥114；
+     * - 队伍「选择宝可梦或取消」条：真机实测 y≥121（队伍格最下沿到 117）。
      */
-    val SUBMENU_CANCEL_ZONE = Zone(0, 120, GAME_W, GAME_H)
+    val BAG_CANCEL_ZONE = Zone(0, 114, GAME_W, GAME_H)
+    val PARTY_CANCEL_ZONE = Zone(0, 121, GAME_W, GAME_H)
 
-    /** 是否点在战斗子菜单底部取消条上。 */
-    fun isSubmenuCancelTap(x: Int, y: Int): Boolean = SUBMENU_CANCEL_ZONE.hit(x, y)
+    /**
+     * 是否点在战斗子菜单底部取消条上。[menuMain] 是 MAIN_CURSOR（1=背包 2=队伍）；
+     * 其它值一律不算，避免把招式菜单/其它菜单的点击当取消。
+     */
+    fun isSubmenuCancelTap(menuMain: Int, x: Int, y: Int): Boolean = when (menuMain) {
+        1 -> BAG_CANCEL_ZONE.hit(x, y)
+        2 -> PARTY_CANCEL_ZONE.hit(x, y)
+        else -> false
+    }
 
     /** 视图像素 → 游戏像素；落在游戏画面外（黑边）返回 null。 */
     fun viewToGame(

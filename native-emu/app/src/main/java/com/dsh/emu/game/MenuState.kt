@@ -45,10 +45,12 @@ object MenuState {
         if (winW == 0 || winH == 0) return null
         val count = u(menu, 4) + 1                    // maxCursorPos + 1
         if (count !in 1..8) return null
+        val cursorPos = menu[2].toInt()               // s8：光标位置
+        if (cursorPos !in 0 until count) return null
         val optH = u(menu, 8)
         if (optH !in 8..32) return null
         return Profile(
-            cursorPos = u(menu, 2),
+            cursorPos = cursorPos,
             count = count,
             windowId = windowId,
             left = u(menu, 0),
@@ -94,6 +96,15 @@ object MenuState {
             if (y >= top && y < top + p.optionHeight) return i
         }
         return null
+    }
+
+    /** 点击点是否落在该菜单窗框内（含 1 格窗框）。用于「有选项框但不支持」时避免误按 A。 */
+    fun insideWindow(p: Profile, x: Int, y: Int): Boolean {
+        val x0 = (p.winLeft - 1) * TILE_PX
+        val x1 = (p.winLeft + p.winWidth + 1) * TILE_PX
+        val y0 = (p.winTop - 1) * TILE_PX
+        val y1 = (p.winTop + p.winHeight + 1) * TILE_PX
+        return x >= x0 && x < x1 && y >= y0 && y < y1
     }
 
     /** 从 [from] 到 [to] 的竖向一步（-1=UP / +1=DOWN）；无需移动返回 0。 */

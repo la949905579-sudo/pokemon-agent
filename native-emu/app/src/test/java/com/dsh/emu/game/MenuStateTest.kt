@@ -59,6 +59,26 @@ class MenuStateTest {
     }
 
     @Test
+    fun rejectsCursorOutOfRange() {
+        // s8 光标：负数或 ≥ 选项数都视为不可信
+        assertNull(MenuState.fromBytes(menuWith(cursor = 2, max = 1), winYes))
+        assertNull(MenuState.fromBytes(menuWith(cursor = 0xFF), winYes))
+        assertEquals(1, MenuState.fromBytes(menuWith(cursor = 1), winYes)!!.cursorPos)
+    }
+
+    @Test
+    fun insideWindowCoversFrameOnly() {
+        val p = profile()
+        // 窗框 = (winLeft-1 .. winLeft+width, winTop-1 .. winTop+height) 格，1 格 = 8px
+        assertTrue(MenuState.insideWindow(p, 160, 64))
+        assertTrue(MenuState.insideWindow(p, 223, 111))
+        assertFalse(MenuState.insideWindow(p, 159, 80))
+        assertFalse(MenuState.insideWindow(p, 224, 80))
+        assertFalse(MenuState.insideWindow(p, 200, 63))
+        assertFalse(MenuState.insideWindow(p, 200, 112))
+    }
+
+    @Test
     fun isStandardYesNoMatchesObserved() {
         assertTrue(MenuState.isStandardYesNo(profile()))
     }

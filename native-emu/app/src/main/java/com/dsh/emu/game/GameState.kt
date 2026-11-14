@@ -34,6 +34,9 @@ object GameState {
     /** 回合阶段（1=主菜单 2=招式 4=动画 0=开场）。 */
     fun turnFlag(): Int = Memo.u8(Addresses.TURN_FLAG)
 
+    /** 战斗主菜单标志（E83）：1=真正的战斗主菜单；0=战斗里的「是/否」选项框。 */
+    fun battleMenuFlag(): Int = Memo.u8(Addresses.BATTLE_MENU_FLAG)
+
     /** 对话框是否打开。 */
     fun inDialog(): Boolean = Memo.u8(Addresses.DIALOG_FLAG) != 0
 

@@ -112,11 +112,17 @@ class TouchMapTest {
     }
 
     @Test
-    fun submenuCancelTap_bottomStrip() {
-        assertTrue(TouchMap.isSubmenuCancelTap(120, 130))
-        assertTrue(TouchMap.isSubmenuCancelTap(30, 120))
-        assertFalse(TouchMap.isSubmenuCancelTap(120, 119))
-        assertFalse(TouchMap.isSubmenuCancelTap(120, 60))
+    fun submenuCancelTap_bagAndPartySeparately() {
+        // 背包取消条 y≥114，队伍取消条 y≥121；避免把列表/格子点击误当取消
+        assertTrue(TouchMap.isSubmenuCancelTap(1, 120, 130))
+        assertTrue(TouchMap.isSubmenuCancelTap(1, 30, 114))
+        assertFalse(TouchMap.isSubmenuCancelTap(1, 30, 113))
+        assertTrue(TouchMap.isSubmenuCancelTap(2, 120, 130))
+        assertTrue(TouchMap.isSubmenuCancelTap(2, 30, 121))
+        assertFalse(TouchMap.isSubmenuCancelTap(2, 30, 120))
+        // 非子菜单（0=招式菜单 / 3=逃跑 / 其他）不算取消
+        assertFalse(TouchMap.isSubmenuCancelTap(0, 120, 130))
+        assertFalse(TouchMap.isSubmenuCancelTap(3, 120, 130))
     }
 
     // ---------- 地图目标格 ----------

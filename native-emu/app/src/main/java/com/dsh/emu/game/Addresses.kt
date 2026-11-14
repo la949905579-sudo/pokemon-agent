@@ -9,6 +9,9 @@ object Addresses {
     const val BATTLE_FLAG = 0x02024018       // 0 = 地图，非 0 = 战斗中
     const val DIALOG_FLAG = 0x03000F9C       // 对话框打开时非 0
     const val TURN_FLAG = 0x02023E82         // 1=主菜单 2=招式 4=动画 0=开场
+    // Turn 状态第 2 字节（Python state.py 实测）：战斗内 E82=1 且 E83=0 = 「是/否」选项框；
+    // E83=1 才是真正的战斗主菜单。少了这个判断会把选项框当主菜单按 A（默认确认）。
+    const val BATTLE_MENU_FLAG = 0x02023E83
     const val PARTY_MENU_FLAG = 0x03000928
     const val BAG_CURSOR = 0x0203AD08
     const val MAIN_CURSOR = 0x02023FF8
