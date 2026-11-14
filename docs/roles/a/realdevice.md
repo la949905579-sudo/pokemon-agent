@@ -22,6 +22,14 @@ shot: /sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg
 
 - 失败输出 `FAIL <id> <name>` 并附 exit code；无截图就写「无证据」，不编。
 
+## 执行口径
+
+- 工具只读：`tools/emu_probe.py` 只经 TCP :55401 读内存，**不写文件、不截屏**；截图是执行者的事，工具只给路径约定。
+- 截图由执行者截，路径约定 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`（`<ts>` 现取，如 `20261114-1130`；手机工具先 `screen` 再截图，或 adb screencap 落盘）。
+  emu_probe 不产出截图；执行者按当次时间戳另存，不复用旧图。
+- 回执 ≤5 行，固定顺序：① 状态（`真机: PASS` / `真机: BLOCKED`）② 命令 + exit code ③ `PASS|FAIL <id> <name>` ④ 证据路径 ⑤ 无证据就写「无证据」，不编。
+- 无手机工具 / 无 `/sdcard`：不阻断，注明「真机项改由用户/A 执行」，按实现确认工具不截屏后照样完成本口径。
+
 ## 边界
 
 - 同一步最多重试 1 次；仍失败即停手回 B，不自行改代码 / 不改存档 / 不 commit / 不 push。

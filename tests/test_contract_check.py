@@ -109,6 +109,13 @@ def edit_json(path, mutate):
         json.dump(data, f, ensure_ascii=False)
 
 
+def to_claimed(d):
+    """accepted → claimed（去掉 accepted 记录与 commit，保留 base/claimedAt/session）。"""
+    d["state"] = "claimed"
+    d.pop("accepted", None)
+    d.pop("commit", None)
+
+
 CASES = []
 
 
@@ -191,6 +198,26 @@ def case_result_too_long(tmp):
           "\n".join(f"行 {i}" for i in range(11)) + "\n")
     rc, out = check(repo, contract, status)
     return rc != 0 and "result" in out, out
+
+
+@case
+def case_claimed_missing_cost_before(tmp):
+    """claimed 缺 .pilot/<id>/cost-before.json → 只警告（C4 批），exit 0，提示 C5 起阻断。"""
+    repo, contract, status, _, _ = make_repo(tmp)
+    edit_json(status, to_claimed)
+    rc, out = check(repo, contract, status)
+    return rc == 0 and "cost-before" in out and "C5 起阻断" in out, out
+
+
+@case
+def case_claimed_with_cost_before(tmp):
+    """claimed 已有开工前基线 → 无 cost-before 警告，仍 exit 0。"""
+    repo, contract, status, _, _ = make_repo(tmp)
+    edit_json(status, to_claimed)
+    write(os.path.join(repo, ".pilot", "C1", "cost-before.json"),
+          json.dumps({"windowTotal": 100, "batches": 1, "baselinePerBatch": 100, "threshold": 85}))
+    rc, out = check(repo, contract, status)
+    return rc == 0 and "cost-before" not in out, out
 
 
 def main():

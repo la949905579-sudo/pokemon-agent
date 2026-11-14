@@ -7,6 +7,7 @@
 
 校验项：必填标题 / 合同 ≤60 行 / status 字段与状态机 / base 是合法提交 /
 attempts（有则须 ≥1 整数；accepted 缺省给警告，兼容 C1/C2 样本）/
+claimed 缺 `.pilot/<id>/cost-before.json` 记警告（A open 后应落基线；**C5 起改阻断**）/
 result.md ≤10 行 / cost.json（存在时字段须齐）/ accepted 时 BATCHES 含「合同:<id>」
 且 base..commit 改动落在合同「写入范围」（豁免 .pilot/**）。
 退出码：0 全部通过；1 有阻断；2 用法错误。
@@ -145,6 +146,13 @@ def main(argv=None):
             errs.append(f"status.attempts 非法：{att!r}（须为 ≥1 的整数）")
     elif state == "accepted":
         warns.append("status 缺 attempts（按 1 计；C1/C2 样本兼容，不阻断）")
+    if state == "claimed":
+        # 合同 C4 §6②：claimed 态缺开工前成本基线 → 警告；TEAM §三·十二 注明 C5 起改阻断。
+        before_path = os.path.join(os.path.dirname(a.status), "cost-before.json")
+        if not os.path.isfile(before_path):
+            warns.append(
+                "claimed 缺 cost-before.json（A open 后应跑 `python3 tools/cost_snapshot.py --before %s`；"
+                "C4 批仅警告，C5 起阻断）" % cid)
     if state in ("green", "blocked", "accepted"):
         commit = st.get("commit")
         if not commit:

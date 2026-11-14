@@ -3,8 +3,8 @@
 > 由 `tools/metrics.py` 生成，**不要手改**。重新生成：`python3 tools/metrics.py`。
 > 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。
 
-- 生成时间：2026-11-14 08:09（Asia/Shanghai）
-- 生成时 HEAD：`192fd66`（之后若有新提交属正常）
+- 生成时间：2026-11-14 11:37（Asia/Shanghai）
+- 生成时 HEAD：`d3baeab`（之后若有新提交属正常）
 - 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`
 
 ## 〇、度量总表（A-21 8 项 + 合同制 2 项）
@@ -14,16 +14,16 @@
 
 | # | 指标 | 值 | 类型 | 阈值 → 动作 | 判定 |
 |---|---|---|---|---|---|
-| 1 | docs 提交占比 | 48/66 = 72.7% | 自动 | >50% → 复盘 | 红（复盘） |
+| 1 | docs 提交占比 | 49/70 = 70.0% | 自动 | >50% → 复盘 | 红（复盘） |
 | 2 | CI 首过率 | 118/145 = 81.4% | 自动 | <70% → T4 | 绿 |
-| 3 | 打回率 | 0/7 = 0.0% | 自动 | >30% → T4 | 绿 |
+| 3 | 打回率 | 0/8 = 0.0% | 自动 | >30% → T4 | 绿 |
 | 4 | 窗口内新增复发数 | 0（窗口起点 2026-11-13；累计 1 仅展示） | 自动 | >0 → T4 硬触发 | 绿 |
 | 5 | 交接触发次数 | 无数据（人工统计：HANDOFF/巡检记录） | 人工 | >2/窗口 → 复盘 | 无数据 |
-| 6 | 空回复次数 | 空回合 1 次（有数据会话 11） | 自动 | ≥1 告警；连续 2 次 → 交接 | 黄（告警） |
+| 6 | 空回复次数 | 空回合 2 次（有数据会话 13） | 自动 | ≥1 告警；连续 2 次 → 交接 | 黄（告警） |
 | 7 | 转达失真次数 | 无数据 | 人工 | >0 → 复盘 | 无数据 |
 | 8 | 超线会话数 | 1/22（基线 2026-11-13 12:15（Asia/Shanghai）） | 自动 | >0 → 告警 | 黄（告警） |
-| 9 | 合同一次通过率 | 首轮通过 2/2 = 100.0%（分母=accepted 合同） | 自动 | <70% → 复盘 | 绿 |
-| 10 | 每合同成本 | 无数据（accepted 合同无 `.pilot/*/cost.json`） | 自动 | >基线×0.85 或 >30M/批 → 复盘 | 无数据 |
+| 9 | 合同一次通过率 | 首轮通过 3/3 = 100.0%（分母=accepted 合同） | 自动 | <70% → 复盘 | 绿 |
+| 10 | 每合同成本 | accepted 合同均值 15.0M/批；超阈值 0/1 | 自动 | >基线×0.85 或 >30M/批 → 复盘 | 绿 |
 
 > 度量齐全：10 行（8 项权威 + 2 项合同制附加）；数据源见各节（CI/BATCHES/INCIDENTS/session_health/token_baseline/.pilot）。
 
@@ -72,7 +72,7 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 
 ## 三、构建覆盖缺口（tag 之后未构建的提交）
 
-最后一个 build tag 之后还有 **5** 个提交未构建：
+最后一个 build tag 之后还有 **9** 个提交未构建：
 
 | 提交 | 时间 | 说明 | 触及 `native-emu/**` |
 |---|---|---|---|
@@ -81,6 +81,10 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 | `2f258b0` | 2026-11-14 06:17 | tools(合同制): contract_check 校验器 + 离线测试 + write_scopes(proxy/c | 否 |
 | `77b8f57` | 2026-11-14 07:34 | docs(收尾): HANDOFF/METRICS/ACTIONS 回填 + 合同制小补 | 否 |
 | `192fd66` | 2026-11-14 08:08 | docs(合同制v1.1): 承包商改名 + 常驻列 + §三·十 v1.1 + 阈值/角色卡/合同盒固化 | 否 |
+| `f216153` | 2026-11-14 08:09 | tools(合同制v1.1): METRICS 增 #9/#10 + attempts/cost 校验 + 合同运行态门 | 否 |
+| `004b2c2` | 2026-11-14 08:42 | docs(简化流程v1.2): TEAM §三·十一 + HANDOVER 交接跑 batch_facts + cont | 否 |
+| `916fb2d` | 2026-11-14 08:42 | tools(简化流程v1.2): batch_facts/batch_close + 离线测试 9 例 + test_r | 否 |
+| `d3baeab` | 2026-11-14 09:07 | C3(治理批v1.3): 真机执行角色 + emu_probe + cost_snapshot + token 预算规则 | 否 |
 
 **构建覆盖完整**：未构建的提交都不触及 `native-emu/**`，不影响 APK。
 
@@ -99,15 +103,15 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 > （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，
 > 因此入库保留、便于跨会话核对；不是脚本自动生成。
 
-- 更新时间：2026-11-14 07:50
+- 更新时间：2026-11-14 11:36
 
 | 测试 | 数量 | 结果 | 时间 | 命令 |
 |---|---|---|---|---|
 | Kotlin 单测 | 115 | PASS（0 failure / 0 error） | 2026-11-14 05:5x | `GitHub Actions run 43458997942 → gradle :app:testDebugUnitTest :app:assembleDebug（master，C2 推送）` |
-| Python 离线测试 | 31 | PASS（31/31） | 2026-11-14 07:50 | `python3 run_tests.py` |
+| Python 离线测试 | 35 | PASS（35/35） | 2026-11-14 11:36 | `python3 run_tests.py` |
 
 - Kotlin：CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。
-- Python：本批助理实跑 31/31（文件数不变）：C1 迁入 29 + tests/test_moves_232.py + tests/test_contract_check.py（9 例：原 7 + attempts 非法 / cost.json 缺字段 2 例）；离线自足（tempfile 假仓库）。
+- Python：C4 新增 contract_close 测试文件（4 例）+ cost_snapshot --before（5 例）/ contract_check claimed cost-before 警告（2 例）；本批实跑 35/35（= tests/ 下 test_*.py 文件数）。
 
 > 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。
 

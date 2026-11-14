@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 09:01",
+  "updated": "2026-11-14 11:36",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -8,10 +8,10 @@
     "note": "CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。"
   },
   "python": {
-    "tests": 34,
-    "result": "PASS（34/34）",
-    "at": "2026-11-14 09:01",
+    "tests": 35,
+    "result": "PASS（35/35）",
+    "at": "2026-11-14 11:36",
     "command": "python3 run_tests.py",
-    "note": "C3 新增 emu_probe/cost_snapshot 离线用例：本批实跑 34/34（= tests/ 下 test_*.py 文件数）。"
+    "note": "C4 新增 contract_close 测试文件（4 例）+ cost_snapshot --before（5 例）/ contract_check claimed cost-before 警告（2 例）；本批实跑 35/35（= tests/ 下 test_*.py 文件数）。"
   }
 }

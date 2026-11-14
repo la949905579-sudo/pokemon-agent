@@ -165,6 +165,10 @@
 - **真机取证**：交「**真机执行**」（`device`，fresh 会话，只跑 `python3 tools/emu_probe.py --check-move <id> [--expect-name <名>]`）；回执 ≤5 行 + ≤2 条证据路径；截图约定 `/sdcard/Download/DSH-Go/probe-<id>-<ts>.jpg`。
 - **每合同成本**：`python3 tools/cost_snapshot.py --contract <id>`（读 `tools/token_report.mjs --json`）生成 `.pilot/<id>/cost.json`（`windowTotal` / `baselinePerBatch` / `delta` / `perBatch` / `threshold` + `byRole`）；**accepted 后取**，无快照按「无数据」。
 - **成本判据不变**：每批增量 ≤ 基线×0.85 **且** ≤30M/批；基线取 `.pilot/cost-before.json` 的 `pilotBaseline`。
+- **开工前成本基线（C4 起）**：A open 后立即跑 `python3 tools/cost_snapshot.py --before <id>` 落 `.pilot/<id>/cost-before.json`（`windowTotal` / `batches` / `baselinePerBatch` / `threshold`）；claimed 态缺该文件 `contract_check` 记**警告**，**C5 起改阻断**。
+- **收尾自动化**：A 置 accepted 后跑 `python3 tools/contract_close.py <id>`，输出 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示 + cost 摘要（只打印，不改台账，风格同 `batch_close`）。
+- **真机项默认交 realdevice**：真机项默认交「真机执行」（实例 `device`）按合同 §7.3 跑，A/B 只记结果与证据路径、不代跑；无手机工具时回执注明改由用户/A 执行，不阻断。
+- **承包商启动提示词**：A open 后同步产出启动提示词（骨架见 `docs/contracts/CONTRACT-TEMPLATE.md` §12），B 按提示词自启动，减少转达失真。
 
 ## 四、审查（B 队执行，A 队只读）
 

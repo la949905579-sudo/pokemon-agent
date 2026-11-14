@@ -90,7 +90,7 @@
 | 1 | `git status` 干净 | ✅ 本批提交后为空 |
 | 2 | 提交已推送 | ✅ 本批 1 条已 push origin/master（2026-11-14 考官「可推送」后）；推送前 `origin/master` = `2f258b0` |
 | 3 | CI 绿 | ✅ 最近 master run `43458997942` success；Release `build-f4e8bf9` |
-| 4 | `run_tests.py` | ✅ python 31/31；Kotlin 115（`tools/test_results.json`，CI 覆盖） |
+| 4 | `run_tests.py` | ✅ python 35/35（C4 实跑）；Kotlin 115（`tools/test_results.json`，CI 覆盖） |
 | 5 | TODO/CHANGELOG 与代码同步 | ⚠ 部分：TODO 名表条仍成立；C1/C2 无行为级 CHANGELOG 条目（C1 纯测试迁移、C2 数据补条），待督导定是否补记 |
 | 6 | `gen_files_index.py` 重生成 + `--check` | ✅ 重生成后 `--check` = 0（本批执行） |
 | 7 | 本文件更新 | ✅ 本批（按 `HANDOVER` §三 模板重写） |
@@ -118,3 +118,11 @@ python3 tools/gen_files_index.py --check   # 期望 0
 ## 旧路径豁免清单（grep 口径，B 队已确认）
 
 (a) `docs/history/` 内正文；(b) `git show <旧提交>:<旧路径>` 历史引用；(c) `docs/org/PLAN-*` 等已定稿旧记录；(d) 历史台账正文不回改（`AUDIT_LOG` 3 处、`REPORT-20261112` 1 处）。工作树**活体**文档/工具/脚本旧路径 = 0。
+
+## C4 治理批收尾（2026-11-14，v1.4）
+
+- **合同**：`docs/contracts/C4-closeout-v14.md`（治理批；单提交，提交号见 `git log -1`；未 push，等考官「可发布」后由 B push）。
+- **本批产物**：`tools/cost_snapshot.py --before`（开工前基线 `.pilot/<id>/cost-before.json`：windowTotal / batches / baselinePerBatch / threshold）；新 `tools/contract_close.py <id>`（accepted 后打印 BATCHES 追记 / HANDOFF 摘要 / METRICS 重生成提示 / cost 摘要，不写台账）；`contract_check` claimed 缺 cost-before 警告（C5 起阻断）；TEAM §三·十二 增 4 条规则；CONTRACT-TEMPLATE §12 启动提示词骨架。
+- **真机（realdevice）**：`python3 tools/emu_probe.py --check-move 232 --expect-name 金属爪` → `PASS 232 金属爪`；截图 `/sdcard/Download/DSH-Go/probe-232-20261114-1130.jpg`（emu_probe 只读不截屏，由执行者截）。
+- **门禁**：`contract_check` / `batch_facts` / `batch_close --dry-run` / `run_tests.py` / `gen_files_index.py --check` / `metrics.py --check` 全过（数字以 `tools/test_results.json` 为准，不写死）。
+- **下一步计划：C5 旧方案归档**——停用旧主流程、旧职位引用清理、全局 `~/.dsh/AGENTS.md` 同步、审计/督导归属待用户拍板。
