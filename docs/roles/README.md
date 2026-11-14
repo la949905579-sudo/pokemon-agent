@@ -9,7 +9,7 @@
 | A 队 | **工匠** | `artisan` | `docs/roles/a/artisan.md` |
 | A 队 | **考官** | `examiner` | `docs/roles/a/examiner.md` |
 | A 队 | **代理人** | `proxy` | `docs/roles/a/proxy.md` |
-| A 队 | **承包主持** | `contractor` | `docs/roles/a/contractor.md` |
+| A 队 | **承包商** | `contractor` | `docs/roles/a/contractor.md` |
 | B 队 | **独立督导** | `audit-lead` | `docs/roles/b/audit-lead.md` |
 | B 队 | **审查员** | `auditor` | `docs/roles/b/auditor.md` |
 | B 队 | **成本管理员** | `audit-cost` | `docs/roles/b/audit-cost.md` |

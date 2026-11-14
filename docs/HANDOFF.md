@@ -24,7 +24,7 @@
 | 批次 | 提交 | 状态 |
 |---|---|---|
 | 合同制试点（C1/C2） | 试点落盘 `585918c`；C1 `c7538bb`；C2 `f4e8bf9` | 两合同 **accepted**；C1 离线测试 29/29；C2 三源一致 + CI `43458997942` + 真机证据；成本见「成本口径」 |
-| 补账 + 合同制转常设 | `a17a1de`（补账 docs）、`809edfc`（转常设 docs）、`2f258b0`（tools） | 考官复核通过、已在 origin/master（`2f258b0`）；`BATCHES`/测试台账/FILES 已同步；`contract_check.py` + 7 例离线测试 |
+| 补账 + 合同制转常设 | `a17a1de`（补账 docs）、`809edfc`（转常设 docs）、`2f258b0`（tools） | 考官复核通过、已在 origin/master（`2f258b0`）；`BATCHES`/测试台账/FILES 已同步；`contract_check.py` + 9 例离线测试 |
 | 本批（收尾 docs） | 本条（`git log -1` 可查） | 可推送（2026-11-14 复核，0 阻断）；本批 docs=1；授权留痕见 `docs/BATCHES.md` |
 
 ## 已完成（累积；除本批外全部已在 origin/master）

@@ -37,6 +37,10 @@
 | | 任务完成 | 关闭（不常驻） |
 | **分工 / 结构规划员** | 单件 > 10 轮；或完成 | 关闭 |
 | **策略顾问** | 单次 > 10 轮；或完成 | 关闭 |
+| **代理人**（合同制 A） | 轮次 > 50；或上下文压缩 ≥ 1 | 交接 |
+| | 完成合同段 | 关闭（合同段结束即关） |
+| **承包商**（合同制 B） | 每合同新开；同合同段复用 > 3 合同或 > 30 轮 | 轮换（新开） |
+| | accepted 且已推送 | 关闭 |
 
 > 用户可推翻任何一条：可以要求提前交接，也可以要求「这次不换」。
 
@@ -49,7 +53,7 @@
 5. `docs/NATIVE_EMU_TODO.md` / `docs/history/CHANGELOG.md` 与代码同步
 6. `python3 tools/gen_files_index.py` 重生成，`--check` 返回 0
 7. `docs/HANDOFF.md` 更新：当前状态、阻塞、下一步、**不要做什么**
-8. 没有未结束的后台任务（job）或未完成的子代理（合同制 watcher 属运行时、不算未结束 job；交接前须 kill，并在 `HANDOFF` 写「watcher 已 kill / 接管命令」）
+8. 没有未结束的后台任务（job）或未完成的子代理（承包商 watcher 属运行时、不算未结束 job；交接前须 kill，并在 `HANDOFF` 写「watcher 已 kill / 接管命令」）
 9. `tools/precommit_check.sh --push` 通过（远端未被 amend 改写、待推提交非空、提交信息非空）
 10. 若有 Kotlin UI 改动：`python3 tools/check_ui_state.py` 无「只写不读」状态（INC-006）
 11. 机械闸门已装：`ls .git/hooks/pre-commit .git/hooks/pre-push` 两个都在

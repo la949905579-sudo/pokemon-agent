@@ -1,7 +1,7 @@
 # 合同制试点操作手册（PILOT）
 
 > 归属：A 队 ｜ 生命周期：活（试点期） ｜ 维护者：助理
-> 试点：2026-11-13 用户确认（A=代理人 / B=承包主持，2 个合同 C1/C2）；授权范围见 `docs/BATCHES.md` 试点落盘行。
+> 试点：2026-11-13 用户确认（A=代理人 / B=承包商，2 个合同 C1/C2）；授权范围见 `docs/BATCHES.md` 试点落盘行。
 > 本文件自包含：重建 A/B 会话时复制对应口令即可，不必再读长文档。
 > **2026-11-14 已转常设**：现行规则见 `docs/TEAM.md` §三·十；本文件保留试点记录（C1/C2 已 accepted）。
 
@@ -21,10 +21,10 @@
 产出：≤10 行回执（首行 session id、状态、提交号、门禁、风险、待确认）；不派活、不改合同、不碰实现。
 ```
 
-## 三、B 口令（承包主持，复制即用）
+## 三、B 口令（承包商，复制即用）
 
 ```text
-你是 B（承包主持）。先读 docs/contracts/PILOT.md、docs/contracts/C1-tests-consolidation.md、docs/TEAM.md。
+你是 B（承包商）。先读 docs/contracts/PILOT.md、docs/contracts/C1-tests-consolidation.md、docs/TEAM.md。
 按合同执行 C1：开工前把 git rev-parse HEAD 写入 .pilot/C1/status.json 的 base 字段；spawn 助理（只做机械门禁 + 提交，不 push）与工匠（只改写入范围）；每批叫考官复核，考官「可发布」后才推送。
 回执写 .pilot/C1/result.md，≤10 行，首行 session: <id> ｜ 状态: green|blocked；写提交号、产物路径、门禁、判断项依据、风险、待确认。
 C1 收尾后：若 .pilot/C2/inbox.ready 不存在，挂后台 job 等唤醒——

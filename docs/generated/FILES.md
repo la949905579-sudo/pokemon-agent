@@ -195,7 +195,7 @@
 | `docs/roles/README.md` | docs/roles/ 角色卡索引 | 保留 |
 | `docs/roles/a/artisan.md` | 工匠（artisan）启动提示词 | 保留 |
 | `docs/roles/a/assistant.md` | 助理（assistant）启动提示词 | 保留 |
-| `docs/roles/a/contractor.md` | 承包主持（contractor）启动提示词 | 保留 |
+| `docs/roles/a/contractor.md` | 承包商（contractor）启动提示词 | 保留 |
 | `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
 | `docs/roles/a/proxy.md` | 代理人（proxy）启动提示词 | 保留 |
 | `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
