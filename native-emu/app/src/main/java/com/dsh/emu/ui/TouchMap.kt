@@ -63,6 +63,16 @@ internal object TouchMap {
     /** 对话/文本框区域：屏幕下半部（点=推进一句）。 */
     val DIALOG_ZONE = Zone(0, 104, GAME_W, GAME_H)
 
+    /**
+     * 战斗子菜单（背包 / 队伍）底部「合上背包 / 选择宝可梦或取消」条：
+     * 横屏没有 B 键，点这条 = 取消（按 B），避免被困在子菜单里。
+     * 实测：背包底条从 y≈111 起、队伍底条从 y≈121 起，取 y≥120 覆盖两者。
+     */
+    val SUBMENU_CANCEL_ZONE = Zone(0, 120, GAME_W, GAME_H)
+
+    /** 是否点在战斗子菜单底部取消条上。 */
+    fun isSubmenuCancelTap(x: Int, y: Int): Boolean = SUBMENU_CANCEL_ZONE.hit(x, y)
+
     /** 视图像素 → 游戏像素；落在游戏画面外（黑边）返回 null。 */
     fun viewToGame(
         viewW: Int, viewH: Int, x: Float, y: Float,

@@ -12,8 +12,10 @@ import com.dsh.emu.game.MoveCaster
  * 横屏点击 → 游戏输入（触屏所见即所得）。
  *
  * 场景判定由 [GameState.scene] 给出，动作分派：
- * - `battle_moves`：点 2×2 招式格 → [BattleMoveAction.cast]（自带逐格回读 + 二次确认）；
- * - `battle_main`：点「战斗」→ 回读主菜单光标、逐格挪到 0 → 按 A，回读确认进入招式菜单；
+ * - `battle_moves`：MAIN_CURSOR==0 时点 2×2 招式格 → [BattleMoveAction.cast]（自带逐格回读）；
+ *   MAIN_CURSOR==1/2（背包/队伍子菜单）时点底部「取消/合上」条 → 按 B 退出；
+ * - `battle_main`：点「战斗 / 背包 / 宝可梦 / 逃跑」→ 回读主菜单光标、逐格挪到目标 → 二次确认
+ *   → 按 A → 按项回读验证（战斗/背包/宝可梦看 TURN_FLAG+MAIN_CURSOR，逃跑看战斗结束/回主菜单）；
  * - `battle_intro` / `battle_end`：点任意处 = 短按 A 推进文字；
  * - `map`：对话框打开 → 先看是不是标准「是/否」框（[MenuState]）：点在某个选项行上就
  *   回读光标、逐行挪到目标再按 A（fail-closed）；不是/不匹配 → 点下方对话区按 A 推进；
@@ -47,19 +49,27 @@ internal object Wysiwyg {
         val scene = GameState.scene()
         when (scene) {
             "battle_moves" -> {
-                val idx = TouchMap.moveIndexAt(gx, gy)
-                Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "move" to (idx ?: -1))
-                if (idx != null) BattleMoveAction.cast(activity, idx)
+                // TURN_FLAG==2 同时覆盖「招式菜单」和「背包/队伍子菜单」，用 MAIN_CURSOR 区分。
+                val main = BattleMoveMenu.readMainCursor()
+                if (main == 0) {
+                    val idx = TouchMap.moveIndexAt(gx, gy)
+                    Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "move" to (idx ?: -1))
+                    if (idx != null) BattleMoveAction.cast(activity, idx)
+                } else if (main == 1 || main == 2) {
+                    val cancel = TouchMap.isSubmenuCancelTap(gx, gy)
+                    Nlog.info(
+                        "wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy,
+                        "submenu" to (if (main == 1) "bag" else "party"), "cancel" to cancel,
+                    )
+                    if (cancel) cancelSubmenu(activity) else activity.statusText.value = "点底部「取消」返回"
+                } else {
+                    Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "main" to main, "action" to "ignore")
+                }
             }
             "battle_main" -> {
                 val idx = TouchMap.mainMenuIndexAt(gx, gy)
                 Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "menu" to (idx ?: -1))
-                when (idx) {
-                    0 -> openMoveMenu(activity)
-                    1, 2, 3 -> activity.statusText.value =
-                        "横屏暂不支持「${TouchMap.MAIN_NAMES[idx]}」，请竖屏"
-                    else -> {}
-                }
+                if (idx != null) battleMainAction(activity, idx)
             }
             "battle_intro", "battle_end" -> {
                 Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "action" to "advance")
@@ -97,10 +107,12 @@ internal object Wysiwyg {
     // ---------- 战斗 ----------
 
     /**
-     * 点「战斗」：回读主菜单光标 → 逐格挪到 0（每步回读）→ 按 A → 回读 TURN_FLAG==2。
-     * 任何一步回读失败都停，不补按。
+     * 战斗主菜单点选（0=战斗 1=背包 2=宝可梦 3=逃跑）：
+     * 回读 MAIN_CURSOR → 逐格挪到目标（每步回读）→ 二次确认 → 按 A → 按目标回读验证。
+     * 战斗/背包/宝可梦要求 TURN_FLAG==2 且 MAIN_CURSOR==目标；逃跑只要求战斗结束或已尝试（
+     * 逃跑失败是正常结果，不当作失败重试）。
      */
-    private fun openMoveMenu(activity: MainActivity) {
+    private fun battleMainAction(activity: MainActivity, target: Int) {
         if (!beginBusy()) return
         Thread {
             try {
@@ -114,8 +126,8 @@ internal object Wysiwyg {
                     return@Thread
                 }
                 var steps = 0
-                while (cur != 0 && steps < MAX_STEPS) {
-                    val dir = MoveCaster.nextDirection(cur, 0) ?: break
+                while (cur != target && steps < MAX_STEPS) {
+                    val dir = MoveCaster.nextDirection(cur, target) ?: break
                     pressDir(dir, STEP_MS)
                     sleep(SETTLE_MS)
                     val next = BattleMoveMenu.readMainCursor()
@@ -126,30 +138,81 @@ internal object Wysiwyg {
                     cur = next
                     steps++
                 }
-                if (cur != 0) {
+                if (cur != target) {
+                    Nlog.warn(
+                        "wysiwyg.battlemenu", "ok" to false, "reason" to "cursor",
+                        "target" to target, "cursor" to cur, "steps" to steps,
+                    )
                     hint(activity, "光标没到位")
                     return@Thread
                 }
                 sleep(120)
-                if (BattleMoveMenu.readMainCursor() != 0) {
+                if (BattleMoveMenu.readMainCursor() != target ||
+                    GameState.turnFlag() != TURN_MAIN_MENU
+                ) {
                     hint(activity, "光标没到位")
                     return@Thread
                 }
                 EmuCore.setKeys(EmuCore.KEY_A)
                 sleep(A_MS)
                 EmuCore.setKeys(0)
+                val ok = verifyBattleMenu(target)
+                Nlog.info(
+                    "wysiwyg.battlemenu", "ok" to ok, "target" to target, "cursor" to cur,
+                    "steps" to steps, "turn" to GameState.turnFlag(),
+                    "main" to BattleMoveMenu.readMainCursor(),
+                    "battle" to (if (GameState.inBattle()) 1 else 0),
+                )
+                if (!ok) hint(activity, "菜单没打开")
+            } catch (e: Exception) {
+                Nlog.error("wysiwyg.battlemenu", "err" to e.javaClass.simpleName)
+            } finally {
+                EmuCore.setKeys(0)
+                endBusy()
+            }
+        }.apply { isDaemon = true }.start()
+    }
+
+    /** 按目标项回读验证：0~2 要 TURN_FLAG==2 且 MAIN_CURSOR==目标；3（逃跑）见函数内说明。 */
+    private fun verifyBattleMenu(target: Int): Boolean {
+        if (target == 3) {
+            // 逃跑：成功 → 战斗结束；失败 → "无法逃跑" 过场后回主菜单。都算「已处理」，不重试。
+            repeat(20) {
+                if (!GameState.inBattle()) return true
+                sleep(150L)
+            }
+            return GameState.turnFlag() == TURN_MAIN_MENU
+        }
+        repeat(VERIFY_TIMES) {
+            sleep(VERIFY_MS)
+            if (GameState.turnFlag() == TURN_MOVES_MENU && BattleMoveMenu.readMainCursor() == target) return true
+        }
+        return false
+    }
+
+    /** 背包/队伍子菜单：点底部「取消/合上」条 → 按 B 返回主菜单，回读确认已退出。 */
+    private fun cancelSubmenu(activity: MainActivity) {
+        if (!beginBusy()) return
+        Thread {
+            try {
+                EmuCore.setKeys(EmuCore.KEY_B)
+                sleep(A_MS)
+                EmuCore.setKeys(0)
                 var ok = false
                 for (i in 0 until VERIFY_TIMES) {
-                    if (GameState.turnFlag() == TURN_MOVES_MENU) { ok = true; break }
                     sleep(VERIFY_MS)
+                    if (GameState.turnFlag() == TURN_MAIN_MENU) {
+                        ok = true
+                        break
+                    }
                 }
                 Nlog.info(
-                    "wysiwyg.fight", "ok" to ok, "cursor" to cur, "steps" to steps,
-                    "turn" to GameState.turnFlag(),
+                    "wysiwyg.submenu", "ok" to ok, "turn" to GameState.turnFlag(),
+                    "main" to BattleMoveMenu.readMainCursor(),
                 )
-                if (!ok) hint(activity, "没打开招式菜单")
+                if (!ok) hint(activity, "没返回战斗菜单")
             } catch (e: Exception) {
-                Nlog.error("wysiwyg.fight", "err" to e.javaClass.simpleName)
+                Nlog.error("wysiwyg.submenu", "err" to e.javaClass.simpleName)
             } finally {
                 EmuCore.setKeys(0)
                 endBusy()

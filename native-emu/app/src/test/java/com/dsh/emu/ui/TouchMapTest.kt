@@ -111,6 +111,14 @@ class TouchMapTest {
         assertFalse(TouchMap.isDialogTap(120, 60))
     }
 
+    @Test
+    fun submenuCancelTap_bottomStrip() {
+        assertTrue(TouchMap.isSubmenuCancelTap(120, 130))
+        assertTrue(TouchMap.isSubmenuCancelTap(30, 120))
+        assertFalse(TouchMap.isSubmenuCancelTap(120, 119))
+        assertFalse(TouchMap.isSubmenuCancelTap(120, 60))
+    }
+
     // ---------- 地图目标格 ----------
 
     @Test
