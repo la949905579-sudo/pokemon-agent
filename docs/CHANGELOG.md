@@ -2,6 +2,13 @@
 
 > 版本规则：功能批一个条目；只记行为/接口变化。旧历史见 `docs/archive/2026-11/history/CHANGELOG.md`。
 
+## 2026-11-15 横屏 WYSIWYG 补完（功能）
+- 对话/战斗「是/否」选项可点选：读 `sMenu` 光标/选项数 + `gWindows` 窗口几何（实测地址），点行 → 回读光标逐行挪到目标 → 二次确认 → 按 A；读不到/光标不到位只提示、不按 A。非标准（3+ 选项/其它布局）选项框不按 A，避免默认确认。
+- 战斗主菜单「背包 / 宝可梦 / 逃跑」点选：`E83!=0` 才算真主菜单（`E83=0` 是战斗内是/否选项框）；回读 `MAIN_CURSOR` 逐格挪位 + 按 A + 按项回读 `TURN_FLAG/MAIN_CURSOR`（逃跑看战斗结束/过场）。
+- 背包/队伍子菜单点底部条 = 按 B 退出（取消条分区：背包 y≥114、队伍 y≥121），避免横屏被困；`Wysiwyg` 增加取消代际（离开横屏/开设置面板停手）。
+- 新增 `game/MenuState.kt`、`Addresses.MENU_STATE/WINDOWS/BATTLE_MENU_FLAG`；单测 `MenuStateTest`/`GameStateTest`/`TouchMapTest` 覆盖。
+- 真机（`build-906d43a`）：对话选项 `wysiwyg.dialog ok=true target=1 cursor=1`；背包/宝可梦/逃跑 `wysiwyg.battlemenu ok=true target=1/2/3`；取消条 `wysiwyg.submenu ok=true kind=bag/party`；fresh 复核 2 轮。
+
 ## 2026-11-14 横屏纯画面 + 触屏所见即所得（功能）
 - 横屏：整屏铺满游戏画面、隐藏系统栏，只留一个半透明设置图标；点开为**覆盖层**设置面板（速度 / 自动战斗 / 载入 ROM / 更新 / 重置 / 退出）。竖屏保持原双屏 UI 不变。
 - 触屏映射（仅横屏，全部 fail-closed 回读）：点 2×2 招式实际位置施放（复用 `BattleMoveAction` 逐格回读 + 二次确认）；点「战斗」回读主菜单光标逐格挪位→按 A→回读 `TURN_FLAG==2`；对话/战斗文字点按=按 A 推进；点地图位置=同图 BFS 走过去（复用 `walkTo`，越界/无地图数据只提示不盲走）。背包/宝可梦/逃跑暂无可靠回读，点按提示「请竖屏」。
