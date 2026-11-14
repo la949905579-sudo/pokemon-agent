@@ -1,7 +1,7 @@
 # HANDOFF（换会话先读这个）
 
-- **状态**（2026-11-15 00:5x）：**模式已固化**（单会话 + 本地循环）；HEAD＝origin/master（最新**代码/发布**提交 `906d43a`，其后只有文档收口提交）；工作树空；未推送 0；无进行中任务。
-- **最新发布**：Release `build-906d43a…`（横屏纯画面 + WYSIWYG；含对话选项、战斗菜单背包/宝可梦/逃跑、子菜单取消条；已装机并真机验收）。
+- **状态**（2026-11-15 00:5x）：**模式已固化**（单会话 + 本地循环）；HEAD＝origin/master（最新**代码/发布**提交 `d67eab1`，其后只有文档收口提交）；工作树空；未推送 0；无进行中任务。
+- **最新发布**：Release `build-d67eab1…`（横屏纯画面 + WYSIWYG；含对话选项、战斗菜单背包/宝可梦/逃跑、子菜单取消条；已装机并真机验收；第二轮复核必修已修）。
 - **结构**：`native-emu/` = Android App（Kotlin + Compose + mGBA C/C++ 核心）；`pyplatform/` = Python 旧自动化（冻结）；数据 `games/pokemon_firered/{maps,battles,dialogs,data/moves.json}`；`tests/` = 31 个 Python 离线测试；入口 `run_tests.py`；`tools/` = `emu_probe.py` / `gen_moves_data.py`。
 - **构建/验证**：Kotlin 单测本机可跑（aapt2 走 qemu wrapper，命令见 `AGENTS.md`）；**APK/NDK 必须走 CI**（push 触发）；Python 旧层 `python3 run_tests.py`。
 - **规则/文档**：`AGENTS.md`（循环 / 验证 / 红线 / 交接）｜`docs/TASKS.md`（任务/验收）｜`docs/ARCH.md`（架构/语言）｜`docs/CHANGELOG.md`（每发布 3–5 行）；历史 `docs/archive/2026-11/`（只读）。
