@@ -1,6 +1,6 @@
 # HANDOFF（换会话先读这个）
 
-- **状态**（2026-11-15 03:3x，本轮收工）：**模式已固化**（单会话 + 本地循环）；HEAD＝origin/master（代码/发布提交 `d3f9fcb`，其后仅文档收口）；工作树空；未推送 0；无进行中任务；手机竖屏 App 运行中（新包 `build-d3f9fcb` 已装机、版本 0.2 (d3f9fcb)，App 已退出、手机回桌面（游戏未存盘，RAM 测试状态已随退出丢弃）），游戏已读回**存档槽 1**（地图 (36,21)、队伍 4 只）——槽 1/2/3 都是真机测试中读取过，未写槽文件。
+- **状态**（2026-11-15 04:1x，本轮收工）：**模式已固化**（单会话 + 本地循环）；HEAD＝origin/master（代码/发布提交 `d3f9fcb`，其后仅文档收口）；工作树干净；未推送 0；无进行中任务；新包 `build-d3f9fcb` 已装机（App 内版本 0.2 (d3f9fcb)），App 已退出、手机回桌面；存档槽 1/2/3 本轮真机测试只读取过、未写槽文件（RAM 里的测试道具状态已随退出丢弃，游戏内电池存档未动）。
 - **最新发布**：Release `build-d3f9fcb…`（横屏战斗背包/队伍子菜单点选 + >6 件道具滚动修复：翻口袋 / 道具行+取消行 / 滚动箭头 / 底部条按图标态区分 / 队伍大框+5 行 / 取消按钮；真机日志与截图见 TASKS done；fresh 复核 2 轮 4 必修已修；装包走 Via+本机 HTTP 兜底，App 内 OTA 下载仍失败）。
 - **结构**：`native-emu/` = Android App（Kotlin + Compose + mGBA C/C++ 核心）；`pyplatform/` = Python 旧自动化（冻结）；数据 `games/pokemon_firered/{maps,battles,dialogs,data/moves.json}`；`tests/` = 31 个 Python 离线测试；入口 `run_tests.py`；`tools/` = `emu_probe.py` / `gen_moves_data.py`。
 - **构建/验证**：Kotlin 单测本机可跑（aapt2 走 qemu wrapper，命令见 `AGENTS.md`）；**APK/NDK 必须走 CI**（push 触发）；Python 旧层 `python3 run_tests.py`。
