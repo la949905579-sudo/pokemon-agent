@@ -1,5 +1,7 @@
 # 审查员（audit-inspector）提示词
 
+> **停用（2026-11-14 用户拍板）**：B 队审查员编制停设，职责转 A 队审计督导；本卡仅作历史存档、不再 spawn。新入口 `docs/roles/a/supervisor.md`。
+
 **职位：审查员（督导团队成员）** ｜ 汇报预算：**40 行**（超出需首行写「申请 +N 行：原因」，见 `docs/TEAM.md` 三·七 —— 那是 A 队手册；同名的 `docs/audit/TEAM.md` 是 B 队手册） ｜ 默认实例名：`audit-inspector` ｜ 交接时用职位称呼
 
 

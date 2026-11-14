@@ -177,6 +177,7 @@
 | `docs/audit/REQUEST.md` | 审查请求 2026-11-12 | 保留 |
 | `docs/audit/TEAM.md` | 督导团队手册（B 队，独立于 A 队） | 保留 |
 | `docs/contracts/C1-tests-consolidation.md` | C1 测试收拢（tests/ 迁移） | 保留 |
+| `docs/contracts/C10-main-session-model.md` | C10v2 主会话模型落盘：A/B 双主会话 + 文件总线 + 编制条款（架构核对最终版） | 保留 |
 | `docs/contracts/C2-move-name-232.md` | C2 招式名表 232（功能型） | 保留 |
 | `docs/contracts/C3-token-optimization.md` | C3 流程优化 v1.3：真机执行 + 成本归因 + 等待/证据规范 | 保留 |
 | `docs/contracts/C4-closeout-v14.md` | C4 治理批 v1.4：收尾自动化 + 成本基线门禁 + 真机执行实战 | 保留 |
@@ -355,4 +356,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 291 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 292 个文件（不含 `native-emu/third_party/` 第三方源码）。

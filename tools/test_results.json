@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 14:57",
+  "updated": "2026-11-14 16:56",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -10,8 +10,8 @@
   "python": {
     "tests": 38,
     "result": "PASS（38/38）",
-    "at": "2026-11-14 14:57",
+    "at": "2026-11-14 16:56",
     "command": "python3 run_tests.py",
-    "note": "C9 遗留收口小批（新增 tests/test_metrics.py 4 例：数据源标签 / live / cache / 无缓存兜底）提交前实跑 38/38；全部离线（mock get_json + tempdir 假缓存，不联网）。"
+    "note": "C10 v2 主会话模型落盘（本批无 tests 改动）提交前实跑 38/38；全部离线。"
   }
 }
