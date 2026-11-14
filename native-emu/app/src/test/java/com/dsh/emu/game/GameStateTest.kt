@@ -244,4 +244,28 @@ class GameStateTest {
         Memo.reader = { _, n -> null }
         assertNull(GameState.coords())
     }
+
+    @Test
+    fun partyCount_countsValidLevels() {
+        // 6 个槽的等级：13 / 4 / 0 / 0 / 200(非法) / 0 → 2 只
+        put(Addresses.PARTY_ADDR + 0 * Addresses.PARTY_STRIDE + Addresses.PARTY_LV, 13)
+        put(Addresses.PARTY_ADDR + 1 * Addresses.PARTY_STRIDE + Addresses.PARTY_LV, 4)
+        put(Addresses.PARTY_ADDR + 4 * Addresses.PARTY_STRIDE + Addresses.PARTY_LV, 200)
+        assertEquals(2, GameState.partyCount())
+    }
+
+    @Test
+    fun partyCount_emptyAndFull() {
+        assertEquals(0, GameState.partyCount())
+        for (i in 0 until 6) {
+            put(Addresses.PARTY_ADDR + i * Addresses.PARTY_STRIDE + Addresses.PARTY_LV, 5 + i)
+        }
+        assertEquals(6, GameState.partyCount())
+    }
+
+    @Test
+    fun partyCount_unreadableReturnsMinusOne() {
+        Memo.reader = { _, _ -> null }
+        assertEquals(-1, GameState.partyCount())
+    }
 }

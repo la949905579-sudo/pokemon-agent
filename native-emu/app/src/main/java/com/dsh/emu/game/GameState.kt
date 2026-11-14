@@ -79,6 +79,17 @@ object GameState {
         return "map"
     }
 
+    /** 队伍数量（读 6 个槽的等级，1..100 视为有宝可梦）；读不到返回 -1。 */
+    fun partyCount(): Int {
+        var count = 0
+        for (i in 0 until 6) {
+            val lv = Memo.u8(Addresses.PARTY_ADDR + i * Addresses.PARTY_STRIDE + Addresses.PARTY_LV)
+            if (lv < 0) return -1
+            if (lv in 1..100) count++
+        }
+        return count
+    }
+
     /** 队伍（跳过空槽，等级 0 视为无效）。 */
     fun party(): List<PartyMon> {
         val buf = Memo.bytes(Addresses.PARTY_ADDR, Addresses.PARTY_STRIDE * 6) ?: return emptyList()

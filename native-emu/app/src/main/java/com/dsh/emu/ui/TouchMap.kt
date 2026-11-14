@@ -66,11 +66,59 @@ internal object TouchMap {
     /**
      * 战斗子菜单底部取消条（横屏没有 B 键，点这条 = 按 B 取消，避免被困在子菜单里）。
      * 分开标定，避免把背包列表 / 队伍格子的下半屏点击误当成取消：
-     * - 背包「合上背包」条：真机实测 y≥114；
-     * - 队伍「选择宝可梦或取消」条：真机实测 y≥121（队伍格最下沿到 117）。
+     * - 背包底部条（「合上背包」/道具说明）：真机实测 y≥114；窗口 win1=(5,14) 25×6 → y=112..160；
+     * - 队伍底部条（「取消」按钮 + 消息条）：取消按钮 win7=(24,17) 6×2 → x=192..240、y=136..152；
+     *   第 5 行格子到 y=127 为止，所以取消区从 136 起、不抢格子点击。
      */
     val BAG_CANCEL_ZONE = Zone(0, 114, GAME_W, GAME_H)
-    val PARTY_CANCEL_ZONE = Zone(0, 121, GAME_W, GAME_H)
+    val PARTY_CANCEL_ZONE = Zone(0, 136, GAME_W, GAME_H)
+
+    // ---------- 战斗背包（2026-11-15 真机标定） ----------
+
+    /** 背包翻页箭头 ◀/▶：真机截图量得中心 (8,72) / (72,72)，箭头 16×16。 */
+    val BAG_LEFT_ARROW_ZONE = Zone(0, 60, 22, 84)
+    val BAG_RIGHT_ARROW_ZONE = Zone(58, 60, 86, 84)
+
+    /**
+     * 道具列表窗口 win0=(11,1) 18×12：内区 x=88..232、y=8..104。
+     * 行高 = 字体最大高度 14 + itemVerticalPadding 2 = 16（list_menu.c）；一屏最多 6 行。
+     */
+    const val BAG_LIST_LEFT = 88
+    const val BAG_LIST_RIGHT = 232
+    const val BAG_ROW_TOP = 8
+    const val BAG_ROW_H = 16
+    const val BAG_MAX_ROWS = 6
+
+    /**
+     * 背包列表右侧滚动指示箭头（item_menu.c `CreatePocketScrollArrowPair`：中心 (160,8)/(160,104)、16×16）。
+     * 口袋超过 6 种道具时出现；游戏里只是指示器不是按钮，横屏里点它=把光标挪一格更直观。
+     */
+    val BAG_SCROLL_UP_ZONE = Zone(152, 0, 168, 16)
+    val BAG_SCROLL_DOWN_ZONE = Zone(152, 96, 168, 112)
+
+    /** 点击点 → 道具列表行号 0..5；不在列表窗口内 / 落在滚动箭头上返回 null（不选行、不按 A）。 */
+    fun bagRowAt(x: Int, y: Int): Int? {
+        if (x !in BAG_LIST_LEFT until BAG_LIST_RIGHT) return null
+        if (y !in BAG_ROW_TOP until BAG_ROW_TOP + BAG_ROW_H * BAG_MAX_ROWS) return null
+        if (BAG_SCROLL_UP_ZONE.hit(x, y) || BAG_SCROLL_DOWN_ZONE.hit(x, y)) return null
+        return (y - BAG_ROW_TOP) / BAG_ROW_H
+    }
+
+    // ---------- 战斗队伍（PARTY_LAYOUT_SINGLE，2026-11-15 真机标定） ----------
+
+    /**
+     * 队伍菜单：第 1 只独占左侧大框 win0=(1,3) 10×7 → x=8..88、y=24..80；
+     * 第 2..6 只各占右侧一行 win1..5=(12,1/4/7/10/13) 18×3 → x=96..240，行高 24。
+     */
+    val PARTY_SLOT0_ZONE = Zone(8, 24, 88, 80)
+    private val PARTY_ROW_ZONES = List(5) { i -> Zone(96, 8 + 24 * i, GAME_W, 8 + 24 * (i + 1)) }
+
+    /** 点击点 → 队伍槽位 0..5；不在任何格子内返回 null。 */
+    fun partySlotAt(x: Int, y: Int): Int? {
+        if (PARTY_SLOT0_ZONE.hit(x, y)) return 0
+        val row = PARTY_ROW_ZONES.indexOfFirst { it.hit(x, y) }
+        return if (row >= 0) row + 1 else null
+    }
 
     /**
      * 是否点在战斗子菜单底部取消条上。[menuMain] 是 MAIN_CURSOR（1=背包 2=队伍）；

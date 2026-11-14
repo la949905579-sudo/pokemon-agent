@@ -113,16 +113,84 @@ class TouchMapTest {
 
     @Test
     fun submenuCancelTap_bagAndPartySeparately() {
-        // 背包取消条 y≥114，队伍取消条 y≥121；避免把列表/格子点击误当取消
+        // 背包底部条 y≥114；队伍取消条从 y≥136 起（第 5 行格子到 127 为止，不能被抢走）
         assertTrue(TouchMap.isSubmenuCancelTap(1, 120, 130))
         assertTrue(TouchMap.isSubmenuCancelTap(1, 30, 114))
         assertFalse(TouchMap.isSubmenuCancelTap(1, 30, 113))
-        assertTrue(TouchMap.isSubmenuCancelTap(2, 120, 130))
-        assertTrue(TouchMap.isSubmenuCancelTap(2, 30, 121))
-        assertFalse(TouchMap.isSubmenuCancelTap(2, 30, 120))
+        assertTrue(TouchMap.isSubmenuCancelTap(2, 200, 140))
+        assertTrue(TouchMap.isSubmenuCancelTap(2, 30, 136))
+        assertFalse(TouchMap.isSubmenuCancelTap(2, 120, 130))   // 第 5 行格子区
+        assertFalse(TouchMap.isSubmenuCancelTap(2, 30, 135))
         // 非子菜单（0=招式菜单 / 3=逃跑 / 其他）不算取消
         assertFalse(TouchMap.isSubmenuCancelTap(0, 120, 130))
         assertFalse(TouchMap.isSubmenuCancelTap(3, 120, 130))
+    }
+
+    // ---------- 战斗背包热区（2026-11-15 真机标定） ----------
+
+    @Test
+    fun bagArrows_doNotOverlapListOrCancel() {
+        // ◀ 中心 (8,72)、▶ 中心 (72,72)，都在列表窗口 x≥88 之外、底部条 y≥114 之上
+        assertTrue(TouchMap.BAG_LEFT_ARROW_ZONE.hit(8, 72))
+        assertTrue(TouchMap.BAG_RIGHT_ARROW_ZONE.hit(72, 72))
+        assertNull(TouchMap.bagRowAt(8, 72))
+        assertNull(TouchMap.bagRowAt(72, 72))
+        assertFalse(TouchMap.BAG_LEFT_ARROW_ZONE.hit(120, 130))
+        assertFalse(TouchMap.BAG_RIGHT_ARROW_ZONE.hit(120, 130))
+    }
+
+    @Test
+    fun bagRowAt_sixRowsInListWindow() {
+        // win0 内区 x=88..232、y=8..104，行高 16
+        assertEquals(0, TouchMap.bagRowAt(120, 8))
+        assertEquals(0, TouchMap.bagRowAt(120, 23))
+        assertEquals(1, TouchMap.bagRowAt(120, 24))
+        assertEquals(2, TouchMap.bagRowAt(120, 40))
+        assertEquals(5, TouchMap.bagRowAt(120, 103))
+        assertNull(TouchMap.bagRowAt(120, 104))   // 窗口下沿
+        assertNull(TouchMap.bagRowAt(87, 20))     // 窗口左外侧（背包图案）
+        assertNull(TouchMap.bagRowAt(232, 20))    // 窗口右外侧
+        assertNull(TouchMap.bagRowAt(120, 105))   // 列表下沿与底部条(y>=114)之间
+        assertNull(TouchMap.bagRowAt(120, 113))
+    }
+
+    @Test
+    fun bagScrollArrows_excludedFromRows() {
+        // 滚动箭头中心 (160,8)/(160,104)，16×16：点它不选行（改由 scrollBag 挪一格），不能按 A
+        assertNull(TouchMap.bagRowAt(160, 12))
+        assertNull(TouchMap.bagRowAt(160, 100))
+        assertTrue(TouchMap.BAG_SCROLL_UP_ZONE.hit(160, 8))
+        assertTrue(TouchMap.BAG_SCROLL_DOWN_ZONE.hit(160, 104))
+        // 箭头左右两侧仍是正常行
+        assertEquals(0, TouchMap.bagRowAt(140, 12))
+        assertEquals(5, TouchMap.bagRowAt(140, 100))
+        assertFalse(TouchMap.BAG_SCROLL_UP_ZONE.hit(140, 12))
+    }
+
+    // ---------- 战斗队伍热区（PARTY_LAYOUT_SINGLE，2026-11-15 真机标定） ----------
+
+    @Test
+    fun partySlotAt_bigBoxAndFiveRows() {
+        // 第 1 只：左侧大框 x=8..88、y=24..80
+        assertEquals(0, TouchMap.partySlotAt(40, 50))
+        assertEquals(0, TouchMap.partySlotAt(8, 24))
+        assertNull(TouchMap.partySlotAt(40, 23))
+        // 第 2..6 只：右侧 5 行，x=96..240，行高 24
+        assertEquals(1, TouchMap.partySlotAt(150, 8))
+        assertEquals(1, TouchMap.partySlotAt(150, 31))
+        assertEquals(2, TouchMap.partySlotAt(150, 32))
+        assertEquals(5, TouchMap.partySlotAt(150, 120))
+        assertNull(TouchMap.partySlotAt(150, 128))   // 第 5 行下沿
+        assertNull(TouchMap.partySlotAt(95, 20))     // 两列之间的缝
+    }
+
+    @Test
+    fun partyCancelZone_doesNotStealLastRow() {
+        // 取消按钮 win7=(24,17) 6×2 → x=192..240、y=136..152；第 5 行格子到 127
+        assertTrue(TouchMap.PARTY_CANCEL_ZONE.hit(200, 140))
+        assertFalse(TouchMap.PARTY_CANCEL_ZONE.hit(200, 127))
+        assertEquals(5, TouchMap.partySlotAt(200, 127))
+        assertNull(TouchMap.partySlotAt(200, 136))
     }
 
     // ---------- 地图目标格 ----------

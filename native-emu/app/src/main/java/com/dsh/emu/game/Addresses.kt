@@ -14,9 +14,19 @@ object Addresses {
     // 才是真正的战斗菜单。少了这个判断会把选项框当主菜单按 A（默认确认）。
     const val BATTLE_MENU_FLAG = 0x02023E83
     const val PARTY_MENU_FLAG = 0x03000928
+    // 背包菜单状态（item_menu.c 的 gBagMenuState，EWRAM 全局；struct BagStruct 见 item_menu.h）。
+    // 2026-11-15 真机标定：+0 bagCallback(4) +4 location +5 bagOpen +6 pocket(u16)；
+    // +8/+10/+12 = 口袋 0/1/2 各自的「列表光标行号」（0=第一件道具，最后一行=「取消/合上背包」）。
+    // 注意上游 BagStruct 的字段名反直觉：真机里充当光标行的数组是声明成 itemsAbove 的那个；
+    // 上游声明在后面的 cursorPos（本机实测 +14 起）才是列表滚动偏移。改名前先看 item_menu.h 与本注释。
+    const val BAG_MENU_STATE = 0x0203ACFC
+    const val BAG_POCKET = BAG_MENU_STATE + 6        // 0x0203AD02：0=道具 1=重要道具 2=精灵球
+    const val BAG_CURSOR_BASE = BAG_MENU_STATE + 8   // 0x0203AD04：口袋 p 的光标 = BASE + 2*p
+    /** 旧地址（口袋 2 的光标）；仅为兼容 Python 旧层保留，Kotlin 侧用 [BAG_CURSOR_BASE]。 */
     const val BAG_CURSOR = 0x0203AD08
     const val MAIN_CURSOR = 0x02023FF8
     const val MOVE_CURSOR = 0x02023FFC
+    // 队伍菜单 slotId：0..5 = 队伍第 1..6 只，7 = 「取消」（PARTY_SIZE+1）；2026-11-15 真机标定。
     const val PARTY_CURSOR = 0x0203B0A9
     const val FACING_ADDR = 0x02036E38 + 0x18
 
