@@ -8,10 +8,14 @@ Android 上的 GBA 宝可梦模拟器 + 自动化。
 
 ## 构建 / 测试
 ```bash
+# Kotlin 单测（本机可跑；aapt2 经 qemu wrapper，见 native-emu/README）
+ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2
 cd native-emu
-gradle :app:testDebugUnitTest --console=plain 2>&1 | tail -30   # Kotlin 单测
-gradle :app:assembleDebug --console=plain 2>&1 | tail -20       # APK（签名见 app/keystore-info.txt）
-python3 run_tests.py                                            # Python 旧层测试（冻结期只保证不坏）
+/opt/gradle-8.9/bin/gradle :app:testDebugUnitTest --no-daemon --console=plain \
+  -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2 2>&1 | tail -30
+
+# APK / NDK 必须走 CI（push 触发），本机无法编译
+python3 run_tests.py   # Python 旧层测试（冻结期只保证不坏）
 ```
 
 ## 发布

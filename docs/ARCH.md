@@ -21,3 +21,5 @@
 
 ## 构建环境（本机）
 `/opt/gradle-8.9` ｜ `/root/android-sdk`（platform 34 / build-tools 34 / cmake 3.22.1 / ndk 27.0.12077973）｜ JDK 17 ｜ mGBA 已 clone 到 `native-emu/third_party/mgba`。
+
+**本机限制**：只能跑 Kotlin 单测（aapt2 x86_64 经 `qemu-x86_64-static` + `native-emu/tools/aapt2-wrapper` 转译）；**APK/NDK 必须走 CI**（NDK clang 为 x86_64，proot 下无法本地 exec）。

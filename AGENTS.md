@@ -11,10 +11,12 @@
 1. 任务卡 3 行（目标 / 验收 / 范围）写 `docs/TASKS.md`，再开工。
 2. 实现，小步提交（1 任务 = 1 提交）。
 3. 本地验证（日志只回 `tail`/`grep`，不灌全量）：
-   - `cd native-emu && gradle :app:testDebugUnitTest --console=plain 2>&1 | tail -30`
-   - `cd native-emu && gradle :app:assembleDebug --console=plain 2>&1 | tail -20`
+   - **Kotlin 单测本机可跑**（aapt2 走 qemu wrapper，首次约 2 分钟）：
+     `ln -sfn /root/workspace/native-emu/tools/aapt2-wrapper /root/android-emu-local/aapt2`
+     `cd native-emu && /opt/gradle-8.9/bin/gradle :app:testDebugUnitTest --no-daemon --console=plain -Pandroid.aapt2FromMavenOverride=/root/android-emu-local/aapt2 2>&1 | tail -30`
+   - **APK / NDK 编译必须走 CI**（NDK clang 是 x86_64，proot 下无法本地执行）：commit + push 即触发。
    - 签名：`native-emu/app/keystore-info.txt`（gitignore，不碰内容）
-4. 真机自测：装 APK → 截图 / 读状态取证，证据存 `/sdcard/Download/DSH-Go/`。
+4. 真机自测：装 CI 产出的 APK（Release / App OTA）→ 截图 / 读状态取证，证据存 `/sdcard/Download/DSH-Go/`。
 5. 失败最多修 3 轮；超了回设计。
 6. 每 1–3 个任务 push（CI 构建 Release）；用户试玩验收。
 
