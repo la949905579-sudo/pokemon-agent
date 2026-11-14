@@ -53,8 +53,8 @@ internal fun LandscapeOverlays(
     // 从竖屏切过来时按键面板会被折起：清掉可能残留的按键掩码（否则角色会一直走）
     LaunchedEffect(Unit) { EmuCore.setKeys(0) }
     // 离开横屏 / 打开设置面板：取消正在跑的按键序列（否则切回竖屏后还会继续按 2~3 秒）
-    DisposableEffect(Unit) { onDispose { Wysiwyg.cancel() } }
-    LaunchedEffect(panelOpen) { if (panelOpen) Wysiwyg.cancel() }
+    DisposableEffect(Unit) { onDispose { Wysiwyg.cancelAll() } }
+    LaunchedEffect(panelOpen) { if (panelOpen) Wysiwyg.cancelAll() }
 
     // 临时操作提示（fail-closed 提示用）：2.8s 后自动消失，与竖屏同口径。
     val statusMsg = activity.statusText.value
@@ -186,6 +186,7 @@ private fun LandscapePanel(activity: MainActivity, emuView: EmuView, onClose: ()
                     PanelItem("重置") {
                         WalkControl.generation++
                         AutoBattle.cancel()
+                        Wysiwyg.cancelAll()
                         activity.walkPlanState.value = null
                         val romReady = activity.romReadyState.value
                         val ok = romReady && EmuCore.resetGame()

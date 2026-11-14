@@ -49,8 +49,20 @@ internal object Wysiwyg {
     /** 取消代际：离开横屏/开设置面板时 +1，正在跑的按键序列尽快停手。 */
     @Volatile private var generation = 0
 
-    /** 取消当前所有横屏按键序列（不写状态行）。 */
-    fun cancel() { generation++ }
+    /**
+     * 取消所有横屏触屏动作（不写状态行）：对话/菜单序列 + 招式施放（[BattleMoveAction]）+
+     * 地图走位（[WalkControl]），并清掉可能残留的按键掩码。
+     * 离开横屏 / 打开设置面板 / 横屏面板里重置时调用（镜像竖屏 closeKeys 的收口口径）。
+     */
+    fun cancelAll() {
+        generation++
+        WalkControl.generation++
+        BattleMoveAction.cancel()
+        try {
+            EmuCore.setKeys(0)
+        } catch (_: Throwable) {
+        }
+    }
 
     /** 横屏点击入口。[gx]/[gy] 是游戏像素坐标（已由 [TouchMap.viewToGame] 换算）。 */
     fun onTap(activity: MainActivity, s: EmuStatus, gx: Int, gy: Int) {
@@ -80,15 +92,19 @@ internal object Wysiwyg {
                 }
             }
             "battle_main" -> {
-                val idx = TouchMap.mainMenuIndexAt(gx, gy)
-                val isMainMenu = GameState.battleMenuFlag() != 0
-                Nlog.info(
-                    "wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy,
-                    "menu" to (idx ?: -1), "mainMenu" to isMainMenu,
-                )
-                if (idx != null) {
-                    if (isMainMenu) battleMainAction(activity, idx)
-                    else battleChoiceTap(activity, gx, gy)   // E83==0：战斗里的是/否选项框
+                if (GameState.battleMenuFlag() != 0) {
+                    val idx = TouchMap.mainMenuIndexAt(gx, gy)
+                    Nlog.info(
+                        "wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy,
+                        "menu" to (idx ?: -1), "mainMenu" to true,
+                    )
+                    if (idx != null) battleMainAction(activity, idx)
+                } else {
+                    // E83==0：战斗里的「是/否」选项框（布局和主菜单 2×2 不重叠，必须无条件进这里）
+                    Nlog.info(
+                        "wysiwyg.tap", "scene" to "battle_choice", "x" to gx, "y" to gy,
+                    )
+                    battleChoiceTap(activity, gx, gy)
                 }
             }
             "battle_intro", "battle_end" -> {
@@ -113,25 +129,26 @@ internal object Wysiwyg {
      */
     private fun handleDialogTap(activity: MainActivity, gx: Int, gy: Int) {
         val profile = MenuState.read()
-        val yesNo = profile != null && MenuState.isStandardYesNo(profile)
-        if (yesNo) {
-            val idx = MenuState.optionIndexAt(profile!!, gx, gy)
-            Nlog.info(
-                "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
-                "option" to (idx ?: -1), "cursor" to profile.cursorPos,
-            )
-            if (idx != null) chooseDialogOption(activity, idx)
-            else activity.statusText.value = "点对话框里的选项"
+        if (profile != null) {
+            // 有任何菜单/选项框在：绝不按 A（A 会默认确认当前选项），只认标准是/否的行点击。
+            if (MenuState.isStandardYesNo(profile)) {
+                val idx = MenuState.optionIndexAt(profile, gx, gy)
+                Nlog.info(
+                    "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
+                    "option" to (idx ?: -1), "cursor" to profile.cursorPos,
+                )
+                if (idx != null) chooseDialogOption(activity, idx)
+                else activity.statusText.value = "点对话框里的选项"
+            } else {
+                Nlog.info(
+                    "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
+                    "option" to -1, "count" to profile.count, "action" to "unsupported",
+                )
+                activity.statusText.value = "该选项框横屏暂不支持，请竖屏"
+            }
             return
         }
-        if (profile != null && MenuState.insideWindow(profile, gx, gy)) {
-            Nlog.info(
-                "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
-                "option" to -1, "count" to profile.count, "action" to "unsupported",
-            )
-            activity.statusText.value = "该选项框横屏暂不支持，请竖屏"
-            return
-        }
+        // 纯文字对话（无菜单窗口）：点下方 = 按 A 推进
         val onBox = TouchMap.isDialogTap(gx, gy)
         Nlog.info("wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy, "onBox" to onBox)
         if (onBox) pressAAdvance(activity) else activity.statusText.value = "点下方对话框推进"
@@ -142,7 +159,7 @@ internal object Wysiwyg {
     /**
      * 战斗主菜单点选（0=战斗 1=背包 2=宝可梦 3=逃跑）：
      * 回读 MAIN_CURSOR → 逐格挪到目标（每步回读）→ 二次确认 → 按 A → 按目标回读验证。
-     * 前提：TURN_FLAG==1 且 E83==1（真主菜单，不是是/否选项框）。
+     * 前提：TURN_FLAG==1 且 E83!=0（真主菜单；E83==0 是战斗内是/否选项框）。
      */
     private fun battleMainAction(activity: MainActivity, target: Int) {
         if (!beginBusy()) return

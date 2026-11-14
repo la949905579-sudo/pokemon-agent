@@ -46,8 +46,16 @@ class GameStateTest {
         assertFalse(GameState.inBattleMainMenu())
         assertTrue(GameState.inBattleChoice())
 
+        // 子菜单（E82=2，E83=4）既不是主菜单也不是选项框
+        put(Addresses.TURN_FLAG, 2)
+        put(Addresses.BATTLE_MENU_FLAG, 4)
+        assertFalse(GameState.inBattleMainMenu())
+        assertFalse(GameState.inBattleChoice())
+
         // 不在战斗时两者都不成立
         put(Addresses.BATTLE_FLAG, 0)
+        put(Addresses.TURN_FLAG, 1)
+        put(Addresses.BATTLE_MENU_FLAG, 4)
         assertFalse(GameState.inBattleMainMenu())
         assertFalse(GameState.inBattleChoice())
     }
