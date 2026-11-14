@@ -19,9 +19,10 @@ internal object TouchMap {
     /** 一个 tile 的像素。 */
     const val TILE_PX = 16
 
-    /** 玩家脚下 tile 中心在屏幕上的位置（LeafGreen 镜头锚点；实测标定值）。 */
+    /** 玩家脚下 tile 中心在屏幕上的位置（真机标定：BG 滚动 (208,248) → tile 边界 y≡8 mod 16，
+     *  玩家精灵脚底落在 y=88 的 tile 边界上 → tile 72..88，中心 80；x 居中 120）。 */
     const val ANCHOR_X = 120
-    const val ANCHOR_Y = 88
+    const val ANCHOR_Y = 80
 
     /** 游戏内像素点（可带小数）。 */
     data class Point(val x: Float, val y: Float)
@@ -45,10 +46,19 @@ internal object TouchMap {
     )
 
     /**
-     * 战斗主菜单「战斗」热区。v1 只支持点「战斗」开招式菜单（点其它项回读不了成功，
-     * 按 fail-closed 不盲按 A）；热区取底部左侧的宽区，保证命中真实「战斗」按钮。
+     * 战斗主菜单 2×2（编号同 [BattleMoveMenu] 的 MAIN_CURSOR：0=战斗 1=背包 2=宝可梦 3=逃跑）。
+     * 标定依据：真机截图里选项窗口 x=120..239、y=112..159；2×2 分格见下。
+     * v1 只接「战斗」（其它项没有可靠回读，按 fail-closed 只提示不按键）。
      */
-    val FIGHT_ZONE = Zone(0, 104, 120, 160)
+    val MAIN_ZONES: List<Zone> = listOf(
+        Zone(122, 114, 180, 136),  // 0 战斗（左上）
+        Zone(180, 114, 236, 136),  // 1 背包（右上）
+        Zone(122, 136, 180, 156),  // 2 宝可梦（左下）
+        Zone(180, 136, 236, 156),  // 3 逃跑（右下）
+    )
+
+    /** 战斗主菜单项名字（提示文案用）。 */
+    val MAIN_NAMES: List<String> = listOf("战斗", "背包", "宝可梦", "逃跑")
 
     /** 对话/文本框区域：屏幕下半部（点=推进一句）。 */
     val DIALOG_ZONE = Zone(0, 104, GAME_W, GAME_H)
@@ -75,8 +85,9 @@ internal object TouchMap {
     fun moveIndexAt(x: Int, y: Int): Int? =
         MOVE_ZONES.indexOfFirst { it.hit(x, y) }.takeIf { it >= 0 }
 
-    /** 是否点在战斗主菜单「战斗」上。 */
-    fun isFightTap(x: Int, y: Int): Boolean = FIGHT_ZONE.hit(x, y)
+    /** 战斗主菜单项编号 0..3；不在选项窗口内返回 null。 */
+    fun mainMenuIndexAt(x: Int, y: Int): Int? =
+        MAIN_ZONES.indexOfFirst { it.hit(x, y) }.takeIf { it >= 0 }
 
     /** 是否点在对话框上（推进对话）。 */
     fun isDialogTap(x: Int, y: Int): Boolean = DIALOG_ZONE.hit(x, y)

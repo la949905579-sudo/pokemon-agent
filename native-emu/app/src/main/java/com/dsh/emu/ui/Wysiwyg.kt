@@ -50,9 +50,14 @@ internal object Wysiwyg {
                 if (idx != null) BattleMoveAction.cast(activity, idx)
             }
             "battle_main" -> {
-                val fight = TouchMap.isFightTap(gx, gy)
-                Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "fight" to fight)
-                if (fight) openMoveMenu(activity) else activity.statusText.value = "横屏：点「战斗」开招式"
+                val idx = TouchMap.mainMenuIndexAt(gx, gy)
+                Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "menu" to (idx ?: -1))
+                when (idx) {
+                    0 -> openMoveMenu(activity)
+                    1, 2, 3 -> activity.statusText.value =
+                        "横屏暂不支持「${TouchMap.MAIN_NAMES[idx]}」，请竖屏"
+                    else -> {}
+                }
             }
             "battle_intro", "battle_end" -> {
                 Nlog.info("wysiwyg.tap", "scene" to scene, "x" to gx, "y" to gy, "action" to "advance")

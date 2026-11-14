@@ -77,10 +77,32 @@ class TouchMapTest {
     // ---------- 战斗主菜单 / 对话 ----------
 
     @Test
-    fun fightTap_hitsBottomLeft() {
-        assertTrue(TouchMap.isFightTap(100, 130))
-        assertFalse(TouchMap.isFightTap(200, 130))
-        assertFalse(TouchMap.isFightTap(100, 50))
+    fun mainMenuZones_fourOptions() {
+        assertEquals(0, TouchMap.mainMenuIndexAt(140, 125))  // 战斗（左上）
+        assertEquals(1, TouchMap.mainMenuIndexAt(200, 125))  // 背包（右上）
+        assertEquals(2, TouchMap.mainMenuIndexAt(140, 145))  // 宝可梦（左下）
+        assertEquals(3, TouchMap.mainMenuIndexAt(200, 145))  // 逃跑（右下）
+    }
+
+    @Test
+    fun mainMenuZones_outsideOptionBox_returnsNull() {
+        assertNull(TouchMap.mainMenuIndexAt(60, 130))    // 左边对话框
+        assertNull(TouchMap.mainMenuIndexAt(120, 130))   // 选项窗左边框
+        assertNull(TouchMap.mainMenuIndexAt(140, 50))    // 画面上半
+    }
+
+    @Test
+    fun mainMenuZones_disjointAndInsideScreen() {
+        for (i in TouchMap.MAIN_ZONES.indices) {
+            val a = TouchMap.MAIN_ZONES[i]
+            assertTrue(a.l < a.r && a.t < a.b)
+            assertTrue(a.r <= TouchMap.GAME_W && a.b <= TouchMap.GAME_H)
+            for (j in i + 1 until TouchMap.MAIN_ZONES.size) {
+                val b = TouchMap.MAIN_ZONES[j]
+                val overlap = a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b
+                assertFalse("main zone $i 与 $j 重叠", overlap)
+            }
+        }
     }
 
     @Test
