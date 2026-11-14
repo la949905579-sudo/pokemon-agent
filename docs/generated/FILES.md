@@ -167,6 +167,7 @@
 | `docs/TOOLS.md` | 工具使用手册（TOOLS） | 保留 |
 | `docs/WORKPLAN.md` | 工作计划（2026-11-10 起） | 保留 |
 | `docs/archive/README.md` | docs/archive/ — 归档区 | 保留 |
+| `docs/archive/TEAM-主流程-12步-20261112.md` | 三、主流程（12 步） | 保留 |
 | `docs/audit/ACTIONS.md` | 整改建议清单（B → A 队，2026-11-12） | 保留 |
 | `docs/audit/AUDIT.md` | 独立督导 / 第三方审查：触发条件与审查标准（AUDIT） | 保留 |
 | `docs/audit/AUDIT_LOG.md` | 审查记录（AUDIT_LOG） | 保留 |
@@ -179,6 +180,7 @@
 | `docs/contracts/C2-move-name-232.md` | C2 招式名表 232（功能型） | 保留 |
 | `docs/contracts/C3-token-optimization.md` | C3 流程优化 v1.3：真机执行 + 成本归因 + 等待/证据规范 | 保留 |
 | `docs/contracts/C4-closeout-v14.md` | C4 治理批 v1.4：收尾自动化 + 成本基线门禁 + 真机执行实战 | 保留 |
+| `docs/contracts/C5-legacy-archive.md` | C5 旧方案归档：停用旧主流程 + 旧职位引用清理 + 全局 AGENTS 同步 | 保留 |
 | `docs/contracts/CONTRACT-TEMPLATE.md` | 合同模板（CONTRACT-TEMPLATE） | 保留 |
 | `docs/contracts/PILOT.md` | 合同制试点操作手册（PILOT） | 保留 |
 | `docs/contracts/README.md` | 合同制目录（docs/contracts） | 保留 |
@@ -188,6 +190,7 @@
 | `docs/history/INCIDENTS.md` | 事故复盘库（现象/根因/固化改动） | 保留 |
 | `docs/history/NOTES.md` | 叶绿内存（实测） | 保留 |
 | `docs/history/RETROSPECTIVE-20261113.md` | 复盘 2026-11-13：docs 占比超 50% | 保留 |
+| `docs/history/RETROSPECTIVE-20261114-C4-cost.md` | 复盘 2026-11-14：C4 治理批成本超阈（1.9%） | 保留 |
 | `docs/history/RETROSPECTIVE.md` | 复盘：2026-11-09 ~ 11-10 | 保留 |
 | `docs/org/PLAN-20261112-2.md` | 两本 TEAM.md 重名处置提案（2026-11-12） | 保留 |
 | `docs/org/PLAN-20261112.md` | 组织架构同步盘点 2026-11-12 | 保留 |
@@ -206,8 +209,9 @@
 | `docs/roles/a/examiner.md` | 考官（examiner）启动提示词 | 保留 |
 | `docs/roles/a/proxy.md` | 代理人（proxy）启动提示词 | 保留 |
 | `docs/roles/a/realdevice.md` | 真机执行（device）启动提示词 | 保留 |
+| `docs/roles/a/supervisor.md` | 审计督导（supervisor）启动提示词（A 队子会话） | 保留 |
 | `docs/roles/b/audit-cost.md` | 成本管理员（audit-cost）提示词 | 保留 |
-| `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词 | 保留 |
+| `docs/roles/b/audit-lead.md` | 独立督导（audit-lead）启动提示词（**停设**） | 保留 |
 | `docs/roles/b/auditor.md` | 审查员（audit-inspector）提示词 | 保留 |
 | `docs/roles/org/advisor.md` | 策略顾问（advisor）启动提示词 | 保留 |
 | `docs/roles/org/architect.md` | 组织规划（architect）启动提示词 | 保留 |
@@ -343,4 +347,4 @@
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Tabs.kt` | 右侧竖排 Tab 与 Page 枚举 | 保留 |
 | `native-emu/app/src/main/java/com/dsh/emu/ui/Theme.kt` | 下屏配色常量 | 保留 |
 
-> 共 279 个文件（不含 `native-emu/third_party/` 第三方源码）。
+> 共 283 个文件（不含 `native-emu/third_party/` 第三方源码）。

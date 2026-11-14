@@ -11,12 +11,13 @@
 | A 队 | **代理人** | `proxy` | `docs/roles/a/proxy.md` |
 | A 队 | **承包商** | `contractor` | `docs/roles/a/contractor.md` |
 | A 队 | **真机执行** | `device` | `docs/roles/a/realdevice.md` |
-| B 队 | **独立督导** | `audit-lead` | `docs/roles/b/audit-lead.md` |
-| B 队 | **审查员** | `auditor` | `docs/roles/b/auditor.md` |
-| B 队 | **成本管理员** | `audit-cost` | `docs/roles/b/audit-cost.md` |
+| A 队 | **审计督导**（子会话） | `supervisor` | `docs/roles/a/supervisor.md` |
+| B 队（停设） | **独立督导** | `audit-lead` | 停设（B 队旧编制），职责转 A 队 → `docs/roles/a/supervisor.md` |
+| B 队（停设） | **审查员** | `auditor` | 停设（B 队旧编制），职责转 A 队 → `docs/roles/a/supervisor.md` |
+| B 队（停设） | **成本管理员** | `audit-cost` | 停设（B 队旧编制），职责转 A 队 → `docs/roles/a/supervisor.md` |
 | 第三方 | **组织规划** | `architect` | `docs/roles/org/architect.md` |
 | 用户侧 | **策略顾问** | `advisor` | `docs/roles/org/advisor.md` |
 
-- B 队三张卡已迁入 `docs/roles/b/`（`6841960`）。
-- 各会话主持按卡 spawn 成员；**只有会话主持能 spawn，子代理不能再 spawn**。
-- 统筹主持**没有角色卡**（按 `docs/TEAM.md` §二 重建）；其余职位按上表。
+- B 队三张卡（`6841960` 迁入）自 2026-11-14 **停设**（B 队旧编制），职责转 A 队；审计 / 督导改由代理人按需 spawn 一次性审计督导子会话（`docs/roles/a/supervisor.md`）。
+- 代理人 / 承包商按卡 spawn 成员；**只有代理人 / 承包商能 spawn，子代理不能再 spawn**。
+- 代理人角色卡见 `docs/roles/a/proxy.md`（重建口径按 `docs/TEAM.md` §二）；其余职位按上表。

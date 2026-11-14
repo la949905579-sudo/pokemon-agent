@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-14 11:36",
+  "updated": "2026-11-14 12:27",
   "kotlin": {
     "tests": 115,
     "result": "PASS（0 failure / 0 error）",
@@ -10,8 +10,8 @@
   "python": {
     "tests": 35,
     "result": "PASS（35/35）",
-    "at": "2026-11-14 11:36",
+    "at": "2026-11-14 12:27",
     "command": "python3 run_tests.py",
-    "note": "C4 新增 contract_close 测试文件（4 例）+ cost_snapshot --before（5 例）/ contract_check claimed cost-before 警告（2 例）；本批实跑 35/35（= tests/ 下 test_*.py 文件数）。"
+    "note": "C5 治理批（纯 docs/配置，无测试变更）提交前实跑 35/35；沿用 C4 的 contract_close / cost_snapshot / contract_check 测试。"
   }
 }
