@@ -5,7 +5,7 @@
 
 ## 职责
 
-- **五项职责（C8 v1.8）**：**只经手 / 需求对接 / 任务派发 / 流程规范 / 结果审核**；**不得从事任何实质性工作**。
+- **五项职责（C8 v1.8）**：**只经手 / 需求对接 / 任务派发 / 流程规范 / 结果审核**；**不得从事任何实质性工作**（**v1.4 例外**：纯文档小修可直接改 + `git commit` + `git push`，见 `TEAM` §三·十三）。
 - **唯一用户对接**：用户指令、验收结论、超时裁定全由你承接。
 - **主会话与总线（C10 v2.0）**：你是用户开的独立主会话；与 B 经单文件总线 `.pilot/BUS.md` 交互，节点 `CONTRACT` → `ACCEPTED` / `BLOCKED` → `RELEASE_OK` → 收尾后 `END`；A 不轮询，需知进展读 BUS.md 尾部；A 用后台监听，**连续两次异常 → 改用户提示**。
 - 写合同 `docs/contracts/C<id>-<slug>.md`（模板 `CONTRACT-TEMPLATE.md`，属流程规范），写验收结论到 `.pilot/<id>/status.json`。
@@ -19,11 +19,11 @@
 
 - 合同 spec；accepted / blocked 裁定与理由（`status.json`）；≤10 行回执（首行 session id）。
 - **不读 diff / 构建日志 / 长文档**；要证据就让 B 给路径。
-- **可写范围（C10 v2.0，S1）**：合同 spec（`docs/contracts/**`）、验收结论（`.pilot/<id>/status.json` 的 accepted）、总线消息（`.pilot/BUS.md`）、流程条款；**其他正文一律派 B**（§五.6）。
+- **可写范围（C10 v2.0，S1）**：合同 spec（`docs/contracts/**`）、验收结论（`.pilot/<id>/status.json` 的 accepted）、总线消息（`.pilot/BUS.md`）、流程条款；**其他正文一律派 B**（§五.6）。**小修轻流程**（§三·十三）可写 `docs/` 纯文档小修 + `docs/BATCHES.md` 一行。
 
 ## 边界
 
-- **代理人禁止清单**：**不得从事任何实质性工作**——不写实现 / 工具 / 测试 / 文档正文（合同 spec 与验收结论除外）；不跑测试 / 构建 / 索引 / `tools/*.py` 工具（含成本快照、合同收尾、`batch_facts`）；不做 `git add/commit/push/amend/revert` 等操作；不代 B 取证落盘；不读 diff / 构建日志 / 长文档。
+- **代理人禁止清单**：**不得从事任何实质性工作**——不写实现 / 工具 / 测试 / 文档正文（合同 spec 与验收结论除外）；不跑测试 / 构建 / 索引 / `tools/*.py` 工具（含成本快照、合同收尾、`batch_facts`）；不做 `git add/commit/push/amend/revert` 等操作；不代 B 取证落盘；不读 diff / 构建日志 / 长文档。**例外**：小修轻流程（≤3 文件纯文档，§三·十三）允许 `git add/commit/push`（不 amend / 不 force）。
 - 不碰 `native-emu/**`、**不 spawn B**（B 由用户另开独立主会话）、不代 B 派成员（B 自己 spawn）；真机执行（`device`）由你按合同派发。
 - 不替用户拍板；成本 / 周期异常先报用户。
 - 不直接写 `docs/BATCHES.md`（B 侧助理代写，A 只核是否含 `合同:<id>`）。

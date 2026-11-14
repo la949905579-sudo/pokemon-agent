@@ -1,23 +1,24 @@
 # 交接文档（HANDOFF）
 
-> 2026-11-14 17:0x · **C10 主会话模型落盘 v2.0**（A/B 双主会话 + 单文件总线 + 编制条款 + HANDOFF 修正 + 全局 AGENTS 同步）：**2 条提交**（主提交 `fd68a64` 已 accepted；收尾提交〔BATCHES 追记 + HANDOFF 收尾 + 合同 §6④ 校正并入 + METRICS/FILES 重生成〕待总线 `RELEASE_OK` 后 push）；不 amend、不 `--no-verify`。上一批 C9 收尾提交 `bdc431e` 已 push + accepted；C10 v1 已作废回滚（`ae151c3`/`83e451f` 撤销）。
+> 2026-11-14 17:0x · **C10 主会话模型落盘 v2.0**（A/B 双主会话 + 单文件总线 + 编制条款 + HANDOFF 修正 + 全局 AGENTS 同步）：**2 条提交**（主提交 `fd68a64` 已 accepted；收尾提交〔BATCHES 追记 + HANDOFF 收尾 + 合同 §6④ 校正并入 + METRICS/FILES 重生成〕待总线 `RELEASE_OK` 后 push；**已于 2026-11-14 17:0x push + accepted，`origin/master`=HEAD=`27100e2`**）；不 amend、不 `--no-verify`。上一批 C9 收尾提交 `bdc431e` 已 push + accepted；C10 v1 已作废回滚（`ae151c3`/`83e451f` 撤销）。
 > 给新会话（新代理人）：先读本文件 + `docs/TEAM.md`（§二 重建 + §三·八 单文件总线 + §三·十 合同制 + §三·十一/十二 现行流程）+ `docs/HANDOVER.md` + `docs/NATIVE_EMU_TODO.md`；A↔B 协作走 `.pilot/BUS.md`（协议 `.pilot/BUS-PROTOCOL.md`）。
 > **本文件是交接唯一真源，聊天记录不算。** 历史长文已迁出：更早的完整交接（F2/A–E 真机记录、T5 豁免对账）见 `git show 35b8fc7:docs/HANDOFF.md`，上一版见 `git show 2f258b0:docs/HANDOFF.md`；本文件只留最近 2–3 批摘要，不囤长文。
 
 ## 事实快照（2026-11-14 17:0x 实测，C10 收尾提交后）
 
-- **HEAD / 推送**：HEAD = 本批 **C10 收尾提交**（`git log -1` 可查，避免自引用哈希；主提交 `fd68a64` 已 accepted）；`origin/master` = `bdc431e`（C9 收尾，已 push + accepted）；`origin/master..HEAD` = 2（C10 两提交待 `RELEASE_OK` 后 push）；工作树为空（`.pilot/` 已 gitignore）。
+- **HEAD / 推送**：HEAD=`27100e2`（C10 收尾）＝`origin/master`；`origin/master..HEAD`=0；C10 两提交已 push + accepted；工作树随轻批提交后为空（`.pilot/` 已 gitignore）。
 - **测试**：python **38/38**（`tools/test_results.json`；C10 实跑，本批无 tests 改动）；Kotlin 静态 **115**（CI 快照，本批无 Kotlin 改动）。
 - **索引**：`python3 tools/gen_files_index.py --check` = 0；`docs/generated/FILES.md` / `METRICS.md` 收尾重生成（METRICS 计入 C10 cost 7.6M）。
 - **审查**：最近完整审查 `docs/audit/REPORT-20261113.md` = **有条件通过**；冷却中（见「审查状态」）。本批治理批纯 docs/规则，未命中审查触发。
 - **合同制**：**C1–C9 全 accepted**——C1 `c7538bb`、C2 `f4e8bf9`、C3 `d3baeab`（15.0M ≤ 阈 21.3M）、C4 `36a28c1`（20.4M 记超，已复盘）、C5 `779dac6`（14.4M ≤ 阈 19.9M）、C6 `a0763bb`（13.1M ≤ 阈 19.6M）、C7 `17248b5`（23.5M 记超，复盘件 C8 落盘）、C8 `65cc2ba`（10.4M ≤ 阈 20.5M）、**C9 `41d6854` + 收尾 `bdc431e`（13.5M ≤ 阈 20.5M，双判据 ✓；两提交均已 push + accepted）**；**C10 `fd68a64`（7.6M ≤ 阈 22.8M，双判据 ✓；主提交 accepted，收尾提交待 push）**。
 - **协作方式（C10 v2.0）**：A↔B 为**两条独立主会话**（A 不 spawn B），经单文件总线 `.pilot/BUS.md` 轮询（协议 `.pilot/BUS-PROTOCOL.md`）；B 启动即轮询、完成后继续轮询、收到 `END` 停止。
+- **轻批 v1.4（2026-11-14 17:2x 用户拍板）**：小修轻流程生效（`TEAM` §三·十三）——≤3 文件纯文档小修由 A 直改 + 1 条只读抽验 + `commit`/`push`，不走合同制与全套台账；首个轻批「简化与小修」见 `BATCHES` 轻批行（单提交，`git log -1` 可查）；C11 合同（原 3 条小修）已撤销、未执行。
 
 ## 当前目标
 
-- 本批（C10 收尾）：收尾提交（BATCHES 追记 + HANDOFF 收尾 + 合同 §6④ 校正 + METRICS/FILES 重生成）待总线 `RELEASE_OK`（含 EXAMINER_OK 文案）后 push（**不 amend**）；主提交 `fd68a64` 已 accepted，cost perBatch **7.6M** ≤ 阈 22.8M。
-- 本批之后：push → 跑 `HANDOVER` §二 11 项 → **建议交接新会话**（A 寿命规则 **>40 轮**或压缩 ≥1；B 单会话单合同、≤30 轮）。
-- 下一批候选（不预设编号）：**A\* 6 图补采 + UI 入口**（功能批，含真机项）；或「下一步建议」§9 的 4 条下批小改并入下批治理。
+- 当前：C10 两提交已 push + accepted（`origin/master`=HEAD=`27100e2`，cost perBatch **7.6M** ≤ 阈 22.8M）；轻批 v1.4「简化与小修」已直推（`git log -1` 可查）；无 open 合同、未推送 0。
+- **流程变化**：小修轻流程生效（`TEAM` §三·十三）——纯文档小修由 A 直改 + 抽验 + commit/push，不再走合同制（本次即首用；C11 合同已撤销）。
+- 下一批候选（不预设编号）：**A\* 6 图补采 + UI 入口**（功能批，含真机项，走合同制）；剩余治理小改并入下批（见「下一步建议」§9 更新行）。
 
 ## 最近 3 批摘要
 
@@ -51,7 +52,7 @@
 - **冷却**：两次完整审查间隔 ≥7 天 → **11-19 只做轻量复查**（按 REPORT §五 5 个复查点）、**下一次完整审查最早 2026-11-20**（用户 2026-11-13 13:46 拍板，`AUDIT_LOG`「11-19 复查安排与冷却重算」）。P0 / T6 / 新增复发可立即开审。
 - **T5 交接前置审查**：须在冷却外审查或用户书面豁免；2026-11-13 已有 T5 豁免留痕（`AUDIT_LOG`）。11-19 前若交接，沿用豁免或结论标「降级采信」，**不得自行宣布豁免**。
 - 本批（C10）未命中审查触发条件（治理批纯 docs/规则；无 P0/T6/新增复发）。
-- **C5 漏触发补审（T3/T5，C10 v2 合同 §6⑥）**：A 侧子会话槽位已满，暂缓；记入下批候选（不单开批），不影响本批。
+- **C5 漏触发补审（T3/T5，C10 v2 合同 §6⑥）**：**已于 2026-11-14 17:1x–17:2x 完成**（审计督导子会话；结论「有条件通过」，实质合规：归属三处一致 / 22 文件全落 §8 / `docs/audit/**` 正文 0 改动）；**用户 17:20 书面豁免** → 结论由「降级采信」升为**正常采信**；留痕 `AUDIT_LOG` 2026-11-14 节（随轻批提交）。
 
 ## 审计留痕（C6 正式执行）
 
@@ -60,7 +61,7 @@
 
 ## 下一步建议
 
-1. 本批（C10 收尾）：收尾提交已含 BATCHES 追记 / HANDOFF 收尾 / 合同 §6④ 校正 / METRICS 重生成 → 等总线 `RELEASE_OK`（含 EXAMINER_OK）→ `tools/precommit_check.sh --push` → push（**不 amend**）。
+1. **C10 已 push + accepted**（`origin/master`=HEAD=`27100e2`）；轻批 v1.4 已直推。下一功能批候选：A\* 6 图补采 + UI 入口（合同制；A 写合同 / B 执行 / 真机 A 派发）。
 2. push 后跑 `HANDOVER` §二 11 项 → **建议交接新会话**（`TEAM` §二 重建；B 每合同全新启用，A 寿命规则 **>40 轮**或压缩 ≥1）；C10 `cost-after` 已取（7.6M，未记超）。
 3. **C7 复盘验收（R1–R5）已核对**（accepted 后留痕见「复盘状态」段）：R1–R5 全 ✓（R4 = C8 无 blocked→resume：14:36 claimed→14:45 green）。
 4. **功能批（新会话第一批）**：合同制跑 A\* 6 图补采 + UI 入口（A 写合同 / B 执行；验收含真机步骤）；跨会话请求按 `REQUEST` §六 三字段填写（A-5）。
@@ -81,6 +82,7 @@
    ④ **C5 漏触发补审（T3/T5）**：A 侧槽位空出后由审计督导子会话补审留痕（不单开批）；
    ⑤ `roles/a/contractor.md` 补「B 单会话单合同、≤30 轮」复述（examiner-c10 建议③）。
 10. **下批候选（功能）**：**A\* 6 图补采 + UI 入口**（功能批，含真机项；A 写合同 / B 执行）；上列 4 条小改（①–③ + ⑤）可并入同批治理或单开小批（不预设编号）。
+11. **2026-11-14 17:2x 更新（轻批 v1.4）**：§9 的 ⑤（contractor.md ≤30 轮）/ ④（C5 补审+用户书面豁免）/ ③（会话主持术语）/ ②（roles/README 环境例外指针）**已完成**（轻批「简化与小修」，`git log -1` 可查）；剩余 ① METRICS 来源行去重 + 新增「`session_health --all` 漏扫无 `session-` 前缀旧式目录」（C5 巡检发现，A-15 类）+ 「`TEAM` §一.2 补独立督导停设行」→ 并入下次功能批或攒轻批。C11 合同（原 3 条小修）已撤销，任务由轻批完成。
 
 ## 不要做什么（最值钱）
 
