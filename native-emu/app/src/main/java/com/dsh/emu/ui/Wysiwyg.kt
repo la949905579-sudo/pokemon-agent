@@ -5,6 +5,7 @@ import com.dsh.emu.MainActivity
 import com.dsh.emu.Nlog
 import com.dsh.emu.game.BattleMoveMenu
 import com.dsh.emu.game.GameState
+import com.dsh.emu.game.MenuState
 import com.dsh.emu.game.MoveCaster
 
 /**
@@ -14,8 +15,9 @@ import com.dsh.emu.game.MoveCaster
  * - `battle_moves`：点 2×2 招式格 → [BattleMoveAction.cast]（自带逐格回读 + 二次确认）；
  * - `battle_main`：点「战斗」→ 回读主菜单光标、逐格挪到 0 → 按 A，回读确认进入招式菜单；
  * - `battle_intro` / `battle_end`：点任意处 = 短按 A 推进文字；
- * - `map`：对话框打开 → 点下方对话区短按 A 推进；否则点地图位置 → 同图 BFS 走过去
- *   （复用 [walkTo]，路径不可达 / 地图数据没准备好就提示、不盲走）；
+ * - `map`：对话框打开 → 先看是不是标准「是/否」框（[MenuState]）：点在某个选项行上就
+ *   回读光标、逐行挪到目标再按 A（fail-closed）；不是/不匹配 → 点下方对话区按 A 推进；
+ *   没有对话 → 点地图位置同图 BFS 走过去（复用 [walkTo]，不可达/没数据就提示、不盲走）；
  * - 其它场景（动画等）不按键。
  *
  * fail-closed：所有前置状态先回读，不满足就只提示；不补按、不重试。
@@ -65,9 +67,25 @@ internal object Wysiwyg {
             }
             "map" -> {
                 if (GameState.inDialog()) {
-                    val onBox = TouchMap.isDialogTap(gx, gy)
-                    Nlog.info("wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy, "onBox" to onBox)
-                    if (onBox) pressAAdvance(activity) else activity.statusText.value = "点下方对话框推进"
+                    // 优先：标准「是/否」对话框 → 点哪个选项就选哪个（回读光标，失败不按 A）。
+                    val profile = MenuState.read()
+                    val idx = if (profile != null && MenuState.isStandardYesNo(profile)) {
+                        MenuState.optionIndexAt(profile, gx, gy)
+                    } else null
+                    if (idx != null) {
+                        Nlog.info(
+                            "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
+                            "option" to idx, "cursor" to profile!!.cursorPos,
+                        )
+                        chooseDialogOption(activity, idx)
+                    } else {
+                        val onBox = TouchMap.isDialogTap(gx, gy)
+                        Nlog.info(
+                            "wysiwyg.tap", "scene" to "dialog", "x" to gx, "y" to gy,
+                            "onBox" to onBox, "yesNo" to (profile != null && MenuState.isStandardYesNo(profile)),
+                        )
+                        if (onBox) pressAAdvance(activity) else activity.statusText.value = "点下方对话框推进"
+                    }
                 } else {
                     tapMap(activity, s, gx, gy)
                 }
@@ -153,6 +171,95 @@ internal object Wysiwyg {
                 endBusy()
             }
         }.apply { isDaemon = true }.start()
+    }
+
+    // ---------- 对话选项 ----------
+
+    /**
+     * 点「是/否」的某一行：回读光标 → 逐行 UP/DOWN 挪到目标（每步回读）→ 二次确认 → 按 A。
+     * 任何一步读不到 / 光标没到位就停，不按 A（fail-closed）。
+     */
+    private fun chooseDialogOption(activity: MainActivity, target: Int) {
+        if (!beginBusy()) return
+        Thread {
+            try {
+                var p = MenuState.read()
+                if (p == null || !MenuState.isStandardYesNo(p)) {
+                    hint(activity, "对话选项读不到")
+                    return@Thread
+                }
+                var cur = p.cursorPos
+                var steps = 0
+                while (cur != target && steps < MAX_STEPS) {
+                    val step = MenuState.step(cur, target)
+                    if (step == 0) break
+                    pressMask(if (step > 0) EmuCore.KEY_DOWN else EmuCore.KEY_UP, STEP_MS)
+                    sleep(SETTLE_MS)
+                    val next = MenuState.read()
+                    if (next == null || !MenuState.isStandardYesNo(next)) {
+                        hint(activity, "对话选项读不到")
+                        return@Thread
+                    }
+                    if (next.cursorPos == cur) {
+                        // 没动：反向再试一次（不同菜单 wrap 行为不同）；仍不动就停
+                        pressMask(if (step > 0) EmuCore.KEY_UP else EmuCore.KEY_DOWN, STEP_MS)
+                        sleep(SETTLE_MS)
+                        val back = MenuState.read()
+                        if (back == null || !MenuState.isStandardYesNo(back) || back.cursorPos == cur) {
+                            Nlog.warn(
+                                "wysiwyg.dialog", "ok" to false, "reason" to "cursor",
+                                "target" to target, "cursor" to cur, "steps" to steps,
+                            )
+                            hint(activity, "光标没到位")
+                            return@Thread
+                        }
+                        p = back
+                    } else {
+                        p = next
+                    }
+                    cur = p.cursorPos
+                    steps++
+                }
+                if (cur != target) {
+                    Nlog.warn(
+                        "wysiwyg.dialog", "ok" to false, "reason" to "cursor",
+                        "target" to target, "cursor" to cur, "steps" to steps,
+                    )
+                    hint(activity, "光标没到位")
+                    return@Thread
+                }
+                // 二次确认：等光标稳定后再读一次，仍是目标才按 A。
+                sleep(120)
+                val confirm = MenuState.read()
+                if (confirm == null || !MenuState.isStandardYesNo(confirm) || confirm.cursorPos != target) {
+                    Nlog.warn("wysiwyg.dialog", "ok" to false, "reason" to "confirm", "target" to target)
+                    hint(activity, "光标没到位")
+                    return@Thread
+                }
+                EmuCore.setKeys(EmuCore.KEY_A)
+                sleep(A_MS)
+                EmuCore.setKeys(0)
+                Nlog.info(
+                    "wysiwyg.dialog", "ok" to true, "target" to target,
+                    "cursor" to cur, "steps" to steps, "count" to p.count,
+                )
+            } catch (e: Exception) {
+                Nlog.error("wysiwyg.dialog", "err" to e.javaClass.simpleName)
+            } finally {
+                EmuCore.setKeys(0)
+                endBusy()
+            }
+        }.apply { isDaemon = true }.start()
+    }
+
+    /** 按住单个按键掩码 ms 毫秒（finally 一定松开）。 */
+    private fun pressMask(mask: Int, ms: Long) {
+        try {
+            EmuCore.setKeys(mask)
+            sleep(ms)
+        } finally {
+            EmuCore.setKeys(0)
+        }
     }
 
     // ---------- 地图 ----------
