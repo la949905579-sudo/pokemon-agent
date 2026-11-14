@@ -7,6 +7,7 @@
 
 - 读合同（`docs/contracts/C<id>-*.md`）+ `TEAM` §三·十 + `docs/contracts/PILOT.md`，按合同执行。
 - spawn 助理（机械门禁 + 提交，不 push）、工匠（只改合同 §8 范围）、考官（复核「可发布」后你才 push）。
+- **小合同直执（v1.2）**：≤3 文件改动的小合同**默认不 spawn 助理 / 工匠**，你直接执行（确需 spawn 则 `result.md` 说明理由）；**考官必叫**（复核「可发布」后才 push）。
 - 写 `.pilot/<id>/status.json`（`base` / `claimedAt` / `commit` / `session`；首次回执写 `attempts:1`、返工 +1；**`accepted` 由 A（`proxy`）置**）与 `result.md`（≤10 行，首行 session id）。
 - 交接：**默认 watcher**（本合同收尾后若下一合同 `.pilot/<id>/inbox.ready` 不存在，挂 watcher 等唤醒，命令见 PILOT §三/§四）；watcher 需 App「后台运行」常开，掉线用口令兜底（重发转达句）。
 

@@ -88,7 +88,7 @@
 
 **交接前必须**：推送所有提交、工作区干净、CI 结论已知、测试结果已知。
 
-**接手 5 分钟**：`git status` 空 → HEAD 与 HANDOFF 一致 → `origin/master..HEAD` 为 0 → `run_tests.py` 全绿（见 `tools/test_results.json`）→ Kotlin 单测通过。
+**接手 5 分钟**：跑 `python3 tools/batch_facts.py`，按输出核对（HEAD / 推送 / 工作树 / 测试 / 索引）；任何一项 FAIL 先补齐再开工。
 
 ## 三·六、统筹主持与助理的分界（防漂移）
 
@@ -117,6 +117,18 @@
 
 ## 五、接手方验收（5 分钟）
 
+先跑一条命令，按输出核对（任一项 `FAIL` 先补齐再干活）：
+
+```bash
+cd /root/workspace
+python3 tools/batch_facts.py
+```
+
+核对：HEAD 与 `HANDOFF` 记录一致 / `origin/master..HEAD` = 0 / 工作树为空 / `test_results` 有数 / `FILES --check` = 0。
+
+<details>
+<summary>原分步命令（脚注，`batch_facts` 不可用时手跑）</summary>
+
 ```bash
 cd /root/workspace
 git status --short          # 期望：空
@@ -125,5 +137,7 @@ git rev-list --count origin/master..HEAD   # 期望：0
 python3 run_tests.py        # 期望：全部通过（最近结果见 tools/test_results.json）
 python3 tools/gen_files_index.py --check   # 期望：0
 ```
+
+</details>
 
 任何一条对不上，说明交接不完整——先补齐再干活。

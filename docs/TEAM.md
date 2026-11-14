@@ -140,6 +140,21 @@
   - **交接默认 watcher**（需 App「后台运行」常开）；掉线用口令兜底（重发转达句）。
   - **度量 2 项（唯一口径）**：合同一次通过率＝首轮 accepted 占比（分母=accepted 合同；<70%→复盘）；每合同成本＝accepted 合同 perBatch 均值（超 30M 或基线×0.85 记超）；数据源 `.pilot/*/status.json`、`.pilot/*/cost.json`；§七 8 项仍为权威，本节只给数据源，不改 §七。
 
+## 三·十一、简化流程 v1.2（2026-11-14 用户拍板）
+
+> 目标：治理 / 协调成本砍 40%–50%（今日治理约 59M / 78M）。本节是现行治理流程；与 §三主流程冲突时以本节为准。
+
+- **单批单提交 + 自查表**：一个治理批只开 **1 助理 + 1 考官**；**治理批默认 1 条 docs（+1 tools）；功能批仍按 §七 ≤3 条/批；「单批单提交」指不拆批、不二次 amend**，超 1 条 docs 须在 `BATCHES` 备注留痕；提交前助理必须跑自查表，并在回执附结果——
+  ① **事实**：`git log -1`、`git rev-list --count origin/master..HEAD`、`git status --short` 为空；
+  ② **台账**：`docs/BATCHES.md` 本批行、`tools/test_results.json` 已同步、`docs/generated/FILES.md` 已重生成；
+  ③ **索引**：`python3 tools/gen_files_index.py --check` = 0；
+  ④ **门禁**：`tools/precommit_check.sh --scope <路径>` 通过。
+  **禁止同批二次 amend**：一次写对；返工＝失败样本，记 `BATCHES` 备注（不靠 amend 擦痕迹）。
+- **考官三查**：固定只查「**事实真实性 / 引用一致性 / 越权范围**」+ **抽 1 条命令复跑**；**不重跑**全量测试 / 索引 / `METRICS`（助理已跑并附输出）；只认**阻断项**；建议项由**独立督导或统筹主持**登记 `docs/audit/ACTIONS.md`，A 队侧只写 `BATCHES` 备注、不直接改 B 队台账；并入下批，**不阻塞推送**。
+- **台账脚本化**：提交前必跑 `python3 tools/batch_facts.py`（事实快照）与 `python3 tools/batch_close.py --batch "<批次名>" --dry-run`（台账收尾检查 / `BATCHES` 行草稿）；**缺一不得提交**。
+  - 参数速查：`batch_facts --full`＝附 `METRICS --check`（联网耗时）；`batch_close --contract <id>`＝校合同 accepted / `contract_check`、`--regen`＝重生成 `FILES` / `METRICS`、`--run-tests`＝实跑测试核数、`--dry-run`＝默认只打印不写文件。
+- **治理节奏**：治理批每周 / 每功能批 **≤1 次**，小修不单开（攒进下一功能批）；**B 侧小合同（≤3 文件改动）默认不 spawn 助理 / 工匠**，B 直接执行 + 考官 1 个（确需 spawn 则 `result.md` 说明理由；见 `docs/roles/a/contractor.md`）。
+
 ## 四、审查（B 队执行，A 队只读）
 
 **触发（命中任一）**：里程碑 / 版本切换；每累计 **3 个功能批次**；冷却到期；P0 / T3 / T6 即时；组织冲突；用户点名。
