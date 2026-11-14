@@ -10,6 +10,9 @@ attempts（有则须 ≥1 整数；accepted 缺省给警告，兼容 C1/C2 样�
 claimed 缺 `.pilot/<id>/cost-before.json` 记警告（A open 后应落基线；**C5 起改阻断**）/
 result.md ≤10 行 / cost.json（存在时字段须齐）/ accepted 时 BATCHES 含「合同:<id>」
 且 base..commit 改动落在合同「写入范围」（豁免 .pilot/**）。
+
+写入范围匹配：字面路径 / 目录前缀 / `/**` / glob；另支持 `{a,b}` 花括号展开（可多组，
+非法或空项回退字面匹配，不崩）。合同 §8 仍建议写显式路径（CONTRACT-TEMPLATE §8）。
 退出码：0 全部通过；1 有阻断；2 用法错误。
 """
 import argparse
@@ -65,16 +68,53 @@ def contract_scope(text):
     return [p for p in pats if p]
 
 
+MAX_BRACE_EXPANSIONS = 64
+
+
+def expand_braces(p):
+    """展开 `{a,b}` 花括号（可多组，笛卡尔积）。
+
+    非法/空项（如 `{a,}`、`{a}`、未闭合）→ 原样返回 [p]，由调用方按字面匹配，不抛异常；
+    展开数超上限同样回退字面（防恶意模式爆量）。
+    """
+    if "{" not in p or "}" not in p:
+        return [p]
+    out = []
+
+    def rec(s):
+        if len(out) >= MAX_BRACE_EXPANSIONS:
+            raise ValueError("too many expansions")
+        m = re.search(r"\{([^{}]*)\}", s)
+        if m is None:
+            out.append(s)
+            return
+        items = [it.strip() for it in m.group(1).split(",")]
+        if len(items) < 2 or any(not it for it in items):
+            raise ValueError("invalid/empty item")
+        for it in items:
+            rec(s[:m.start()] + it + s[m.end():])
+
+    try:
+        rec(p)
+    except ValueError:
+        return [p]
+    return out or [p]
+
+
+def pattern_hit(path, p):
+    """单个（已展开的）模式是否命中 path：`/**` 前缀 / glob / 字面或目录前缀。"""
+    if p.endswith("/**"):
+        return path.startswith(p[:-2])
+    if any(c in p for c in "*?["):
+        return fnmatch.fnmatch(path, p)
+    return path == p or path.startswith(p.rstrip("/") + "/")
+
+
 def in_scope(path, patterns):
     for p in patterns:
-        if p.endswith("/**"):
-            if path.startswith(p[:-2]):
+        for expanded in expand_braces(p):
+            if pattern_hit(path, expanded):
                 return True
-        elif any(c in p for c in "*?["):
-            if fnmatch.fnmatch(path, p):
-                return True
-        elif path == p or path.startswith(p.rstrip("/") + "/"):
-            return True
     return False
 
 

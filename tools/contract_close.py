@@ -19,6 +19,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -146,6 +147,29 @@ def cost_summary(repo, cid):
     return ("fail" if over else "ok"), "；".join(notes) + ("（超判据，须复盘）" if over else "（双判据 ✓）")
 
 
+def latest_push_hash(st):
+    """从 status 事实取最近一次 push 的 origin/master 目标提交；无 push 记录返回 None。
+
+    兼容 `.pilot/*/status.json` 既有写法：`push` / `push2` / `pushed` 等 dict
+    （取 `to` / `head` / `commit`）或 `pushedAt` / `pushHash` 等 7–40 位 hex 字符串；
+    按字段出现顺序取最后一个（即最近一次）。
+    """
+    if not isinstance(st, dict):
+        return None
+    found = []
+    for key, val in st.items():
+        low = str(key).lower()
+        if not (low.startswith("push") or low == "pushed"):
+            continue
+        if isinstance(val, dict):
+            h = val.get("to") or val.get("head") or val.get("commit")
+            if isinstance(h, str) and re.fullmatch(r"[0-9a-f]{7,40}", h):
+                found.append(h)
+        elif isinstance(val, str) and re.fullmatch(r"[0-9a-f]{7,40}", val):
+            found.append(val)
+    return found[-1] if found else None
+
+
 def draft_batch_note(cid, st, cost_status, cost_text):
     """BATCHES 追记行草稿：一行 `> ...`，粘到末行后；未 accepted 时明确标「预览」。"""
     acc = (st.get("accepted") or st.get("acceptance") or {}) if isinstance(st, dict) else {}
@@ -158,11 +182,17 @@ def draft_batch_note(cid, st, cost_status, cost_text):
         acc_part = "【预览】当前 state=%s（待 A 置 accepted 后重跑取正式追记）" % (state or "?")
     cost_part = ("cost 快照未取（accepted 后补取）" if cost_status == "missing"
                  else "cost " + cost_text)
+    # 尾句按 status 事实（C6 WBS③）：有 push 记录写已 push + 考官已复核；无记录才写待 push。
+    push_hash = latest_push_hash(st)
+    if push_hash:
+        push_part = "已 push（origin/master=%s）；考官已复核。" % push_hash[:7]
+    else:
+        push_part = "待考官「可发布」→ B push。"
     return ("> 合同收尾追记（%s，%s）：%s；提交 `%s`；%s；"
             "contract_check exit 0；BATCHES 已含合同:%s；METRICS 已重生成（#9/#10 计入）；"
-            "待考官「可发布」→ B push。"
+            "%s"
             % (cid, datetime.now(TZ).strftime("%Y-%m-%d"), acc_part,
-               st.get("commit") or "（无 commit 字段）", cost_part, cid))
+               st.get("commit") or "（无 commit 字段）", cost_part, cid, push_part))
 
 
 def draft_handoff_line(cid, title, st, cost_status, cost_text):

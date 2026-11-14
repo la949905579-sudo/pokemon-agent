@@ -6,6 +6,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -50,6 +51,42 @@ def last_batch_row(text):
     rows = [r for r in rows if r.strip("|").split("|")[0].strip() not in ("批次", "")]
     rows = [r for r in rows if set(r) - set("| :-")]
     return [c.strip() for c in rows[-1].strip("|").split("|")] if rows else None
+
+CLOSE_NOTE_MARK = "合同收尾追记"
+
+
+def last_close_note(text):
+    """BATCHES 最后一条 `> 合同收尾追记…` 行 → {cid, accepted, push, raw}；无则 None。
+
+    追记行是接受 / 推送后的权威摘要（C5 起），优先于末表行「待复核/⏳」旧态。
+    """
+    raw = None
+    for ln in text.splitlines():
+        s = ln.strip()
+        if s.startswith(">") and CLOSE_NOTE_MARK in s:
+            raw = s
+    if raw is None:
+        return None
+    m = re.search(r"合同收尾追记（\s*(C\d+)[，,]", raw)
+    pm = re.search(r"已\s*push（origin/master=([0-9a-f]{7,40})）", raw)
+    return {"cid": m.group(1) if m else None,
+            "accepted": "accepted" in raw,
+            "push": pm.group(1) if pm else None,
+            "raw": raw}
+
+
+def summarize_close_note(note):
+    """追记 dict → 摘要行（accepted / 已 push / 待 push）；None → None。"""
+    if not note:
+        return None
+    bits = ["追记（%s）" % note["cid"]] if note.get("cid") else ["追记"]
+    bits.append("accepted" if note.get("accepted") else "未标 accepted")
+    if note.get("push"):
+        bits.append("已 push（origin/master=%s）" % note["push"][:7])
+    elif re.search(r"待\s*push|未\s*push", note.get("raw") or ""):
+        bits.append("待 push")
+    return "｜".join(bits)
+
 
 def summarize_contracts(repo):
     """扫 .pilot/*/status.json → ["C1 accepted", ...]。"""
@@ -104,8 +141,12 @@ def main(argv=None):
         btext = open(os.path.join(repo, "docs", "BATCHES.md"), encoding="utf-8").read()
     except OSError:
         btext = ""
+    note = last_close_note(btext)
     row = last_batch_row(btext)
-    if row is None:
+    note_summary = summarize_close_note(note)
+    if note_summary:
+        print(f"BATCHES   : {note_summary}")
+    elif row is None:
         print("BATCHES   : FAIL 无 docs/BATCHES.md 或末行")
     else:
         print(f"BATCHES   : 考官={(row[4] if len(row) > 4 else '?')[:18]}｜门禁={(row[5] if len(row) > 5 else '?')[:22]}")

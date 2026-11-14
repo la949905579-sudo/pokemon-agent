@@ -165,6 +165,21 @@ def case_cost_missing(tmp):
     return rc == 0 and "SKIP cost" in out and "不算失败" in out, out
 
 
+@case
+def case_push_fact_tail(tmp):
+    """尾句按 status 事实（C6 WBS③）：无 push → 待考官；有 push 记录 → 已 push + 考官已复核。"""
+    repo, _, status = make_repo(tmp)
+    rc1, out1 = close(repo)
+    ok1 = (rc1 == 0 and "待考官「可发布」→ B push" in out1
+           and "已 push（origin/master=" not in out1)
+    edit_json(status, lambda d: d.update(
+        push={"remote": "origin/master", "from": "x", "to": "abcdef1234567890"}))
+    rc2, out2 = close(repo)
+    ok2 = (rc2 == 0 and "已 push（origin/master=abcdef1）" in out2
+           and "考官已复核" in out2 and "待考官「可发布」→ B push" not in out2)
+    return ok1 and ok2, out1[-500:] + "\n---\n" + out2[-500:]
+
+
 def main():
     failed = 0
     for fn in CASES:

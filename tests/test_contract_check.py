@@ -46,6 +46,9 @@ CONTRACT = """# C1 测试合同
 - `.pilot/<id>/result.md`
 """
 
+DEFAULT_SCOPE = "`tests/**`、`bdata.py`"
+CONTRACT_TMPL = CONTRACT.replace(DEFAULT_SCOPE, "__SCOPE__")
+
 
 def run_git(repo, *args):
     r = subprocess.run(GIT + ["-C", repo, *args], capture_output=True, text=True)
@@ -66,17 +69,21 @@ def commit_all(repo, msg):
     return run_git(repo, "rev-parse", "HEAD")
 
 
-def make_repo(tmp):
-    """建一个最小的假仓库：base 提交 + 一个范围内提交。"""
+def make_repo(tmp, scope=DEFAULT_SCOPE, files=("tests/x.py",)):
+    """建一个最小的假仓库：base 提交 + 一个范围内提交。
+
+    scope 可覆盖合同 §8 的允许路径（用于花括号展开用例）；files 是范围内提交新增的文件。
+    """
     repo = os.path.join(tmp, "repo")
     os.makedirs(repo)
     run_git(repo, "init", "-q")
     contract = os.path.join(repo, "docs", "contracts", "C1-test.md")
-    write(contract, CONTRACT)
+    write(contract, CONTRACT_TMPL.replace("__SCOPE__", scope))
     write(os.path.join(repo, "docs", "BATCHES.md"),
           "# 批次\n\n| 批 | 内容 |\n|---|---|\n| C1 | 合同:C1 试点 |\n")
     base = commit_all(repo, "base")
-    write(os.path.join(repo, "tests", "x.py"), "x = 1\n")
+    for rel in files:
+        write(os.path.join(repo, rel), "x = 1\n")
     commit = commit_all(repo, "in-scope")
     status = {
         "contract": "C1",
@@ -189,6 +196,33 @@ def case_out_of_scope(tmp):
     edit_json(status, lambda d: d.update(commit=out_commit))
     rc, out = check(repo, contract, status)
     return rc != 0 and "写入范围" in out, out
+
+
+@case
+def case_brace_expand_hit(tmp):
+    """`tests/{a,b}.py` 展开后命中 tests/a.py → exit 0（花括号展开命中）。"""
+    repo, contract, status, _, _ = make_repo(tmp, scope="`tests/{a,b}.py`",
+                                             files=("tests/a.py",))
+    rc, out = check(repo, contract, status)
+    return rc == 0 and "通过" in out, out
+
+
+@case
+def case_brace_expand_miss(tmp):
+    """`tests/{a,b}.py` 不命中 tests/c.py → exit 1（写入范围阻断）。"""
+    repo, contract, status, _, _ = make_repo(tmp, scope="`tests/{a,b}.py`",
+                                             files=("tests/c.py",))
+    rc, out = check(repo, contract, status)
+    return rc != 0 and "写入范围" in out, out
+
+
+@case
+def case_brace_invalid_literal(tmp):
+    """空项 `tests/{a,}.py` 非法 → 回退字面匹配、不崩；字面同名文件命中 → exit 0。"""
+    repo, contract, status, _, _ = make_repo(tmp, scope="`tests/{a,}.py`",
+                                             files=("tests/{a,}.py",))
+    rc, out = check(repo, contract, status)
+    return rc == 0 and "Traceback" not in out, out
 
 
 @case

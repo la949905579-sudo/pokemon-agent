@@ -156,6 +156,7 @@
 - **收尾自动化**：A 置 accepted 后跑 `python3 tools/contract_close.py <id>`，输出 BATCHES 追记行草稿 + HANDOFF 摘要行 + METRICS 重生成提示 + cost 摘要（只打印，不改台账，风格同 `batch_close`）。
 - **真机项默认交 realdevice**：真机项默认交「真机执行」（实例 `device`）按合同 §7.3 跑，A/B 只记结果与证据路径、不代跑；无手机工具时回执注明改由用户/A 执行，不阻断。
 - **承包商启动提示词**：A open 后同步产出启动提示词（骨架见 `docs/contracts/CONTRACT-TEMPLATE.md` §12），B 按提示词自启动，减少转达失真。
+- **spawn 显式标职位 + status 时间戳**（C6 v1.6）：`spawn_teammate` 的 `description` 必须以**中文职位名开头**（如「助理：…」「考官：…」），否则 `token_report` 成本归因记「未知职位」（R3）；`.pilot/<id>/status.json` 的 `openedAt` / `claimedAt` / `greenAt` / `pushedAt` / `accepted` 等时间一律写 **`YYYY-MM-DD HH:MM`**（Asia/Shanghai），不用 `12:3x` 近似值。
 
 ## 四、审查（A 队：审计督导子会话执行，代理人对用户负责）
 

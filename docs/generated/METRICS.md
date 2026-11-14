@@ -3,8 +3,8 @@
 > 由 `tools/metrics.py` 生成，**不要手改**。重新生成：`python3 tools/metrics.py`。
 > 目的：让「哪些提交被构建过」「CI 首过率多少」可核，而不是看 tag 名猜。
 
-- 生成时间：2026-11-14 12:37（Asia/Shanghai）
-- 生成时 HEAD：`779dac6`（之后若有新提交属正常）
+- 生成时间：2026-11-14 12:49（Asia/Shanghai）
+- 生成时 HEAD：`2a4a551`（之后若有新提交属正常）
 - 数据源：远端 `build-*` tag（`git ls-remote --tags origin`）+ GitHub Actions 公共 API + `docs/history/INCIDENTS.md`
 
 ## 〇、度量总表（A-21 8 项 + 合同制 2 项）
@@ -14,7 +14,7 @@
 
 | # | 指标 | 值 | 类型 | 阈值 → 动作 | 判定 |
 |---|---|---|---|---|---|
-| 1 | docs 提交占比 | 49/72 = 68.1% | 自动 | >50% → 复盘 | 红（复盘） |
+| 1 | docs 提交占比 | 49/73 = 67.1% | 自动 | >50% → 复盘 | 红（复盘） |
 | 2 | CI 首过率 | 118/145 = 81.4% | 自动 | <70% → T4 | 绿 |
 | 3 | 打回率 | 0/8 = 0.0% | 自动 | >30% → T4 | 绿 |
 | 4 | 窗口内新增复发数 | 0（窗口起点 2026-11-13；累计 1 仅展示） | 自动 | >0 → T4 硬触发 | 绿 |
@@ -72,7 +72,7 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 
 ## 三、构建覆盖缺口（tag 之后未构建的提交）
 
-最后一个 build tag 之后还有 **11** 个提交未构建：
+最后一个 build tag 之后还有 **12** 个提交未构建：
 
 | 提交 | 时间 | 说明 | 触及 `native-emu/**` |
 |---|---|---|---|
@@ -87,6 +87,7 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 | `d3baeab` | 2026-11-14 09:07 | C3(治理批v1.3): 真机执行角色 + emu_probe + cost_snapshot + token 预算规则 | 否 |
 | `36a28c1` | 2026-11-14 11:45 | C4(治理批v1.4): 收尾自动化 + 成本基线门禁 + 真机执行实战 | 否 |
 | `779dac6` | 2026-11-14 12:31 | C5(旧方案归档): 停用旧主流程 + 旧职位引用清理 + 全局AGENTS同步 | 否 |
+| `2a4a551` | 2026-11-14 12:38 | C5(收尾): 合同§8显式路径修正 + 成本追记 + HANDOFF/METRICS 收尾 | 否 |
 
 **构建覆盖完整**：未构建的提交都不触及 `native-emu/**`，不影响 APK。
 
@@ -105,15 +106,15 @@ CI 按**推送 tip** 打 tag：一次推送推了多个提交时，只有 tip �
 > （批次结束 / 发版前 / T4 判定前更新，只保留最近一次结果），不是运行时缓存，
 > 因此入库保留、便于跨会话核对；不是脚本自动生成。
 
-- 更新时间：2026-11-14 12:27
+- 更新时间：2026-11-14 12:48
 
 | 测试 | 数量 | 结果 | 时间 | 命令 |
 |---|---|---|---|---|
 | Kotlin 单测 | 115 | PASS（0 failure / 0 error） | 2026-11-14 05:5x | `GitHub Actions run 43458997942 → gradle :app:testDebugUnitTest :app:assembleDebug（master，C2 推送）` |
-| Python 离线测试 | 35 | PASS（35/35） | 2026-11-14 12:27 | `python3 run_tests.py` |
+| Python 离线测试 | 36 | PASS（36/36） | 2026-11-14 12:48 | `python3 run_tests.py` |
 
 - Kotlin：CI run 43458997942 conclusion=success，job apk 的 build 步骤 success（含 :app:testDebugUnitTest）；tree 静态 @Test 115 = 批次5 后 113 + C2 MoveName232Test 2 例；以 CI build 步骤 success 为通过证据。
-- Python：C5 治理批（纯 docs/配置，无测试变更）提交前实跑 35/35；沿用 C4 的 contract_close / cost_snapshot / contract_check 测试。
+- Python：C6 治理批（新增 test_write_scopes.py；contract_check +3 / contract_close +1 / batch_facts +2 用例）提交前实跑 36/36；全部离线。
 
 > 静态计数（grep `@Test`）只用于估算，**不能代替真实运行结果**。
 

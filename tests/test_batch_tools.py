@@ -45,7 +45,11 @@ def commit_all(repo, msg):
     return run_git(repo, "rev-parse", "HEAD")
 
 
-def make_repo(tmp, batch_row=PENDING_ROW):
+CLOSE_NOTE = ("> 合同收尾追记（C5，2026-11-14）：accepted by A / verdict accepted；提交 `abc1234`；"
+              "contract_check exit 0；已 push（origin/master=779dac6）；考官已复核。")
+
+
+def make_repo(tmp, batch_row=PENDING_ROW, trailing=""):
     repo = os.path.join(tmp, "repo")
     os.makedirs(repo)
     run_git(repo, "init", "-q")
@@ -53,7 +57,10 @@ def make_repo(tmp, batch_row=PENDING_ROW):
             "|---|---|---|---|---|---|---|"]
     if batch_row:
         rows.append(batch_row)
-    write(os.path.join(repo, "docs", "BATCHES.md"), "\n".join(rows) + "\n")
+    text = "\n".join(rows) + "\n"
+    if trailing:
+        text += trailing + "\n"
+    write(os.path.join(repo, "docs", "BATCHES.md"), text)
     write(os.path.join(repo, "tools", "test_results.json"),
           json.dumps({"python": {"tests": 1, "result": "PASS"},
                       "kotlin": {"tests": 2, "result": "PASS"}}))
@@ -105,6 +112,33 @@ def case_facts_fail_continue(tmp):
     commit_all(repo, "only")
     rc, out = run_script(FACTS, tmp, "--repo", repo)
     return rc == 0 and "FAIL" in out and "BATCHES" in out, out
+
+
+@case
+def case_pure_close_note(tmp):
+    """追记行解析：取最后一条 `> 合同收尾追记…`，提取 accepted / 已 push；无追记返回 None。"""
+    got = FACTS_MOD.last_close_note(CLOSE_NOTE + "\n")
+    none = FACTS_MOD.last_close_note("| 批次 | 日期 | 内容 |\n|---|---|---|\n" + PENDING_ROW)
+    summ = FACTS_MOD.summarize_close_note(got)
+    ok = (isinstance(got, dict) and got["cid"] == "C5" and got["accepted"] is True
+          and got["push"] == "779dac6" and none is None
+          and "accepted" in summ and "已 push" in summ)
+    return ok, f"got={got} none={none} summ={summ}"
+
+
+@case
+def case_facts_prefers_close_note(tmp):
+    """BATCHES 摘要优先显示追记（accepted/已 push），无追记回退末表行「待复核」不崩。"""
+    repo = make_repo(os.path.join(tmp, "a"), trailing=CLOSE_NOTE)
+    rc, out = run_script(FACTS, tmp, "--repo", repo)
+    line = next((ln for ln in out.splitlines() if "BATCHES" in ln), "")
+    ok_note = (rc == 0 and "追记（C5）" in line and "accepted" in line
+               and "已 push" in line and "待复核" not in line and "⏳" not in line)
+    repo2 = make_repo(os.path.join(tmp, "b"))
+    rc2, out2 = run_script(FACTS, tmp, "--repo", repo2)
+    line2 = next((ln for ln in out2.splitlines() if "BATCHES" in ln), "")
+    ok_fallback = rc2 == 0 and "考官=待复核" in line2
+    return ok_note and ok_fallback, line + "\n" + line2
 
 
 @case

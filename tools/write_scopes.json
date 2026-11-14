@@ -1,25 +1,29 @@
 {
-  "_comment": "A-17 职位写入范围表（镜像 docs/TEAM.md §一 1.1/1.2）。唯一真源仍是 docs/TEAM.md；改 TEAM §一时须同批更新本文件（A-19 教训）。paths 支持精确路径、目录前缀（以 / 结尾）与通配符；\"*\" = 不限。",
+  "_comment": "A-17 职位写入范围表（镜像 docs/TEAM.md §一 1.1/1.2）。唯一真源仍是 docs/TEAM.md；改 TEAM §一时须同批更新本文件（A-19 教训：C6 已对齐 C5 新编制——删旧 4 角色、增「审计督导」）。paths 支持精确路径、目录前缀（以 / 结尾）与通配符；\"*\" = 不限；合同 §8 一律写显式路径，禁用 {a,b} 花括号。",
   "source": "docs/TEAM.md §一（1.1 会话 / 1.2 成员）",
   "roles": {
-    "统筹主持": {
+    "代理人": {
       "aliases": [
-        "lead"
+        "proxy"
       ],
       "paths": [
-        "docs/org/REQUEST.md"
+        "docs/contracts/**"
       ],
-      "note": "其余无（A-19：仅方案箱请求文件例外）；保留直接修改权，改后须在 docs/HANDOFF.md 留痕"
+      "note": "合同制 A 侧：唯一用户对接，写合同与验收结论、只抽查机械项（TEAM §三·十）"
     },
-    "独立督导": {
+    "承包商": {
       "aliases": [
-        "audit-lead"
+        "contractor"
       ],
-      "paths": [
-        "docs/audit/**",
-        "docs/roles/b/**"
+      "paths": [],
+      "note": "合同制 B 侧：只读合同执行；写入按合同 §8 动态授权（TEAM §三·十），不入本表"
+    },
+    "审计督导": {
+      "aliases": [
+        "supervisor"
       ],
-      "note": "B 队文件：审查件与 B 队角色卡"
+      "paths": [],
+      "note": "代理人按需 spawn 的审计督导子会话（fresh、只读、≤5 行回执）；按 docs/audit/AUDIT.md 触发；报告由代理人落盘，docs/audit/** 归 A 队"
     },
     "组织规划": {
       "aliases": [
@@ -43,23 +47,7 @@
         "advisor"
       ],
       "paths": [],
-      "note": "只读参谋；意见由用户或统筹主持落盘"
-    },
-    "代理人": {
-      "aliases": [
-        "proxy"
-      ],
-      "paths": [
-        "docs/contracts/**"
-      ],
-      "note": "合同制 A 侧：写合同与验收结论（TEAM §三·十）"
-    },
-    "承包商": {
-      "aliases": [
-        "contractor"
-      ],
-      "paths": [],
-      "note": "合同制 B 侧：只读合同执行；写入按合同 §8 动态授权（TEAM §三·十），不入本表"
+      "note": "只读参谋；意见由用户或代理人落盘"
     },
     "真机执行": {
       "aliases": [
@@ -99,20 +87,6 @@
       ],
       "paths": [],
       "note": "只读复核，不写文件"
-    },
-    "审查员": {
-      "aliases": [
-        "auditor"
-      ],
-      "paths": [],
-      "note": "只读；报告文字交独立督导落盘"
-    },
-    "成本管理员": {
-      "aliases": [
-        "audit-cost"
-      ],
-      "paths": [],
-      "note": "只读"
     },
     "分工规划员": {
       "aliases": [

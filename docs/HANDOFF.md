@@ -1,30 +1,30 @@
 # 交接文档（HANDOFF）
 
-> 2026-11-14 12:4x · **C5 收尾批（旧方案归档 v1.5）**（纯 docs/配置；本批共 **2 条提交**：`779dac6` 主批已 push + 本收尾提交〔合同 §8 显式路径修正 + BATCHES 追记 + HANDOFF/METRICS〕待考官轻量复核后 push）。
+> 2026-11-14 12:5x · **C6 治理工具批 v1.6**（机械型；**单提交**（`git log -1` 可查），待考官轻量复核「可发布」后 B push；不 amend、不 `--no-verify`）。
 > 给新会话（新代理人）：先读本文件 + `docs/TEAM.md`（§二 重建 + §三·十 合同制 + §三·十一/十二 现行流程）+ `docs/HANDOVER.md` + `docs/NATIVE_EMU_TODO.md`。
 > **本文件是交接唯一真源，聊天记录不算。** 历史长文已迁出：更早的完整交接（F2/A–E 真机记录、T5 豁免对账）见 `git show 35b8fc7:docs/HANDOFF.md`，上一版见 `git show 2f258b0:docs/HANDOFF.md`；本文件只留最近 2–3 批摘要，不囤长文。
 
-## 事实快照（2026-11-14 12:4x 实测，C5 收尾提交后）
+## 事实快照（2026-11-14 12:5x 实测，C6 提交后）
 
-- **HEAD / 推送**：HEAD = 本条**收尾提交**（`git log -1` 可查，避免自引用哈希）；本批第 1 条 `779dac6` 已 push origin/master；收尾提交待考官「可发布」后 push → 最终 `origin/master` = HEAD、`origin/master..HEAD` = 0；工作树为空。
-- **测试**：python **35/35**（`tools/test_results.json`）；Kotlin 静态 **115**（CI 快照，本批无 Kotlin 改动）。
-- **索引**：`python3 tools/gen_files_index.py --check` = 0；`docs/generated/FILES.md` / `METRICS.md` 收尾批重生成（METRICS 计入 C5 成本、#9/#10）。
+- **HEAD / 推送**：HEAD = 本批 **C6 单提交**（`git log -1` 可查，避免自引用哈希）；base `2a4a551`；**未 push**（等考官「可发布」）；`origin/master..HEAD` = 1；工作树为空（`.pilot/` 已 gitignore）。
+- **测试**：python 数量以 `tools/test_results.json` 为准（本批实跑，新增 `tests/test_write_scopes.py`）；Kotlin 静态 **115**（CI 快照，本批无 Kotlin 改动）。
+- **索引**：`python3 tools/gen_files_index.py --check` = 0；`docs/generated/FILES.md` / `METRICS.md` 本批重生成（METRICS 计入 C6 状态、#9/#10）。
 - **审查**：最近完整审查 `docs/audit/REPORT-20261113.md` = **有条件通过**；冷却中（见「审查状态」）。
-- **合同制**：**C1–C5 全 accepted**——C1 `c7538bb`、C2 `f4e8bf9`、C3 `d3baeab`（15.0M ≤ 阈 21.3M）、C4 `36a28c1`（20.4M 记超，已复盘）、C5 `779dac6`（14.4M ≤ 阈 19.9M，双判据 ✓）。
+- **合同制**：**C1–C5 全 accepted**——C1 `c7538bb`、C2 `f4e8bf9`、C3 `d3baeab`（15.0M ≤ 阈 21.3M）、C4 `36a28c1`（20.4M 记超，已复盘）、C5 `779dac6`（14.4M ≤ 阈 19.9M，双判据 ✓）；**C6 green 待 A accepted**（成本 accepted 后取，基线 23,050,288 / 阈 19,592,745）。
 
 ## 当前目标
 
-- 本批（C5 收尾）：第 2 条提交收口——合同 §8 显式路径修正 + BATCHES C5 追记 + HANDOFF/METRICS 收尾；**待考官轻量复核「可发布」→ B push**。
-- 本批之后：push → **交接前置检查** → 交接（`TEAM` §二 重建；新会话按合同制重建）。
+- 本批（C6 治理工具批 v1.6）：WBS ①–⑥ 已完成并单提交；**待考官轻量复核「可发布」→ B push**。
+- 本批之后：push → 取 `cost-after` → **交接前置检查** → 交接（`TEAM` §二 重建；新会话按合同制重建）。
 - 下一批建议：**合同制跑 A\* 6 图补采 + UI 入口**（功能批，见「下一步」）。
 
 ## 最近 3 批摘要
 
 | 批次 | 提交 | 状态 |
 |---|---|---|
-| C3-流程优化 v1.3 | `d3baeab` | accepted；cost 15.0M ≤ 阈 21.3M、≤30M ✓；已 push |
 | C4-治理批 v1.4 | `36a28c1` | accepted；cost 20.4M 记超（已复盘 `RETROSPECTIVE-20261114-C4-cost.md`）；已 push |
-| C5-旧方案归档 v1.5 | `779dac6` + 收尾提交（`git log -1` 可查） | accepted；cost 14.4M ≤ 阈 19.9M、≤30M ✓（双判据 ✓）；主批已 push、收尾提交待考官后 push；授权留痕见 `docs/BATCHES.md` |
+| C5-旧方案归档 v1.5 | `779dac6` + 收尾 `2a4a551` | accepted；cost 14.4M ≤ 阈 19.9M、≤30M ✓（双判据 ✓）；均已 push |
+| C6-治理工具批 v1.6 | 单提交（`git log -1` 可查） | green（待 A accepted）；机械项 M1–M7 全过、待考官复核；**未 push**；授权留痕见 `docs/BATCHES.md` |
 
 ## 已完成（累积；除本批外全部已在 origin/master）
 
@@ -42,27 +42,27 @@
 5. **自动化开关**（工具页，需决策层接入）；**联机**（GBA link cable，方案待调研）。
 6. **tag 瑕疵**：`build-5bbe4f4` tag 实际指向 `e54b240`（target_commitish 默认；构建覆盖仍含 `5bbe4f4`）。
 7. **A-5**：`REQUEST` 必填模板已落（`a88fa4d`），**待审计督导确认**归属。
-8. **`tools/write_scopes.json` 镜像 TEAM §一 编制**：C5 改编制（代理人 / 承包商 / 审计督导）后，该镜像仍列旧职位键；本批 §8 不允许改 `tools/`，待下批同步（A-17 门禁不校验 TEAM 表，暂不阻断）。
+8. **`tools/write_scopes.json` 镜像 TEAM §一 编制**：**C6 已对齐**（删旧 4 角色 / 增「审计督导」），本项闭环；`tests/test_write_scopes.py` 做离线一致性守护。
 
 ## 审查状态 / 豁免凭据
 
 - **最近完整审查**：`docs/audit/REPORT-20261113.md`（窗口 `3decf36..ac26275`，45 提交）= **有条件通过**；3 条闭环前不得发下一版。整改现状：A-18/A-19/A-20/A-21/A-22/A-23/A-24 **已落地**（`3ba213d`/`2e70a67`/`da9962a` 等），A-5 **待审计督导确认**。
 - **冷却**：两次完整审查间隔 ≥7 天 → **11-19 只做轻量复查**（按 REPORT §五 5 个复查点）、**下一次完整审查最早 2026-11-20**（用户 2026-11-13 13:46 拍板，`AUDIT_LOG`「11-19 复查安排与冷却重算」）。P0 / T6 / 新增复发可立即开审。
 - **T5 交接前置审查**：须在冷却外审查或用户书面豁免；2026-11-13 已有 T5 豁免留痕（`AUDIT_LOG`）。11-19 前若交接，沿用豁免或结论标「降级采信」，**不得自行宣布豁免**。
-- 本批未命中审查触发条件（纯 docs/台账；无 P0/T6/新增复发）。
+- 本批（C6）未命中审查触发条件（治理批纯 tools/tests/docs；无 P0/T6/新增复发）。
 
 ## 下一步建议
 
 1. 先取**考官轻量复核**（≤5 行：事实 / 引用一致性 / 越权范围 + 抽 1 条命令复跑）；结论写 `BATCHES` 末行 → 跑 `tools/precommit_check.sh --push` → push（**不 amend**）。
-2. push 后跑 `HANDOVER` §二 11 项 → 交接（`TEAM` §二 重建；新会话＝代理人 + 合同制）。
+2. push 后由 B 取 `cost-after`（`python3 tools/cost_snapshot.py --contract C6`，须 A 置 accepted 后）→ 跑 `HANDOVER` §二 11 项 → 交接（`TEAM` §二 重建；新会话＝代理人 + 合同制）。
 3. **功能批（新会话第一批）**：合同制跑 A\* 6 图补采 + UI 入口（A 写合同 / B 执行；验收含真机步骤）；跨会话请求按 `REQUEST` §六 三字段填写（A-5）。
-4. **下批治理清单（考官 3 建议 + A 补 3 项，登记不阻断）**：
-   ① `tools/write_scopes.json` 同步新编制（代理人 / 承包商 / 审计督导，旧名键残留）；
-   ② `tools/contract_close.py` 追记模板文案（「待考官→B push」与「先 push 后 accepted」事实不符）；
-   ③ `tools/contract_check.py` 写入范围不支持 `{a,b}` 花括号 → 展开或报错提示（A 已在合同 §10 记；下批改工具 + 测试）；
-   ④ `status.json` 时间戳精确到分钟（现为 12:3x 近似）；
-   ⑤ R3 观察项：`byRole` 未标注 / 未知职位占比 23.9% 未达 ≤10% → 下批 spawn 显式标职位；
-   ⑥ `docs/audit/**` 正文归 A 队后的旧名清理（按用户拍板，非本批）。
+4. **治理建议收口状态（C5 考官 3 条 + A 补 3 项）**：
+   ① `tools/write_scopes.json` 同步新编制 → **C6 已闭环**；
+   ② `contract_close` 追记文案（「待考官→B push」与已 push 事实不符）→ **C6 已闭环**（尾句按 status push 事实）； 
+   ③ `contract_check` 花括号 → **C6 已闭环**（支持 `{a,b}` 展开 + 3 用例；合同 §8 仍写显式路径）；
+   ④ `status.json` 时间戳精确到分钟 → **C6 已规范**（`TEAM` §三·十二 + `CONTRACT-TEMPLATE` §11：`YYYY-MM-DD HH:MM`）；
+   ⑤ R3 spawn 显式标职位 → **C6 已规范**（`TEAM` §三·十二：`description` 中文职位开头）；
+   ⑥ `docs/audit/**` 正文归 A 队后的旧名清理 → 待 A 队（非本批）。
 5. 功能候选：M4/M5 迁移、名表 354（先定数据源 + 去重口径）、自动化开关、联机。
 
 ## 不要做什么（最值钱）
@@ -84,6 +84,7 @@
 - **C3**：perBatch **15.0M** ≤ 阈 21.3M（双判据 ✓）。
 - **C4**：perBatch **20.4M** > 阈 20.0M（记超，已复盘 `RETROSPECTIVE-20261114-C4-cost.md`）。
 - **C5**：perBatch **14.4M**（delta 14,427,176 / batches 1）≤ baseline×0.85 = 阈 **19.9M**（72.6%）且 ≤30M → **未记超（R2 ✓）**；累计 C4 20.4M / C5 14.4M。
+- **C6**：cost-after 待 A accepted 后取（基线 `.pilot/C6/cost-before.json`：windowTotal 161,352,017 / batches 7 / baseline 23,050,288 / threshold 19,592,745）；判据不变（≤阈 且 ≤30M/批）。
 - 新会话按 `docs/contracts/PILOT.md` §六 测量法重取；`cost-after` 必须在 accepted 后取。
 
 ## 交接前置检查（`HANDOVER` §二 11 项现状）
@@ -91,14 +92,14 @@
 | # | 项 | 现状 |
 |---|---|---|
 | 1 | `git status` 干净 | ✅ 本批提交后为空 |
-| 2 | 提交已推送 | ✅ 本批 2 条均已 push（`779dac6` 主批 + 收尾提交，2026-11-14 考官轻量复核「可发布」后）；`origin/master` = HEAD、`origin/master..HEAD` = 0 |
+| 2 | 提交已推送 | ⏳ C6 单提交待考官「可发布」后 push（push 后 `origin/master..HEAD` = 0）；C5 两条均已 push |
 | 3 | CI 绿 | ✅ 最近 master run `43458997942` success；Release `build-f4e8bf9`（本批纯 docs，不触发 CI） |
-| 4 | `run_tests.py` | ✅ python 35/35（收尾批实跑）；Kotlin 115（`tools/test_results.json`，CI 覆盖） |
+| 4 | `run_tests.py` | ✅ python 数量以 `tools/test_results.json` 为准（C6 实跑，新增 `test_write_scopes`）；Kotlin 115（CI 覆盖） |
 | 5 | TODO/CHANGELOG 与代码同步 | ⚠ 部分：TODO 名表条仍成立；C1/C2 无行为级 CHANGELOG 条目（C1 纯测试迁移、C2 数据补条），待审计督导定是否补记 |
 | 6 | `gen_files_index.py` 重生成 + `--check` | ✅ 重生成后 `--check` = 0（本批执行） |
-| 7 | 本文件更新 | ✅ 本批（C5 收尾：事实快照 / 摘要 / 成本口径 / 下批清单） |
+| 7 | 本文件更新 | ✅ 本批（C6：事实快照 / 摘要 / 成本口径 / 收尾 / 下批清单） |
 | 8 | 无未结束 job / 子代理；watcher | ✅ 本批无后台 job/子代理；无 watcher 运行（合同执行会话收尾即关） |
-| 9 | `precommit_check.sh --push` | ✅ push 前已跑（`EXAMINER_OK` 后可发布结论；exit 0） |
+| 9 | `precommit_check.sh --push` | ⏳ push 时执行（考官「可发布」后带 `EXAMINER_OK`） |
 | 10 | Kotlin UI 改动 → `check_ui_state.py` | ✅ 本批无 Kotlin 改动（历史 34 文件全配对） |
 | 11 | 机械闸门已装 | ✅ `.git/hooks/pre-commit` + `pre-push` 都在 |
 
@@ -107,7 +108,7 @@
 ```bash
 cd /root/workspace
 git status --short                         # 期望空（队友未提交文件除外，不要 add -A）
-git log -3 --oneline                       # 期望含 C5 治理批提交
+git log -3 --oneline                       # 期望含 C6 治理工具批提交
 git rev-list --count origin/master..HEAD   # 等考官期间 = 1；push 后 = 0
 python3 run_tests.py                       # 数量以 tools/test_results.json 为准
 python3 tools/gen_files_index.py --check   # 期望 0
@@ -142,3 +143,11 @@ python3 tools/gen_files_index.py --check   # 期望 0
   - **审计 / 督导归属**：归 A 队——新增 `docs/roles/a/supervisor.md`（代理人按需 spawn、fresh、只读、≤5 行回执、按 `docs/audit/AUDIT.md` 触发）；`docs/roles/README.md` 与 `docs/roles/b/audit-lead.md` 标停设；`TEAM` §四 补归属句；`docs/audit/**` 正文未动。
   - **全局** `/root/.dsh/AGENTS.md`：先备份 `AGENTS.md.bak-20261114` → 删首行受管标记 → 只换「会话寿命与角色分工」段为合同制口径（不入库）。
 - **已知偏差 / 待确认**：① 本环境 B 无 spawn 权，助理 / 考官由 Lead 另起 fresh 会话承担，本批执行与提交由 B 直执；② `M4` 原命令未排除 §6 豁免区，已按 §6 豁免口径执行；A 2026-11-14 12:3x 修订 M4 命令（合同 §10 变更行，限活体文件，实测空）；③ `tools/write_scopes.json` 镜像 TEAM §一 旧编制，本批 §8 不允许改，待下批。
+
+## C6 治理工具批收尾（2026-11-14，v1.6）
+
+- **合同**：`docs/contracts/C6-governance-tools.md`（机械型，1 批，无真机项；单提交，**未 push**，待考官）。
+- **WBS ①–⑥**：① `tools/write_scopes.json` 对齐 `TEAM` §一新编制（删旧 4 角色 / 增「审计督导」）+ 新 `tests/test_write_scopes.py`（4 例）；② `contract_check.in_scope` 支持 `{a,b}` 展开（多组；非法/空项回退字面匹配）+ 测试 +3；③ `contract_close` 追记尾句按 status push 事实（有记录→已 push + 考官已复核；无→待考官→B push）+ 测试 +1；④ `batch_facts` 解析 `> 合同收尾追记…` 优先显示（无则回退末表行）+ 测试 +2；⑤ `TEAM` §三·十二 增 spawn 显式标职位 / status 时间格式，`CONTRACT-TEMPLATE` §8 禁 `{a,b}` / §11 时间格式；⑥ 台账（BATCHES `合同:C6` / test_results / FILES / METRICS / 本文件）。
+- **门禁**：`contract_check`（C6）/ `batch_facts` / `batch_close --dry-run` / `run_tests.py` / `gen_files_index --check` / `metrics --check` 全过；M1–M7 全过（M7 改动全部落 §8）。
+- **判断项**：花括号展开不破坏既有字面 / `/**` / glob（原 14 例 + 新 3 例全过）；追记解析无追记行回退末表行不崩；`write_scopes` 与 `TEAM` §一 逐条一致（测试守护）。
+- **偏差 / 待确认**：本环境 B 无 spawn 权，助理 / 考官由 Lead 另起 fresh 会话承担，执行与提交由 B 直执；`cost-after` 待 accepted 后取。
