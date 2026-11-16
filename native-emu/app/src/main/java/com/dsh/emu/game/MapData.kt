@@ -8,7 +8,8 @@ import org.json.JSONObject
  * 当前地图数据（tile 级），给下屏「当前地图页 / 大地图」用。
  *
  * 数据源优先级（运行时不再依赖 /sdcard 和 Python 推送）：
- *   1. APK 内 `assets/maps/map_<地图数组地址>.json`（仓库根 `maps/` 打包，13 张）；
+ *   1. APK 内 `assets/maps/map_<地图数组地址>.json`（由 `tools/gen_map_assets.py` 从解包数据生成，
+ *      全量 345 个 ROM 地址；**懒加载**：先只列文件名，用到哪张才解析哪个文件）；
  *   2. assets 没覆盖这张图 → 直接读模拟器内存 tiles，并写一条 WARN `map.fallback source=memory`；
  *   3. 都失败 → null（UI 显示 --，不崩）。
  *
@@ -29,34 +30,61 @@ object MapData {
     /** gMapHeader 指针（Python `terrain.py` 实测：换图后值立刻变）。 */
     const val MAP_HDR_PTR = 0x02036DFC
 
-    /** 地图数组地址 -> 归一化 tiles（assets 打包的）。 */
+    /** 地图数组地址 -> 归一化 tiles（已解析/测试注入的）。 */
     private val assetTiles = HashMap<Int, List<List<Int>>>()
     /** 地图数组地址 -> (w, h)（assets json 里的尺寸；跨图寻路按任意地图取图用）。 */
     private val assetSizes = HashMap<Int, Pair<Int, Int>>()
+    /** assets/maps 里的文件名（只列目录，不解析内容——345 个文件懒加载）。 */
+    private val assetNames = HashSet<String>()
+    /** 解析资产用的 Context（loadAssets 里存 applicationContext）。 */
+    private var appContext: Context? = null
     @Volatile private var assetsLoaded = false
     @Volatile private var cached: Layer? = null
 
     // ---------- 初始化 / 测试 ----------
 
-    /** 启动时把 assets 里 maps 目录下的 json 读进内存（13 个文件共 ~70KB，主线程加载也够快）。 */
+    /**
+     * 启动时只列 assets/maps 目录（不解析内容）：全量 345 张图 ~2.7MB，主线程逐个解析会卡。
+     * 用到哪张图由 [assetLayer] / [current] 懒解析并缓存。
+     */
     @Synchronized
     fun loadAssets(context: Context) {
         if (assetsLoaded) return
         assetsLoaded = true
+        appContext = context.applicationContext
         try {
             val names = context.assets.list("maps") ?: return
             for (name in names) {
                 if (!name.startsWith("map_") || !name.endsWith(".json")) continue
-                // map_links.json 是跨图连接表，由 MapLinks 单独加载，这里跳过避免「解析失败」告警
+                // map_links.json 是跨图连接表，由 MapLinks 单独加载，这里跳过
                 if (name == "map_links.json") continue
-                val text = context.assets.open("maps/$name").bufferedReader().use { it.readText() }
-                val layer = parseJson(text) ?: continue
+                assetNames.add(name)
+            }
+            Nlog.info("map.assets", "ok" to true, "indexed" to assetNames.size)
+        } catch (e: Throwable) {
+            Nlog.warn("map.assets", "ok" to false, "code" to e.javaClass.simpleName)
+        }
+    }
+
+    /** 按地址懒解析 assets（命中缓存直接返回）；没有该资产/解析失败返回 null。 */
+    @Synchronized
+    private fun parseAsset(addr: Int): Layer? {
+        assetTiles[addr]?.let { tiles ->
+            val size = assetSizes[addr] ?: ((tiles.firstOrNull()?.size ?: 0) to tiles.size)
+            if (size.first > 0 && size.second > 0) return Layer(addr, size.first, size.second, tiles, true)
+        }
+        val ctx = appContext ?: return null
+        val name = "map_%x.json".format(addr)
+        if (name !in assetNames) return null
+        return try {
+            val text = ctx.assets.open("maps/$name").bufferedReader().use { it.readText() }
+            parseJson(text)?.also { layer ->
                 assetTiles[layer.addr] = layer.tiles
                 assetSizes[layer.addr] = layer.w to layer.h
             }
-            Nlog.info("map.assets", "ok" to true, "loaded" to assetTiles.size)
         } catch (e: Throwable) {
-            Nlog.warn("map.assets", "ok" to false, "code" to e.javaClass.simpleName)
+            Nlog.warn("map.parse", "ok" to false, "code" to e.javaClass.simpleName)
+            null
         }
     }
 
@@ -64,6 +92,8 @@ object MapData {
     fun resetForTest() {
         assetTiles.clear()
         assetSizes.clear()
+        assetNames.clear()
+        appContext = null
         assetsLoaded = false
         cached = null
     }
@@ -83,12 +113,7 @@ object MapData {
      * 跨图寻路用：规划时不能只看当前地图。
      */
     @Synchronized
-    fun assetLayer(addr: Int): Layer? {
-        val tiles = assetTiles[addr] ?: return null
-        val size = assetSizes[addr] ?: ((tiles.firstOrNull()?.size ?: 0) to tiles.size)
-        if (size.first <= 0 || size.second <= 0) return null
-        return Layer(addr, size.first, size.second, tiles, true)
-    }
+    fun assetLayer(addr: Int): Layer? = parseAsset(addr)
 
     // ---------- 解析 ----------
 
@@ -175,8 +200,8 @@ object MapData {
         val size = mapSize() ?: return null
         val w = size.first
         val h = size.second
-        val fromAssets = assetTiles[addr]
-        val tiles = fromAssets ?: fromMemory(addr, w, h)?.also {
+        val asset = parseAsset(addr)
+        val tiles = asset?.tiles ?: fromMemory(addr, w, h)?.also {
             // assets 没这张图才走内存：留痕，方便以后排查「这张图为什么没有」
             Nlog.warnThrottled(
                 "map.fallback:ok", "map.fallback",
@@ -189,7 +214,7 @@ object MapData {
             )
             null
         }
-        val layer = tiles?.let { Layer(addr, w, h, it, fromAssets != null) }
+        val layer = tiles?.let { Layer(addr, w, h, it, asset != null) }
         cached = layer
         return layer
     }
