@@ -16,6 +16,9 @@ object CrossMapWalker {
     /** 连续多少步「按键后坐标没变」算卡住。 */
     const val STUCK_LIMIT = 3
 
+    /** 换图后落点补齐上限：玩家可能停在边行，沿原方向再按最多 2 步到链接记录的落点。 */
+    const val WARP_CATCHUP_LIMIT = 2
+
     /** 执行器依赖：线上接 JNI/线程，单测接假世界。全部同步调用。 */
     interface Io {
         /** 当前地图数组地址（与 plan 里的 map 同口径）；读不到返回 0。 */
@@ -97,7 +100,22 @@ object CrossMapWalker {
             if (io.readMapAddr() != warp.toMap) {
                 return Result.Failed(Reason.WARP_MISMATCH, steps, "map")
             }
-            val p = io.readPos() ?: return Result.Failed(Reason.POS_UNREADABLE, steps)
+            var p = io.readPos() ?: return Result.Failed(Reason.POS_UNREADABLE, steps)
+            // 落点补齐：换图瞬间玩家常停在目标图边行（真机实测与链接表差 2 格），
+            // 沿换图方向再按最多 2 步走到记录落点；到不了就 fail-closed。
+            if (warp.sideDir != null) {
+                var guard = 0
+                while (p != (warp.toX to warp.toY) && guard < WARP_CATCHUP_LIMIT) {
+                    if (io.cancelled()) return Result.Cancelled(steps)
+                    if (!io.press(warp.sideDir)) return Result.Cancelled(steps)
+                    steps++
+                    guard++
+                    p = io.readPos() ?: return Result.Failed(Reason.POS_UNREADABLE, steps)
+                    if (io.readMapAddr() != warp.toMap) {
+                        return Result.Failed(Reason.WARP_MISMATCH, steps, "map")
+                    }
+                }
+            }
             if (p != (warp.toX to warp.toY)) {
                 return Result.Failed(Reason.WARP_MISMATCH, steps, "pos")
             }

@@ -48,6 +48,8 @@ class CrossMapWalkerTest {
         var cancelAfterPresses = -1
         /** 非空：换图落点被改成这个值，模拟换图后坐标异常。 */
         var warpTargetOverride: MapLinkTarget? = null
+        /** >0：换图后停在目标图边行（离记录落点差 N 格），模拟真机「按键时长不够」。 */
+        var warpShortBy = 0
 
         override fun readMapAddr(): Int = map
         override fun readPos(): Pair<Int, Int>? = pos
@@ -89,6 +91,16 @@ class CrossMapWalkerTest {
             val target = warpTargetOverride ?: link.destinations().first()
             map = target.toMap
             pos = target.toX to target.toY
+            if (warpShortBy > 0 && warpTargetOverride == null) {
+                val d = MapLinks.sideDir(link.side)
+                pos = when (d) {
+                    "UP" -> pos.first to (pos.second + warpShortBy)      // 往上走过图，停在下方边行
+                    "DOWN" -> pos.first to (pos.second - warpShortBy)
+                    "LEFT" -> (pos.first + warpShortBy) to pos.second    // 往左走过图，停在右侧边行
+                    "RIGHT" -> (pos.first - warpShortBy) to pos.second
+                    else -> pos
+                }
+            }
         }
 
         override fun sleep(ms: Long) = Unit
@@ -140,5 +152,25 @@ class CrossMapWalkerTest {
         assertEquals(CrossMapWalker.Reason.WARP_MISMATCH, (r as CrossMapWalker.Result.Failed).reason)
         assertEquals("pos", r.detail)
         assertTrue("失败也要清键", w.clearCount >= 1)
+    }
+
+    // 4) 换图落点补齐：真机实测换图后常停在边行，沿原方向补按 2 步到记录落点 → 继续走完
+    @Test
+    fun warpLandingShortIsCaughtUpBySameDirection() {
+        val w = FakeWorld(
+            tiles = mapOf(a to open(), b to open()),
+            links = listOf(link(a, 4 to 2, "east", b, 2 to 2)),
+            map = a, pos = 1 to 2,
+        )
+        w.warpShortBy = 2
+        val p = plan(mapOf(a to open(), b to open()), listOf(link(a, 4 to 2, "east", b, 2 to 2)))
+        val r = CrossMapWalker.walk(p, w)
+        assertTrue("应补齐落点后成功：$r", r is CrossMapWalker.Result.Ok)
+        assertEquals(b, w.map)
+        assertEquals("补齐后应到计划终点", 3 to 2, w.pos)
+        // 3 步到出口 + 1 步换图 + 2 步补齐 + 1 步到终点
+        assertEquals(p.totalSteps + CrossMapWalker.WARP_CATCHUP_LIMIT + 1,
+            (r as CrossMapWalker.Result.Ok).steps)
+        assertTrue("结束时必须清键", w.clearCount >= 1)
     }
 }
