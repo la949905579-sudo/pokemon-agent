@@ -1,6 +1,7 @@
 package com.dsh.emu.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dsh.emu.game.CrossMapRoute
+import com.dsh.emu.game.MapData
+import com.dsh.emu.game.MapLinks
 import com.dsh.emu.game.Terrain
 
 /** 地图配色：挡 / 可走 / 水 / 高草 / 台阶（地形分类见 [Terrain]）。 */
@@ -76,6 +80,7 @@ internal fun CurrentMapPage(s: EmuStatus) {
 /**
  * 「地图」Tab：当前所在城镇/道路的整张 tile 地图。
  * 点格子只「预览」路线（黄线 + 终点标记 + N 步），要按「开始走」才真按方向键。
+ * 底部还有「跨图」入口：列出相邻地图，点一个后台 A* 规划跨图路线，预览后再走。
  * 与常驻的 CurrentMapPage（以玩家为中心的只读视口）是两个独立组件，别复用。
  */
 @Composable
@@ -83,13 +88,26 @@ internal fun TownMapPage(
     s: EmuStatus,
     preview: WalkPlan?,
     mapId: String,
+    mapAddr: Int,
+    crossPlan: CrossPlan?,
     onPick: (Int, Int) -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
+    onCrossPick: (CrossMapRoute.Destination) -> Unit,
+    onCrossStart: () -> Unit,
+    onCrossCancel: () -> Unit,
 ) {
     if (s.mmTiles == null || s.mmW <= 0 || s.mmH <= 0) {
         PlaceholderPage("地图", "等待地图数据…")
         return
+    }
+    // 相邻地图（map_links 按目标去重；地图 id 取 assets 的 maps 字段显示成友好名）
+    val crossTargets = remember(mapId, mapAddr) {
+        if (mapAddr == 0) emptyList() else CrossMapRoute.destinations(
+            mapAddr,
+            MapLinks.all(),
+            mapIds = { addr -> MapData.assetLayer(addr)?.maps ?: emptyList() },
+        )
     }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).background(Color(0xFF14200F), RoundedCornerShape(12.dp))) {
@@ -156,8 +174,20 @@ internal fun TownMapPage(
                 softWrap = false,
                 modifier = Modifier.fillMaxWidth().padding(top = 3.dp).horizontalScroll(rememberScrollState()))
         }
-        if (preview != null) {
-            Row(
+        when {
+            // 跨图预览：去 X · N 段 M 步 → 开始走 / 取消
+            crossPlan != null -> Row(
+                Modifier.fillMaxWidth().padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("去 ${crossPlan.targetLabel} · ${crossPlan.plan.legs.size} 段 ${crossPlan.plan.totalSteps} 步",
+                    color = Color(0xFF9AD0FF), fontSize = 11.sp, maxLines = 1,
+                    modifier = Modifier.weight(1f))
+                BarButton("开始走", active = true) { onCrossStart() }
+                BarButton("取消", active = false) { onCrossCancel() }
+            }
+            preview != null -> Row(
                 Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -166,9 +196,28 @@ internal fun TownMapPage(
                 BarButton("开始走", active = true, modifier = Modifier.weight(1f)) { onStart() }
                 BarButton("取消", active = false, modifier = Modifier.weight(1f)) { onCancel() }
             }
-        } else {
-            Text("点格子预览路线（不会立刻走）", color = DIM, fontSize = 10.sp,
-                modifier = Modifier.padding(top = 4.dp))
+            else -> Column(Modifier.fillMaxWidth().padding(top = 3.dp)) {
+                if (crossTargets.isNotEmpty()) {
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("跨图 →", color = DIM, fontSize = 10.sp)
+                        for (d in crossTargets) {
+                            Text(d.label, color = Color(0xFF9AD0FF), fontSize = 10.sp,
+                                modifier = Modifier
+                                    .clickable { onCrossPick(d) }
+                                    .background(CARD, RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp))
+                        }
+                    }
+                } else {
+                    Text("无相邻地图连接", color = DIM, fontSize = 10.sp)
+                }
+                Text("点格子预览路线（不会立刻走）", color = DIM, fontSize = 10.sp,
+                    modifier = Modifier.padding(top = 2.dp))
+            }
         }
     }
 }

@@ -32,6 +32,8 @@ internal fun currentMapId(): String {
 
 /** 「地图」Tab 点格子：只算路径存预览，不执行移动。 */
 internal fun planWalk(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
+    // 点格子规划同图路线时，先作废跨图预览（同一时刻只留一个预览）
+    activity.crossPlanState.value = null
     val tiles = s.mmTiles ?: run {
         activity.walkPlanState.value = null
         activity.statusText.value = "没有地图数据"
@@ -80,6 +82,7 @@ internal fun startWalk(activity: MainActivity, s: EmuStatus) {
 /** 取消预览：清状态，并让可能在走的路线立刻停（代际 +1）。 */
 internal fun cancelWalk(activity: MainActivity) {
     activity.walkPlanState.value = null
+    activity.crossPlanState.value = null
     WalkControl.generation++
 }
 
@@ -117,4 +120,61 @@ internal fun walkTo(activity: MainActivity, s: EmuStatus, tx: Int, ty: Int) {
             com.dsh.emu.EmuCore.setKeys(0)
         }
     }.start()
+}
+
+/** 地图页「跨图」：后台 A* 规划到目标地图（落点由搜索决定），成功才放预览。 */
+internal fun planCross(activity: MainActivity, s: EmuStatus, destMapAddr: Int, destLabel: String) {
+    val startMap = com.dsh.emu.game.MapData.currentMapAddr()
+    if (startMap == 0) {
+        activity.statusText.value = "等地图数据"
+        return
+    }
+    activity.walkPlanState.value = null
+    activity.crossPlanState.value = null
+    activity.statusText.value = "跨图规划中…"
+    Thread {
+        val plan = try {
+            com.dsh.emu.game.CrossMapPathfinder.planToMap(
+                com.dsh.emu.game.CrossMapPathfinder.Pos(startMap, s.mmPx, s.mmPy),
+                destMapAddr,
+                tilesOf = { addr -> com.dsh.emu.game.MapData.assetLayer(addr)?.tiles },
+                linksFrom = { addr -> com.dsh.emu.game.MapLinks.linksFrom(addr) },
+            )
+        } catch (e: Throwable) {
+            null
+        }
+        activity.runOnUiThread {
+            if (plan == null) {
+                activity.statusText.value = "没有跨图路线（$destLabel）"
+            } else {
+                activity.crossPlanState.value = CrossPlan(plan, destLabel, currentMapId())
+                activity.statusText.value = "跨图规划：${plan.totalSteps} 步"
+            }
+        }
+    }.start()
+}
+
+/** 「开始走」跨图：校验没换图再交给执行器（完成/失败/取消都会清预览）。 */
+internal fun startCross(activity: MainActivity) {
+    val cp = activity.crossPlanState.value ?: return
+    val mapId = currentMapId()
+    if (mapId == "?" || cp.mapName == "?") {
+        cancelCross(activity)
+        activity.statusText.value = "等地图数据"
+        return
+    }
+    if (cp.mapName != mapId) {
+        cancelCross(activity)
+        activity.statusText.value = "已经换图，请重新规划"
+        return
+    }
+    activity.walkPlanState.value = null
+    activity.crossPlanState.value = null
+    CrossWalkAction.start(activity, cp.plan)
+}
+
+/** 取消跨图预览/执行：清预览 + 代际 +1，让后台走图线程立刻停。 */
+internal fun cancelCross(activity: MainActivity) {
+    activity.crossPlanState.value = null
+    WalkControl.generation++
 }

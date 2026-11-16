@@ -66,6 +66,43 @@ object CrossMapPathfinder {
             return Plan(start, goal, listOf(Leg(start.map, dirs, null)))
         }
 
+        return planTo(
+            start,
+            isGoal = { it == goal },
+            heuristic = { p -> if (p.map == goal.map) Math.abs(p.x - goal.x) + Math.abs(p.y - goal.y) else 0 },
+            tilesOf = tilesOf,
+            linksFrom = linksFrom,
+        )
+    }
+
+    /**
+     * 规划到「目标地图的任意一格」（跨图 UI 用：不指定落点，由搜索到达的第一格决定）。
+     * 目标地图 = [goalMap] 任一节点；找不到（图不连通/数据缺失/节点超限）返回 null。
+     */
+    fun planToMap(
+        start: Pos,
+        goalMap: Int,
+        tilesOf: (Int) -> List<List<Int>>?,
+        linksFrom: (Int) -> List<MapLink>,
+    ): Plan? {
+        if (start.map == goalMap) return Plan(start, start, listOf(Leg(start.map, emptyList(), null)))
+        return planTo(
+            start,
+            isGoal = { it.map == goalMap },
+            heuristic = { 0 },
+            tilesOf = tilesOf,
+            linksFrom = linksFrom,
+        )
+    }
+
+    /** 通用 A*：从 [start] 走到第一个满足 [isGoal] 的节点；返回 Plan（goal=实际到达格）。 */
+    private fun planTo(
+        start: Pos,
+        isGoal: (Pos) -> Boolean,
+        heuristic: (Pos) -> Int,
+        tilesOf: (Int) -> List<List<Int>>?,
+        linksFrom: (Int) -> List<MapLink>,
+    ): Plan? {
         val tilesCache = HashMap<Int, List<List<Int>>?>()
         fun tilesFor(map: Int): List<List<Int>>? =
             tilesCache.getOrPut(map) { tilesOf(map) }
@@ -79,9 +116,6 @@ object CrossMapPathfinder {
         val linksCache = HashMap<Int, List<MapLink>>()
         fun linksFor(map: Int): List<MapLink> = linksCache.getOrPut(map) { linksFrom(map) }
 
-        fun heuristic(p: Pos): Int =
-            if (p.map == goal.map) Math.abs(p.x - goal.x) + Math.abs(p.y - goal.y) else 0
-
         val dist = HashMap<Pos, Int>()
         val cameFrom = HashMap<Pos, Edge>()
         val open = PriorityQueue<QNode>(compareBy({ it.f }, { it.g }, { it.pos.map }, { it.pos.x }, { it.pos.y }))
@@ -93,7 +127,7 @@ object CrossMapPathfinder {
             val cur = open.poll()
             if (dist[cur.pos] != cur.g) continue
             visited++
-            if (cur.pos == goal) return reconstruct(start, goal, cameFrom)
+            if (isGoal(cur.pos)) return reconstruct(start, cur.pos, cameFrom)
 
             val map = cur.pos.map
             // 1) 同图四邻：普通可走；踩格换图的出口格不进去，直接当跨图边处理。
@@ -108,13 +142,13 @@ object CrossMapPathfinder {
                         for (dest in link.destinations()) {
                             val to = Pos(dest.toMap, dest.toX, dest.toY)
                             relaxed(cur.pos, to, 1, Edge(cur.pos, dir, Warp(nx, ny, null, dest.toMap, dest.toX, dest.toY)),
-                                dist, cameFrom, open, ::heuristic)
+                                dist, cameFrom, open, heuristic)
                         }
                     }
                 } else {
                     if (!walkable(map, nx, ny)) continue
                     val to = Pos(map, nx, ny)
-                    relaxed(cur.pos, to, 1, Edge(cur.pos, dir, null), dist, cameFrom, open, ::heuristic)
+                    relaxed(cur.pos, to, 1, Edge(cur.pos, dir, null), dist, cameFrom, open, heuristic)
                 }
             }
             // 2) 自身出口格（side 非空）：站上出口格后再朝该方向一步换图。
@@ -125,7 +159,7 @@ object CrossMapPathfinder {
                     val to = Pos(dest.toMap, dest.toX, dest.toY)
                     relaxed(cur.pos, to, 1,
                         Edge(cur.pos, null, Warp(cur.pos.x, cur.pos.y, sideDir, dest.toMap, dest.toX, dest.toY)),
-                        dist, cameFrom, open, ::heuristic)
+                        dist, cameFrom, open, heuristic)
                 }
             }
         }

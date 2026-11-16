@@ -169,4 +169,63 @@ class CrossMapPathfinderTest {
         assertEquals(4, result.legs[0].warp!!.exitY)
         assertEquals(7, result.totalSteps)
     }
+
+    // 6) planToMap：目标=任意一张图，落点由搜索决定（跨图 UI 用）
+    @Test
+    fun planToMapStopsAtFirstTileOfTargetMap() {
+        val tiles = mapOf(a to open(), b to open(), c to open())
+        val links = listOf(
+            link(a, 4 to 2, "east", b, 0 to 2),
+            link(b, 4 to 2, "east", c, 0 to 2),
+        )
+        val result = CrossMapPathfinder.planToMap(
+            CrossMapPathfinder.Pos(a, 1, 2), c,
+            tilesOf = { tiles[it] },
+            linksFrom = { m -> links.filter { it.map == m } },
+        )
+        assertNotNull("三图连通应能到 C", result)
+        result!!
+        assertEquals(3, result.legs.size)
+        assertEquals(c, result.goal.map)
+        assertEquals(c, result.legs.last().map)
+        assertEquals(2, result.legs.count { it.warp != null })
+        assertEquals(c, result.goal.map)
+        assertNull("最后一段不应再有换图", result.legs.last().warp)
+    }
+
+    @Test
+    fun planToMapNullWhenUnreachableOrTilesMissing() {
+        val d = 0x400
+        val tiles = mapOf(a to open(), d to open())   // 没有 B 的 tiles
+        val links = listOf(link(a, 4 to 2, "east", b, 0 to 2))
+        assertNull(
+            "中间图缺 tiles 应无路",
+            CrossMapPathfinder.planToMap(
+                CrossMapPathfinder.Pos(a, 1, 2), d,
+                tilesOf = { tiles[it] },
+                linksFrom = { m -> links.filter { it.map == m } },
+            )
+        )
+        assertNull(
+            "目标图没连接应无路",
+            CrossMapPathfinder.planToMap(
+                CrossMapPathfinder.Pos(a, 1, 2), d,
+                tilesOf = { mapOf(a to open(), d to open())[it] },
+                linksFrom = { emptyList() },
+            )
+        )
+    }
+
+    @Test
+    fun planToMapSameMapReturnsEmptyPlan() {
+        val result = CrossMapPathfinder.planToMap(
+            CrossMapPathfinder.Pos(a, 2, 2), a,
+            tilesOf = { open() }, linksFrom = { emptyList() },
+        )
+        assertNotNull(result)
+        result!!
+        assertEquals(0, result.totalSteps)
+        assertEquals(a, result.goal.map)
+        assertNull(result.legs[0].warp)
+    }
 }

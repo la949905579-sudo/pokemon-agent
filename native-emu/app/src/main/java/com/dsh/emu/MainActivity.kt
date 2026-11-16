@@ -42,6 +42,8 @@ class MainActivity : ComponentActivity() {
     val romState = mutableStateOf("")
     /** 「地图」Tab 的行走预览（点格子只算路、不执行）；null=没有预览。 */
     val walkPlanState = mutableStateOf<WalkPlan?>(null)
+    /** 「地图」Tab 的跨图预览（选相邻图后 A* 规划）；null=没有预览。 */
+    val crossPlanState = mutableStateOf<CrossPlan?>(null)
     val romReadyState = mutableStateOf(false)
     val runningState = mutableStateOf(false)
     val romListState = mutableStateOf<List<File>>(emptyList())
@@ -147,8 +149,9 @@ fun AppScreen(activity: MainActivity) {
         WalkControl.generation++
         // 同时取消正在进行的「点击招式施放」（战斗里切页/收面板/载 ROM 都走这里）
         BattleMoveAction.cancel()
-        // 行走预览也一起清（点 Tab / 载入 ROM / 收面板都算离开地图操作）
+        // 行走/跨图预览也一起清（点 Tab / 载入 ROM / 收面板都算离开地图操作）
         activity.walkPlanState.value = null
+        activity.crossPlanState.value = null
     }
     val emuView = remember { EmuView(activity).also { activity.emuView = it } }
     val romReady = activity.romReadyState.value
@@ -176,6 +179,8 @@ fun AppScreen(activity: MainActivity) {
     // 常驻页自动切换：战斗中 → 战斗页，否则 → 当前地图页。
     // 手动打开 Tab 时保留 Tab，不会被战斗开始/结束顶掉（旧版「抢页」问题的根因）。
     val inBattle = status.battle.isNotBlank()
+    // 当前地图 ROM 地址（跨图目的地列表按它过滤连接表；读不到=0）
+    val curMapAddr = com.dsh.emu.game.MapData.currentMapAddr()
 
     LaunchedEffect(romReady) { if (romReady) emuView.start() }
 
@@ -244,9 +249,14 @@ fun AppScreen(activity: MainActivity) {
                             s = status,
                             preview = activity.walkPlanState.value,
                             mapId = currentMapId(),
+                            mapAddr = curMapAddr,
+                            crossPlan = activity.crossPlanState.value,
                             onPick = { tx, ty -> planWalk(activity, status, tx, ty) },
                             onStart = { startWalk(activity, status) },
                             onCancel = { cancelWalk(activity) },
+                            onCrossPick = { d -> planCross(activity, status, d.mapAddr, d.label) },
+                            onCrossStart = { startCross(activity) },
+                            onCrossCancel = { cancelCross(activity) },
                         )
                         tabPage == Page.TEAM -> TeamPage(status)
                         tabPage == Page.BAG -> PlaceholderPage("背包", "需要道具列表地址")
@@ -263,9 +273,14 @@ fun AppScreen(activity: MainActivity) {
                             s = status,
                             preview = activity.walkPlanState.value,
                             mapId = currentMapId(),
+                            mapAddr = curMapAddr,
+                            crossPlan = activity.crossPlanState.value,
                             onPick = { tx, ty -> planWalk(activity, status, tx, ty) },
                             onStart = { startWalk(activity, status) },
                             onCancel = { cancelWalk(activity) },
+                            onCrossPick = { d -> planCross(activity, status, d.mapAddr, d.label) },
+                            onCrossStart = { startCross(activity) },
+                            onCrossCancel = { cancelCross(activity) },
                         )
                     }
                 }
@@ -288,8 +303,11 @@ fun AppScreen(activity: MainActivity) {
                             // 再点同一个 Tab = 关闭，回到常驻页；点别的 Tab = 直接切换
                             val next = if (tabPage == p2) null else p2
                             tabPage = next
-                            // 离开「地图」Tab 就清掉行走预览（路线已经不再显示）
-                            if (next != Page.MAP) activity.walkPlanState.value = null
+                            // 离开「地图」Tab 就清掉行走/跨图预览（路线已经不再显示）
+                            if (next != Page.MAP) {
+                                activity.walkPlanState.value = null
+                                activity.crossPlanState.value = null
+                            }
                         }
                     }
                 }

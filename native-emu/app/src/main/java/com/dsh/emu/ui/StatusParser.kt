@@ -26,6 +26,16 @@ data class WalkPlan(
     val mapName: String,
 )
 
+/**
+ * 跨图寻路预览：[plan] 由 [com.dsh.emu.game.CrossMapPathfinder.planToMap] 算出，
+ * [mapName] 是规划时的当前地图身份（开始走前比对，换图后不误执行）。
+ */
+data class CrossPlan(
+    val plan: com.dsh.emu.game.CrossMapPathfinder.Plan,
+    val targetLabel: String,
+    val mapName: String,
+)
+
 data class EmuStatus(
     val map: String = "", val x: Int = 0, val y: Int = 0,
     val team: List<TeamMon> = emptyList(),

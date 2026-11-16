@@ -1,0 +1,49 @@
+package com.dsh.emu.game
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/** 跨图 UI 的纯函数：相邻目的地去重/排序、地图 id 友好名。 */
+class CrossMapRouteTest {
+
+    private fun link(map: Int, toMap: Int, to: Pair<Int, Int> = 0 to 0) =
+        MapLink(map, 4, 2, "east", toMap, to.first, to.second)
+
+    @Test
+    fun destinationsDedupesAndSortsByLabel() {
+        val ids = mapOf(
+            0x200 to listOf("MAP_ROUTE2"),
+            0x300 to listOf("MAP_PALLET_TOWN"),
+            0x400 to listOf("MAP_VIRIDIAN_CITY"),
+        )
+        val links = listOf(
+            link(0x100, 0x300), link(0x100, 0x300, 1 to 2), link(0x100, 0x300, 2 to 2),
+            link(0x100, 0x200), link(0x100, 0x100),      // 自己
+            link(0x200, 0x100),                          // 别的图的出口不算
+        )
+        val got = CrossMapRoute.destinations(0x100, links) { ids[it] ?: emptyList() }
+        assertEquals(listOf("PalletTown", "Route2"), got.map { it.label })
+        assertEquals(listOf(0x300, 0x200), got.map { it.mapAddr })
+    }
+
+    @Test
+    fun destinationsEmptyWithoutLinks() {
+        assertTrue(CrossMapRoute.destinations(0x100, emptyList()) { emptyList() }.isEmpty())
+    }
+
+    @Test
+    fun labelFallsBackToAddressWithoutAsset() {
+        assertEquals("0x2a0", CrossMapRoute.label(0x2a0, emptyList()))
+        assertEquals("Route1", CrossMapRoute.label(0x82e4e2c, listOf("MAP_ROUTE1")))
+    }
+
+    @Test
+    fun prettyMapIdFormatsIds() {
+        assertEquals("PalletTown", CrossMapRoute.prettyMapId("MAP_PALLET_TOWN"))
+        assertEquals("Route22", CrossMapRoute.prettyMapId("MAP_ROUTE22"))
+        assertEquals("ViridianCityGym", CrossMapRoute.prettyMapId("MAP_VIRIDIAN_CITY_GYM"))
+        assertEquals("Untitled", CrossMapRoute.prettyMapId("UNTITLED"))
+        assertEquals("", CrossMapRoute.prettyMapId(""))
+    }
+}

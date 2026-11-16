@@ -4,7 +4,10 @@
 > 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A 已完成并装机（`build-5931f4a`，App 0.2 versionCode 182）；Kotlin 186/186、Python 33/33；下一步候选：地图 M2 剩余（② 跨图寻路入口 ③ 门坐标 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-（无）
+- **地图 M2-B：跨图寻路 UI 入口（②，2026-11-16 开工）**：
+  - 目标：地图页列出当前图相邻可达地图（`map_links` 去重，含友好名），点选后后台 A* 规划到该图（落点由搜索决定），预览「去 X · N 段 M 步」；「开始走」由 `CrossMapWalker` 真按键走完（含换图地图/落点校验），失败/取消 fail-closed。
+  - 验收：单测绿（`planToMap`、邻接去重/命名、规划→执行离线链路）；真机点「去 X」出预览、开始走后成功换图（日志 `crosswalk.result`、地图地址变化）；取消/卡住只提示、不补按。
+  - 范围：`game/CrossMapPathfinder.kt`（planToMap）、`game/CrossMapRoute.kt`(新)、`ui/MapPage.kt`、`ui/CrossWalkAction.kt`(新)、`MainActivity.kt` + 测试；不改内存地址/FFI/签名/OTA。
 
 ## todo（按优先级）
 1. **地图 M2（剩余）**（①地形识别 + ④遭遇展示已随 M2-A 完成）：
