@@ -12,6 +12,19 @@
 3. **联机**：GBA link cable，方案调研。
 4. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
 
+## 候补补充（未排期，待用户拍板；2026-11-16 交接时按实际踩坑整理）
+- **Nlog 单测污染设备日志**：跑 Kotlin 单测会写 `/sdcard/Download/emu_native.log`（可见 `map.fallback addr=0x8260000` 等测试痕迹）。建议非 Android 环境不落盘。
+- **CI 只跑了 gradle**：没有 `python3 run_tests.py`、`gen_map_assets --check`，资产/生成器易漂移；建议加进 workflow。
+- **`run_tests.py` 按文件计数**：`33/33` 是测试文件数（不是用例数），加用例数字不变；建议改按用例计数或改文案。
+- **后台屏实例/桥绑错实例**：`open background` 可能新开空载实例、桥仍连旧实例；建议 app singleTask 或测试脚本先 force-stop，桥加版本/帧数握手。
+- **跨图遇敌即中断**：walker 遇野生战 STUCK 停；建议「遇敌→自动战斗→继续原计划」或按相遇风险避草。
+- **跨图 UI 只列相邻图**：库已支持多跳，可加 ≤3 跳目的地列表（带跳数/步数）。
+- **换图落点补齐 ≤2 步**：门口被 NPC 挡会 fail；建议提示失败原因并重规划。
+- **地图页信息**：建议显示当前地图名（`to_name`）、遭遇概率、地形图例；「地图」Tab 仍置灰是否恢复待拍板。
+- **自动战斗健壮性**：遇到过 `main_not_moves`、turn=4 长卡；补双打/换人/学招/战斗结束对话状态。
+- **代码/仓库卫生**：`LocalStatus`/`CrossWalkAction` 无单测（可抽纯函数）；`CurrentMapPage` 死代码；assets 里 2 个 `override_*.json` App 不读；根 `map_links.json`+`games/pokemon_firered/maps` 11 张旧图已与 assets（365 图/3784 出口）不同步，建议标「实测样本」归档。
+- **资产体积**：365 图 3.7MB、APK ~12MB；`behaviors` 2 hex/格可压成 1 byte 类别或 zlib（可选）。
+
 ## 暂缓
 - （无）地图功能已于 2026-11-16 由用户批准解冻（先做数据接入，M1 完成；M2 见 todo 1）。
 
