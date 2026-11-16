@@ -18,8 +18,11 @@
 ## done
 - 2026-11-16 **离线地图数据提取（小步：3 张图校验）**：新增 `tools/gen_maps_data.py`——读 pokefirered 解包 `layouts.json`/`map.bin` 的碰撞位（bits 10-11）生成可走格 JSON（`w/h/tiles` + `connections`/`warps` + `ram_crosscheck`），支持 `--match`（真机 RAM 地图 × 解包布局逐格比对）/ `--emit` / `--check`（离线自检）。
   - 真机交叉校验 **11/11 张现有 RAM 地图 diff=0**（含 48×40 三城/路、24×40、72×20、小室内图）→ 汉化版这些图与香草解包碰撞位完全一致；`DIGLETTS_CAVE` 南北入口布局同形（同尺寸另有 1 个 diff=0，标记歧义）。
-  - 产出 3 张样本 `games/pokemon_firered/maps_decomp/{CeruleanCity,VermilionCity,Route5}.json`（各 48×40，含 4 条连接/14 个传送点等）；`--check` PASS；Python 单测 32/32（新增 `tests/test_maps_data.py`，用临时解包树，不依赖 /root/refs）。
-  - 未做：行为语义（草丛/水面/台阶/门）、海拔、遭遇表、全量 426 张、地图 UI/寻路接入（地图功能仍暂缓）。
+  - **全量已出**：`--emit-all` 生成解包 maps 表全部 **425 张** → `games/pokemon_firered/maps_decomp/`（2.7MB，文件名=地图名；`--check` 425 个文件 PASS，含尺寸/layout/0-1/连接/传送字段校验）。室内图的 `connections` 在解包里是 null，统一归一成 `[]`。
+  - 真机交叉校验 34 张布局与 RAM 数据 diff=0（11 张真机地图对应到的解包布局及共用同一布局的城/中心）；`--match` 11/11 diff=0。
+  - 抽样：PalletTown 24×20 可走 59%、Route1 24×40 62%、Route5 48×40 26%、CeruleanCity 48×40 54%（连接 4 / 传送点 14）。
+  - `--check` 可带 `--ref` 按解包 maps/layouts 校验尺寸与 layout；不带则只做自洽校验。Python 单测 32/32（`tests/test_maps_data.py` 用临时解包树，不依赖 /root/refs）。
+  - 未做：行为语义（草丛/水面/台阶/门）、海拔、遭遇表、地图 UI/寻路接入（地图功能仍暂缓）。
 - 2026-11-15 **横屏战斗背包/队伍子菜单点选（翻口袋 + 道具行 + 队伍格子）**：新增 `game/SubmenuState.kt`——用 `gWindows[0]` 几何识别背包 `(11,1)18×12` / 队伍 `(1,3)10×7`（`E83==0` 走标准是/否）；真机标定 `gBagMenuState`：pocket=0x0203AD02、各口袋光标=0x0203AD04+2*pocket、队伍光标=0x0203B0A9(7=取消)。
   - 背包：◀▶ 箭头 (8,72)/(72,72) 点按=按 LEFT/RIGHT 翻口袋（回读 pocket）；列表行（win0 内区、行高 16）点按=回第一行逐行挪光标→二次确认→按 A（取消行=合上背包）；滚动箭头 (160,8)/(160,104) 排除行热区、点按=挪一格不按 A；底部条按图标态区分——光标在道具行（道具说明态）只提示，在「取消」行/空口袋（「合上背包」态）按 B 合上。
   - 队伍：大框 (1,3) / 右侧 5 行（行高 24）点按=挪光标→按 A；空位（slot≥队伍数）只提示；底部「取消」按钮 (24,17)6×2 按 B 返回。

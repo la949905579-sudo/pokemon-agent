@@ -1,0 +1,91 @@
+{
+ "id": "MAP_NAVEL_ROCK_SUMMIT_PATH_3F",
+ "name": "NavelRock_SummitPath_3F",
+ "layout": "LAYOUT_NAVEL_ROCK_SUMMIT_PATH_3F",
+ "w": 7,
+ "h": 7,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   0,
+   0,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   0,
+   0,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 2,
+   "y": 2,
+   "elevation": 3,
+   "dest_map": "MAP_NAVEL_ROCK_SUMMIT_PATH_2F",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 4,
+   "y": 4,
+   "elevation": 3,
+   "dest_map": "MAP_NAVEL_ROCK_SUMMIT_PATH_4F",
+   "dest_warp_id": "0"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

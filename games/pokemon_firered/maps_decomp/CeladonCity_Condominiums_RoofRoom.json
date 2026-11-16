@@ -1,0 +1,143 @@
+{
+ "id": "MAP_CELADON_CITY_CONDOMINIUMS_ROOF_ROOM",
+ "name": "CeladonCity_Condominiums_RoofRoom",
+ "layout": "LAYOUT_CELADON_CITY_CONDOMINIUMS_ROOF_ROOM",
+ "w": 10,
+ "h": 9,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 3,
+   "y": 8,
+   "elevation": 0,
+   "dest_map": "MAP_CELADON_CITY_CONDOMINIUMS_ROOF",
+   "dest_warp_id": "2"
+  },
+  {
+   "x": 4,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_CELADON_CITY_CONDOMINIUMS_ROOF",
+   "dest_warp_id": "2"
+  },
+  {
+   "x": 5,
+   "y": 8,
+   "elevation": 0,
+   "dest_map": "MAP_CELADON_CITY_CONDOMINIUMS_ROOF",
+   "dest_warp_id": "2"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

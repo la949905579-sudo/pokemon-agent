@@ -1,0 +1,77 @@
+{
+ "id": "MAP_ROCKET_HIDEOUT_ELEVATOR",
+ "name": "RocketHideout_Elevator",
+ "layout": "LAYOUT_ROCKET_HIDEOUT_ELEVATOR",
+ "w": 5,
+ "h": 7,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 1,
+   "y": 5,
+   "elevation": 3,
+   "dest_map": "MAP_DYNAMIC",
+   "dest_warp_id": "WARP_ID_DYNAMIC"
+  },
+  {
+   "x": 2,
+   "y": 5,
+   "elevation": 3,
+   "dest_map": "MAP_DYNAMIC",
+   "dest_warp_id": "WARP_ID_DYNAMIC"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

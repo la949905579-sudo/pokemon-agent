@@ -1,0 +1,131 @@
+{
+ "id": "MAP_SSANNE_CAPTAINS_OFFICE",
+ "name": "SSAnne_CaptainsOffice",
+ "layout": "LAYOUT_SSANNE_CAPTAINS_OFFICE",
+ "w": 9,
+ "h": 10,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   0,
+   1,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 3,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_SSANNE_2F_CORRIDOR",
+   "dest_warp_id": "2"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

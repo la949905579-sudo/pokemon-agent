@@ -1,0 +1,93 @@
+{
+ "id": "MAP_SSANNE_2F_ROOM6",
+ "name": "SSAnne_2F_Room6",
+ "layout": "LAYOUT_SSANNE_ROOM2",
+ "w": 6,
+ "h": 9,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   1,
+   0
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   1,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 4,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_SSANNE_2F_CORRIDOR",
+   "dest_warp_id": "8"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

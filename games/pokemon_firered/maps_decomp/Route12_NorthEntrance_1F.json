@@ -1,0 +1,218 @@
+{
+ "id": "MAP_ROUTE12_NORTH_ENTRANCE_1F",
+ "name": "Route12_NorthEntrance_1F",
+ "layout": "LAYOUT_ROUTE12_NORTH_ENTRANCE_1F",
+ "w": 11,
+ "h": 13,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 5,
+   "y": 1,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE12",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 6,
+   "y": 1,
+   "elevation": 0,
+   "dest_map": "MAP_ROUTE12",
+   "dest_warp_id": "2"
+  },
+  {
+   "x": 5,
+   "y": 11,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE12",
+   "dest_warp_id": "3"
+  },
+  {
+   "x": 6,
+   "y": 11,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE12",
+   "dest_warp_id": "3"
+  },
+  {
+   "x": 8,
+   "y": 10,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE12_NORTH_ENTRANCE_2F",
+   "dest_warp_id": "0"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

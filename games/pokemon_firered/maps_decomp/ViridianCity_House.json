@@ -1,0 +1,152 @@
+{
+ "id": "MAP_VIRIDIAN_CITY_HOUSE",
+ "name": "ViridianCity_House",
+ "layout": "LAYOUT_VIRIDIAN_CITY_HOUSE",
+ "w": 11,
+ "h": 9,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 3,
+   "y": 7,
+   "elevation": 0,
+   "dest_map": "MAP_VIRIDIAN_CITY",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 4,
+   "y": 7,
+   "elevation": 0,
+   "dest_map": "MAP_VIRIDIAN_CITY",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 5,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_VIRIDIAN_CITY",
+   "dest_warp_id": "1"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

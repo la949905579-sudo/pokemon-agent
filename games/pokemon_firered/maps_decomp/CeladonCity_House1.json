@@ -1,0 +1,152 @@
+{
+ "id": "MAP_CELADON_CITY_HOUSE1",
+ "name": "CeladonCity_House1",
+ "layout": "LAYOUT_HOUSE5",
+ "w": 11,
+ "h": 9,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 3,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_CELADON_CITY",
+   "dest_warp_id": "8"
+  },
+  {
+   "x": 4,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_CELADON_CITY",
+   "dest_warp_id": "8"
+  },
+  {
+   "x": 5,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_CELADON_CITY",
+   "dest_warp_id": "8"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

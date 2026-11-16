@@ -1,0 +1,141 @@
+{
+ "id": "MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE",
+ "name": "FuchsiaCity_SafariZone_Entrance",
+ "layout": "LAYOUT_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE",
+ "w": 9,
+ "h": 9,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   0,
+   0,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 4,
+   "y": 1,
+   "elevation": 3,
+   "dest_map": "MAP_SAFARI_ZONE_CENTER",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 5,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "0"
+  },
+  {
+   "x": 4,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "0"
+  },
+  {
+   "x": 3,
+   "y": 7,
+   "elevation": 3,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "0"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

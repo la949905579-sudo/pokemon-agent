@@ -173,6 +173,51 @@ def test_emit_unknown_map_exits():
     with_tmp(run)
 
 
+def make_ref_multi(base):
+    """两张地图共用同一布局（验证 grid 缓存）+ 一张重名地图（验证文件名回退 id）。"""
+    layout = {
+        "id": "LAYOUT_TEST", "name": "Test_Layout", "width": 2, "height": 2,
+        "border_width": 2, "border_height": 2,
+        "primary_tileset": "gTileset_General", "secondary_tileset": "gTileset_PalletTown",
+        "border_filepath": "data/layouts/Test/border.bin",
+        "blockdata_filepath": "data/layouts/Test/map.bin",
+    }
+    write_json(os.path.join(base, "data", "layouts", "layouts.json"),
+               {"layouts_table_label": "gMapLayouts", "layouts": [{}, layout]})
+    # 2x2：只有 (0,0) 带碰撞位
+    write_bin(os.path.join(base, "data", "layouts", "Test", "map.bin"), [0x0400, 0, 0, 0])
+    for mid, name in (("MAP_A", "Alpha"), ("MAP_B", "Beta"), ("MAP_C", "Alpha")):
+        write_json(os.path.join(base, "data", "maps", name + "_" + mid, "map.json"),
+                   {"id": mid, "name": name, "layout": "LAYOUT_TEST",
+                    "connections": [], "warp_events": []})
+    return base
+
+
+def test_emit_all_and_check_against_ref():
+    def run(tmp):
+        ref = make_ref_multi(tmp)
+        out = os.path.join(tmp, "out")
+        paths = MOD.emit_all(ref, out, None)
+        names = sorted(os.path.basename(p) for p in paths)
+        # 两张 Alpha 重名：一张用地图名，另一张回退地图 id
+        assert names == ["Alpha.json", "Beta.json", "MAP_C.json"], names
+        doc = json.load(open(os.path.join(out, "Beta.json"), encoding="utf-8"))
+        assert doc["tiles"] == [[1, 0], [0, 0]], doc["tiles"]
+        assert MOD.check(out, ref=ref) == []
+        # 尺寸/布局/内容任一不符都要报问题
+        doc["tiles"][0][0] = 5
+        write_json(os.path.join(out, "Beta.json"), doc)
+        problems = MOD.check(out, ref=ref)
+        assert any("非 0/1" in p for p in problems), problems
+        # 解包里没有的 id 也要报
+        write_json(os.path.join(out, "Ghost.json"), {"id": "MAP_GHOST", "w": 2, "h": 2,
+                                                     "tiles": [[0, 0], [0, 0]],
+                                                     "connections": [], "warps": []})
+        problems = MOD.check(out, ref=ref)
+        assert any("解包 maps 里没有" in p for p in problems), problems
+    with_tmp(run)
+
+
 def test_help_and_offline_check():
     r = subprocess.run([sys.executable, SCRIPT, "--help"], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr[-300:]
@@ -189,6 +234,6 @@ if __name__ == "__main__":
     for fn in (test_build_grid_uses_collision_bits, test_build_grid_wrong_size_raises,
                test_match_existing_finds_exact_layout, test_emit_and_check_roundtrip,
                test_check_reports_problems, test_emit_unknown_map_exits,
-               test_help_and_offline_check):
+               test_emit_all_and_check_against_ref, test_help_and_offline_check):
         fn()
     print("全部通过")

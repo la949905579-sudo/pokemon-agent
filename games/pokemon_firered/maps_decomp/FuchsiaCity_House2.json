@@ -1,0 +1,162 @@
+{
+ "id": "MAP_FUCHSIA_CITY_HOUSE2",
+ "name": "FuchsiaCity_House2",
+ "layout": "LAYOUT_FUCHSIA_CITY_HOUSE2",
+ "w": 10,
+ "h": 10,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 2,
+   "y": 9,
+   "elevation": 0,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "7"
+  },
+  {
+   "x": 3,
+   "y": 8,
+   "elevation": 3,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "7"
+  },
+  {
+   "x": 4,
+   "y": 9,
+   "elevation": 0,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "7"
+  },
+  {
+   "x": 3,
+   "y": 1,
+   "elevation": 3,
+   "dest_map": "MAP_FUCHSIA_CITY",
+   "dest_warp_id": "8"
+  }
+ ],
+ "ram_crosscheck": null,
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}

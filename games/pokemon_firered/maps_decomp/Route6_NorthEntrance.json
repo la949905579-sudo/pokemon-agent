@@ -1,0 +1,166 @@
+{
+ "id": "MAP_ROUTE6_NORTH_ENTRANCE",
+ "name": "Route6_NorthEntrance",
+ "layout": "LAYOUT_SAFFRON_CITY_NORTH_SOUTH_ENTRANCE",
+ "w": 9,
+ "h": 11,
+ "tiles": [
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1
+  ],
+  [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ ],
+ "connections": [],
+ "warps": [
+  {
+   "x": 4,
+   "y": 1,
+   "elevation": 0,
+   "dest_map": "MAP_SAFFRON_CITY",
+   "dest_warp_id": "11"
+  },
+  {
+   "x": 5,
+   "y": 1,
+   "elevation": 0,
+   "dest_map": "MAP_SAFFRON_CITY",
+   "dest_warp_id": "11"
+  },
+  {
+   "x": 4,
+   "y": 9,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE6",
+   "dest_warp_id": "1"
+  },
+  {
+   "x": 5,
+   "y": 9,
+   "elevation": 3,
+   "dest_map": "MAP_ROUTE6",
+   "dest_warp_id": "1"
+  }
+ ],
+ "ram_crosscheck": {
+  "file": "map_831e8d8.json",
+  "diff": 0
+ },
+ "source": "pokefirered: collision bits only (behavior/elevation not included)"
+}
