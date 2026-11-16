@@ -2,6 +2,11 @@
 
 > 版本规则：功能批一个条目；只记行为/接口变化。旧历史见 `docs/archive/2026-11/history/CHANGELOG.md`。
 
+## 2026-11-16 地图布局地址消歧（gMapLayouts，365 布局全覆盖）
+- `gen_map_assets` 改用 ROM 里的 `gMapLayouts` 表（按解包 `layouts.json` 顺序，383 项 + 整表校验）把每个布局精确映射到结构体 → blockdata 地址，替代「同宽高+内容+border 取首个候选」的启发式。
+- 修复 27 个 struct-multi 布局错配（20 个布局真实地址无资产、运行期 fallback 读内存）：地图资产 345 → 365（365 布局全有资产、0 歧义/缺失）；`map_links` 重生成 → 3784 出口。
+- 单测新增表整表校验 + 重复内容消歧；真机 `build-78ad2cf`：`map.assets indexed=365`、`map.links count=3784`、无新增 fallback。
+
 ## 2026-11-16 门/楼梯坐标口径校准（功能）
 - `map_links` 默认生成解包 `warp_events`（side=null）：exit=解包触发格、落点=目标图同一 warp 坐标，不再用 `--merge-old` 补测门；连接边 4033（门 1275）→ 3751 出口。
 - link 增加 `to_name`（解包目标地图 id）：同布局多张图共用资产（17 个宝可梦中心）时显示正确城市；`CrossMapRoute` 优先用它。

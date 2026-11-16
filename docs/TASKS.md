@@ -1,26 +1,25 @@
 # TASKS（任务队列）
 
 > 规则：每任务 3 行卡（目标 / 验收 / 范围）；同一时间只一个 `doing`；完成后标 `done` 并写一行结果。
-> 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A/M2-B/M2-C 已完成并装机（`build-b6ae868`，App 0.2 versionCode 185）；Kotlin 197/197、Python 33/33；下一步候选：⑤ struct-multi、非标准选项框、镜头贴边、联机、结构债。
+> 当前状态（2026-11-16）：**模式已固化**；无进行中任务；**地图 M2 全部完成**（M2-A/B/C/D，最新 `build-78ad2cf`，App 0.2 versionCode 186）；Kotlin 197/197、Python 33/33；下一步候选：非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-- **地图 M2-D：struct-multi 布局地址消歧（⑤，2026-11-16 开工）**：
-  - 目标：用 ROM 里的 `gMapLayouts` 表（解包 layouts.json 顺序，383 项）把每个布局精确映射到 ROM 结构体 → blockdata 地址，替代「同宽高+内容+border 取第一个候选」的启发式；消除 27 个歧义布局导致的地图资产缺失（运行期退回读内存）。
-  - 验收：单测绿（表发现整表校验、重复内容消歧、资产 365、`--check`）；重生成后 365 布局全部有资产、0 missing/歧义；`map_links` 同步重生成且实测校验不回归（12/13）；真机新包 `map.assets indexed=365`、相关地图不再 fallback。
-  - 范围：`tools/gen_map_assets.py`（表发现 + locate_all）、`assets/maps/*` 重生成、`tests/test_map_assets.py`；不改内存地址/FFI/签名/OTA。
+（无）
 
 ## todo（按优先级）
-1. **地图 M2（剩余）**（①④随 M2-A、②随 M2-B、③随 M2-C 完成）：
-   - ⑤ 27 个 struct-multi 布局地址消歧（当前退回读内存，不影响功能）。
-2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
-3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
-4. **联机**：GBA link cable，方案调研。
-5. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
+1. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
+2. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
+3. **联机**：GBA link cable，方案调研。
+4. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
 
 ## 暂缓
 - （无）地图功能已于 2026-11-16 由用户批准解冻（先做数据接入，M1 完成；M2 见 todo 1）。
 
 ## done
+- 2026-11-16 **地图 M2-D：struct-multi 布局地址消歧（⑤）**：新增 `find_layout_table`——按解包 `layouts.json` 顺序在 ROM 里定位 `gMapLayouts` 表（383 项），整表校验（空项=0、其余指针指向宽高完全一致的布局结构体）；`locate_all` 表优先：布局 → 结构体 → +0xC map 指针，地址唯一。修复原先 27 个 struct-multi 布局取第一个候选的错配（其中 20 个布局在游戏里的真实地址没有资产 → 运行期 fallback 读内存）。表找不到时仍退回旧启发式（假 ROM 单测覆盖）。
+  - 数据：365 布局 → **365 个唯一地址**（0 歧义、0 缺失、无孤儿地址）；地图资产 345 → **365**；`map_links` 同步重生成 → **3784 出口**；实测表校验仍 12/13。
+  - 单测：Python 33/33（新增 gMapLayouts 表整表校验 + 重复内容消歧 JSON 用例）、Kotlin 197/197。
+  - 真机（`build-78ad2cf`，App 0.2 versionCode 186）：`map.assets ok=true indexed=365`、`map.links ok=true count=3784`、装机后无新增 `map.fallback`。
 - 2026-11-16 **地图 M2-C：门/楼梯坐标口径校准（③ 数据层）**：`gen_map_assets` 默认把解包 `warp_events` 生成进 `map_links`（`side=null`：exit=解包触发格、落点=目标图同一 warp 坐标），不再用 `--merge-old` 补测门（差 1 格的测量口径会造错边）；`--with-doors` 改为 `--no-doors`；`--validate` 改按落点匹配、exit 容差 1 格单列。link 增加 `to_name`（解包目标地图 id），同布局多图共用资产（17 个宝可梦中心）也能显示正确城市；`CrossMapWalker` 换图等待支持门淡入（最多再等 3×800ms）。
   - 数据：连接 4033 边（门/楼梯 1275）→ 3751 出口（原 2769）；实测表 **12/13** 命中（4 条 exit 差 1 格 + 1 条落点属测量口径，已记录）。
   - 单测 Kotlin **197/197**、Python 33/33（新增：门边生成、容差校验、换图延迟×2、to_name 解析/优先、楼层命名）。
