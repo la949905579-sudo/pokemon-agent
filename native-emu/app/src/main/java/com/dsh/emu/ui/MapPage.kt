@@ -2,6 +2,8 @@ package com.dsh.emu.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -14,6 +16,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dsh.emu.game.Terrain
+
+/** 地图配色：挡 / 可走 / 水 / 高草 / 台阶（地形分类见 [Terrain]）。 */
+private val BLOCKED_COLOR = Color(0xFF0D0D0D)
+private val WALK_COLOR = Color(0xFF2E4B2A)
+private val WATER_COLOR = Color(0xFF2A5C8A)
+private val GRASS_COLOR = Color(0xFF3E7A33)
+private val STAIRS_COLOR = Color(0xFF8C7A3A)
+
+private fun terrainColor(cat: Int): Color = when (cat) {
+    Terrain.WATER -> WATER_COLOR
+    Terrain.GRASS -> GRASS_COLOR
+    Terrain.STAIRS -> STAIRS_COLOR
+    Terrain.WALK -> WALK_COLOR
+    else -> BLOCKED_COLOR
+}
 
 /**
  * 常驻「当前地图页」：以玩家为中心、tile 级的只读视口，随移动刷新。
@@ -37,9 +55,10 @@ internal fun CurrentMapPage(s: EmuStatus) {
             val x0 = px - viewW / 2
             val y0 = py - viewH / 2
             for (vy in 0 until viewH) for (vx in 0 until viewW) {
+                val cat = s.mmTerrain?.getOrNull(y0 + vy)?.getOrNull(x0 + vx)
                 val pass = tiles.getOrNull(y0 + vy)?.getOrNull(x0 + vx) == 1
                 drawRect(
-                    color = if (pass) Color(0xFF2E4B2A) else Color(0xFF0D0D0D),
+                    color = if (cat != null) terrainColor(cat) else if (pass) WALK_COLOR else BLOCKED_COLOR,
                     topLeft = Offset(vx * cw, vy * ch),
                     size = Size(cw - 0.5f, ch - 0.5f),
                 )
@@ -91,9 +110,13 @@ internal fun TownMapPage(
                 val ch = size.height / h
                 val tiles = s.mmTiles
                 for (y in 0 until h) for (x in 0 until w) {
-                    val pass = tiles?.getOrNull(y)?.getOrNull(x) == 1
+                    val cat = s.mmTerrain?.getOrNull(y)?.getOrNull(x)
                     drawRect(
-                        color = if (pass) Color(0xFF2E4B2A) else Color(0xFF0D0D0D),
+                        color = when {
+                            cat != null -> terrainColor(cat)
+                            tiles?.getOrNull(y)?.getOrNull(x) == 1 -> WALK_COLOR
+                            else -> BLOCKED_COLOR
+                        },
                         topLeft = Offset(x * cw, y * ch),
                         size = Size(cw - 0.5f, ch - 0.5f),
                     )
@@ -126,6 +149,12 @@ internal fun TownMapPage(
                     center = Offset((s.mmPx + 0.5f) * cw, (s.mmPy + 0.5f) * ch),
                 )
             }
+        }
+        // 当前地图遭遇（一行，横向滚动；没有数据不占位）
+        if (s.encounters.isNotBlank()) {
+            Text(s.encounters, color = Color(0xFFB7D8A8), fontSize = 10.sp, maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.fillMaxWidth().padding(top = 3.dp).horizontalScroll(rememberScrollState()))
         }
         if (preview != null) {
             Row(

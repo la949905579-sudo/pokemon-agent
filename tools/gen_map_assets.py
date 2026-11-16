@@ -16,8 +16,11 @@
        left/right：exit 在 x=0 / w-1，落点 x=nw-3 / 2，y 平移 -offset；
      门/楼梯用 `warp_events`（exit=(x,y)，落点=目标地图同一 warp 的坐标，side=null）；
      同一出口多去向合并成 `targets`（App 的 MapLink 已支持）。
-  3. 输出：`native-emu/app/src/main/assets/maps/map_<addr>.json`（addr/w/h/tiles，1=挡）
-     与 `map_links.json`（App MapLinks 现有格式）。
+  3. 每张图再加 `behaviors`（每格 2 位十六进制行为 id，来自布局 tileset 的
+     metatile 属性表；0x00=MB_NORMAL）与 `maps`（用该布局的地图 id 列表，查询遭遇表用），
+     并把 `games/pokemon_firered/data/encounters_leafgreen.json` 原样拷进 assets。
+  4. 输出：`native-emu/app/src/main/assets/maps/map_<addr>.json`（addr/w/h/tiles/behaviors/maps，
+     tiles 1=挡）与 `map_links.json`（App MapLinks 现有格式）。
 
 校验：`--validate 旧链接表` 会拿实测记录逐条比对（忽略门的 side 差异），打印命中率。
 只读 ROM；不联网、不依赖 Android。
@@ -26,6 +29,7 @@ import argparse
 import glob
 import json
 import os
+import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +40,9 @@ REF_DEFAULT = gmd.REF_DEFAULT
 ROM_DEFAULT_GLOB = "/sdcard/rom/gba/口袋妖怪 - 叶绿*.gba"
 ASSETS_DIR = os.path.join(ROOT, "native-emu", "app", "src", "main", "assets", "maps")
 LINKS_NAME = "map_links.json"
+# 遭遇表（gen_maps_data --emit-all 产出）随地图资产一起进 APK，App 地图页按地图 id 查询。
+ENCOUNTERS_NAME = "encounters_leafgreen.json"
+ENCOUNTERS_SRC = gmd.ENCOUNTERS_PATH
 
 # 连接方向 → App 的 side 名（实测：up=北、down=南、left=西、right=东）
 SIDE = {"up": "north", "down": "south", "left": "west", "right": "east"}
@@ -244,20 +251,81 @@ def build_links(edges):
 
 
 def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=False, merge_old=None):
-    """生成全量地图资产与连接表；返回统计。merge_old 给旧实测表时追加解包不出的门记录。"""
+    """生成全量地图资产与连接表；返回统计。merge_old 给旧实测表时追加解包不出的门记录。
+
+    每张图带 behaviors（tileset 行为网格，2 hex/格）与 maps（该布局对应的地图 id），
+    并把遭遇表拷进 assets；同一 blockdata 地址对应多个布局时行为取第一个布局并告警。
+    """
     layouts = gmd.load_layouts(ref)
     maps = gmd.load_map_jsons(ref)
     addr_of_layout, stats = locate_all(rom, ref)
     os.makedirs(assets_dir, exist_ok=True)
 
+    # 布局 → 地图 id（多张图可共用同一布局；查询遭遇表要用具体地图 id）
+    maps_of_layout = {}
+    for mid in sorted(maps):
+        lid = maps[mid].get("layout")
+        if lid in addr_of_layout:
+            maps_of_layout.setdefault(lid, []).append(mid)
+    # 同一 blockdata 地址 → 布局列表（同内容共址）
+    layouts_of_addr = {}
+    for lid, addr in sorted(addr_of_layout.items()):
+        layouts_of_addr.setdefault(addr, []).append(lid)
+
+    attr_paths = gmd.load_tileset_attr_paths(ref)
+    attr_cache = {}
+    behavior_cache = {}
+    missing_behavior = []
+    unknown_total = 0
+    behavior_conflicts = 0
+
+    def behaviors_of(lid):
+        """布局 → (行为网格 hex 行, 越界格数)；tileset 缺失等失败返回 (None, 0)。"""
+        if lid not in behavior_cache:
+            try:
+                grid, unknown = gmd.behavior_grid(ref, layouts[lid], attr_paths, attr_cache)
+                behavior_cache[lid] = (["".join("%02x" % v for v in row) for row in grid], unknown)
+            except Exception as e:  # noqa: BLE001
+                print("WARN 行为网格生成失败 %s: %s" % (lid, e))
+                behavior_cache[lid] = (None, 0)
+        return behavior_cache[lid]
+
     written = 0
-    for lid, addr in sorted(addr_of_layout.items(), key=lambda kv: kv[1]):
-        layout = layouts[lid]
+    for addr in sorted(layouts_of_addr):
+        lids = layouts_of_addr[addr]
+        layout = layouts[lids[0]]
         w, h = layout["width"], layout["height"]
         grid = gmd.build_grid(ref, layout)  # 1=挡（碰撞位），与 App 现有资产同口径
-        path = os.path.join(assets_dir, "map_%x.json" % addr)
-        gmd._write_json(path, {"addr": "0x%x" % addr, "w": w, "h": h, "tiles": grid})
+        rows, unknown = behaviors_of(lids[0])
+        unknown_total += unknown
+        if rows is None:
+            missing_behavior.append(lids[0])
+        # 同址多布局：tileset 不同则行为网格会不同（数据无法按地址区分），取第一个并告警
+        for other in lids[1:]:
+            orows, _ = behaviors_of(other)
+            if orows is not None and rows is not None and orows != rows:
+                behavior_conflicts += 1
+                print("WARN 同址行为不一致 0x%x：%s 与 %s 行为网格不同（用 %s）" % (
+                    addr, lids[0], other, lids[0]))
+                break
+        map_ids = []
+        for l2 in lids:
+            for mid in maps_of_layout.get(l2, []):
+                if mid not in map_ids:
+                    map_ids.append(mid)
+        doc = {"addr": "0x%x" % addr, "w": w, "h": h, "tiles": grid}
+        if rows is not None:
+            doc["behaviors"] = rows
+        doc["maps"] = map_ids
+        gmd._write_json(os.path.join(assets_dir, "map_%x.json" % addr), doc)
         written += 1
+
+    encounters_maps = 0
+    if os.path.isfile(ENCOUNTERS_SRC):
+        shutil.copyfile(ENCOUNTERS_SRC, os.path.join(assets_dir, ENCOUNTERS_NAME))
+        encounters_maps = len(gmd._read_json(ENCOUNTERS_SRC).get("maps") or {})
+    else:
+        print("WARN 缺遭遇表：%s" % ENCOUNTERS_SRC)
 
     edges = collect_edges(addr_of_layout, layouts, maps, with_doors)
     links = build_links(edges)
@@ -284,6 +352,10 @@ def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=False, m
         "links": len(links),
         "merged_old": merged,
         "targets": sum(1 for l in links if l.get("targets")),
+        "behaviors_missing": len(missing_behavior),
+        "behavior_unknown": unknown_total,
+        "behavior_conflicts": behavior_conflicts,
+        "encounters_maps": encounters_maps,
     }
 
 
@@ -342,6 +414,37 @@ def check_assets(assets_dir):
             if not isinstance(row, list) or len(row) != w or any(v not in (0, 1) for v in row):
                 problems.append("%s: tiles 行内容不对" % os.path.basename(path))
                 break
+        # 地图 id 列表（查询遭遇表用；允许为空=该布局没被任何地图引用）
+        map_ids = doc.get("maps")
+        if not isinstance(map_ids, list) \
+                or any(not isinstance(m, str) or not m.startswith("MAP_") for m in map_ids):
+            problems.append("%s: maps 字段不对" % os.path.basename(path))
+            map_ids = None
+        # 行为网格：每格 2 位十六进制（0x00=MB_NORMAL），行数/列数必须与 w/h 一致。
+        # 唯一允许缺 behaviors 的情况：没有任何地图引用该布局（如 LAYOUT_UNUSED1）
+        behavior_rows = doc.get("behaviors")
+        if behavior_rows is None:
+            if map_ids is None or map_ids:
+                problems.append("%s: 缺 behaviors" % os.path.basename(path))
+        elif not isinstance(behavior_rows, list) or len(behavior_rows) != h:
+            problems.append("%s: behaviors 行数不对" % os.path.basename(path))
+        else:
+            for row in behavior_rows:
+                if not isinstance(row, str) or len(row) != w * 2 \
+                        or any(c not in "0123456789abcdefABCDEF" for c in row):
+                    problems.append("%s: behaviors 行内容不对" % os.path.basename(path))
+                    break
+    enc_path = os.path.join(assets_dir, ENCOUNTERS_NAME)
+    if not os.path.isfile(enc_path):
+        problems.append("缺 %s" % ENCOUNTERS_NAME)
+    else:
+        try:
+            enc = gmd._read_json(enc_path)
+            n = len(enc.get("maps") or {})
+            if n < 100:
+                problems.append("%s: 遭遇表只有 %d 张图（预期 ~124）" % (ENCOUNTERS_NAME, n))
+        except Exception as e:  # noqa: BLE001
+            problems.append("%s: JSON 解析失败 %s" % (ENCOUNTERS_NAME, e))
     links_path = os.path.join(assets_dir, LINKS_NAME)
     if not os.path.isfile(links_path):
         problems.append("缺 %s" % LINKS_NAME)
@@ -414,6 +517,9 @@ def main(argv=None):
     print("地图资产 %d 个（布局 %d，地址定位 %s）；连接边 %d 条 → %d 个出口（多目标 %d，合并实测门 %d）" % (
         stats["assets"], stats["layouts"], stats["addr_stats"], stats["edges"],
         stats["links"], stats["targets"], stats["merged_old"]))
+    print("地形/遭遇：行为网格缺失 %d 张（越界格 %d，同址行为冲突 %d）；遭遇表 %d 张图 → %s" % (
+        stats["behaviors_missing"], stats["behavior_unknown"], stats["behavior_conflicts"],
+        stats["encounters_maps"], ENCOUNTERS_NAME))
 
     if args.validate:
         old = gmd._read_json(args.validate)

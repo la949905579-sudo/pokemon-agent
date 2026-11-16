@@ -15,9 +15,14 @@ import org.json.JSONObject
  *
  * assets 里的 tiles 存的是碰撞位（0=可走、非 0=挡，见 `legacy/mapcap2.py`），
  * 这里统一归一化成 1=可走，与 `MapWalker` 和渲染约定一致。
+ *
+ * M2-A 起 assets 还带 `behaviors`（每格 2 位十六进制行为 id，来自布局 tileset 的 metatile
+ * 属性表）与 `maps`（该布局对应的地图 id）。tiles 会被行为表修正成「步行可走」：
+ * `MB_*_WATER` / `MB_WATERFALL` 等水面即使碰撞位可走也当挡（除非以后做冲浪）；
+ * 行为容器另存成 [Layer.terrain] 供地图页按 水/草/台阶 着色。
  */
 object MapData {
-    /** 一张地图的 tile 数据；tiles[y][x]，1=可走。 */
+    /** 一张地图的 tile 数据；[tiles][y][x]，1=可走（已扣掉水面等步行不可走行为）。 */
     data class Layer(
         val addr: Int,
         val w: Int,
@@ -25,6 +30,10 @@ object MapData {
         val tiles: List<List<Int>>,
         /** true=来自 assets，false=回退读了模拟器内存。 */
         val fromAssets: Boolean,
+        /** 地形分类（[Terrain] 常量）；null=没有行为数据（内存回退/旧资产），UI 只按 tiles 画。 */
+        val terrain: List<List<Int>>? = null,
+        /** 该布局对应的地图 id（如 MAP_ROUTE1，查询遭遇表用）；空=list 未知。 */
+        val maps: List<String> = emptyList(),
     )
 
     /** gMapHeader 指针（Python `terrain.py` 实测：换图后值立刻变）。 */
@@ -34,6 +43,10 @@ object MapData {
     private val assetTiles = HashMap<Int, List<List<Int>>>()
     /** 地图数组地址 -> (w, h)（assets json 里的尺寸；跨图寻路按任意地图取图用）。 */
     private val assetSizes = HashMap<Int, Pair<Int, Int>>()
+    /** 地图数组地址 -> 地形分类网格（从 behaviors 解析；没有 behaviors 的图不存）。 */
+    private val assetTerrain = HashMap<Int, List<List<Int>>>()
+    /** 地图数组地址 -> 该布局对应的地图 id 列表。 */
+    private val assetMaps = HashMap<Int, List<String>>()
     /** assets/maps 里的文件名（只列目录，不解析内容——345 个文件懒加载）。 */
     private val assetNames = HashSet<String>()
     /** 解析资产用的 Context（loadAssets 里存 applicationContext）。 */
@@ -71,7 +84,10 @@ object MapData {
     private fun parseAsset(addr: Int): Layer? {
         assetTiles[addr]?.let { tiles ->
             val size = assetSizes[addr] ?: ((tiles.firstOrNull()?.size ?: 0) to tiles.size)
-            if (size.first > 0 && size.second > 0) return Layer(addr, size.first, size.second, tiles, true)
+            if (size.first > 0 && size.second > 0) {
+                return Layer(addr, size.first, size.second, tiles, true,
+                    assetTerrain[addr], assetMaps[addr] ?: emptyList())
+            }
         }
         val ctx = appContext ?: return null
         val name = "map_%x.json".format(addr)
@@ -81,6 +97,8 @@ object MapData {
             parseJson(text)?.also { layer ->
                 assetTiles[layer.addr] = layer.tiles
                 assetSizes[layer.addr] = layer.w to layer.h
+                layer.terrain?.let { assetTerrain[layer.addr] = it }
+                assetMaps[layer.addr] = layer.maps
             }
         } catch (e: Throwable) {
             Nlog.warn("map.parse", "ok" to false, "code" to e.javaClass.simpleName)
@@ -92,18 +110,40 @@ object MapData {
     fun resetForTest() {
         assetTiles.clear()
         assetSizes.clear()
+        assetTerrain.clear()
+        assetMaps.clear()
         assetNames.clear()
         appContext = null
         assetsLoaded = false
         cached = null
     }
 
-    /** 单测注入 assets 数据，省得依赖 Android Context。 */
+    /** 单测注入 assets 数据，省得依赖 Android Context（无 behaviors → 只按碰撞位）。 */
     @Synchronized
     fun putAssetTilesForTest(addr: Int, tiles: List<List<Int>>) {
+        assetTerrain.remove(addr)
+        assetMaps.remove(addr)
         assetTiles[addr] = tiles
         val w = tiles.firstOrNull()?.size ?: 0
         if (w > 0) assetSizes[addr] = w to tiles.size
+        assetsLoaded = true
+        cached = null
+    }
+
+    /**
+     * 单测注入带行为数据的 assets：behaviorIds[y][x] 是 metatile 行为 id（同 assets `behaviors`），
+     * tiles 是碰撞位归一化（1=可走）。内部按与线上相同的规则算地形与「步行可走」。
+     */
+    @Synchronized
+    fun putAssetForTest(addr: Int, tiles: List<List<Int>>, behaviorIds: List<List<Int>>,
+                        maps: List<String> = emptyList()) {
+        val w = tiles.firstOrNull()?.size ?: 0
+        if (w <= 0 || tiles.size != behaviorIds.size) return
+        val layer = buildLayer(addr, w, tiles.size, tiles, behaviorIds, maps)
+        assetTiles[addr] = layer.tiles
+        assetSizes[addr] = w to tiles.size
+        layer.terrain?.let { assetTerrain[addr] = it }
+        assetMaps[addr] = maps
         assetsLoaded = true
         cached = null
     }
@@ -117,8 +157,57 @@ object MapData {
 
     // ---------- 解析 ----------
 
-    /** 解析一份地图 json（addr / w / h / tiles），失败返回 null。 */
-    private fun parseJson(text: String): Layer? {
+    /**
+     * 解析行为网格行（每格 2 位十六进制，如 "0010"）→ Int 网格；行数/列数不够返回 null。
+     * 与 assets `behaviors` 同格式；0x00=MB_NORMAL、0xFF=未知（按普通格处理）。
+     */
+    internal fun parseBehaviors(rows: List<String>, w: Int, h: Int): List<List<Int>>? {
+        if (rows.size < h) return null
+        val out = ArrayList<List<Int>>(h)
+        for (y in 0 until h) {
+            val row = rows[y]
+            if (row.length < w * 2) return null
+            val cells = ArrayList<Int>(w)
+            for (x in 0 until w) {
+                val v = row.substring(x * 2, x * 2 + 2).toIntOrNull(16) ?: return null
+                cells.add(v)
+            }
+            out.add(cells)
+        }
+        return out
+    }
+
+    /** 碰撞位归一化 + 行为网格 → 地形分类 / 有效可走 tiles（纯函数，单测直接覆盖）。 */
+    internal fun buildLayer(
+        addr: Int, w: Int, h: Int,
+        pass: List<List<Int>>, behaviorIds: List<List<Int>>?, maps: List<String>,
+    ): Layer {
+        if (behaviorIds == null) return Layer(addr, w, h, pass, true, null, maps)
+        val terrain = ArrayList<List<Int>>(h)
+        val tiles = ArrayList<List<Int>>(h)
+        for (y in 0 until h) {
+            val tRow = ArrayList<Int>(w)
+            val eRow = ArrayList<Int>(w)
+            for (x in 0 until w) {
+                val p = pass.getOrNull(y)?.getOrNull(x) ?: 0
+                if (p != 1) {
+                    tRow.add(Terrain.BLOCKED)
+                    eRow.add(0)
+                    continue
+                }
+                val cat = Terrain.fromBehavior(behaviorIds.getOrNull(y)?.getOrNull(x) ?: 0)
+                tRow.add(cat ?: Terrain.WALK)
+                eRow.add(if (cat == Terrain.WATER) 0 else 1)
+            }
+            terrain.add(tRow)
+            tiles.add(eRow)
+        }
+        return Layer(addr, w, h, tiles, true, terrain, maps)
+    }
+
+    /** 解析一份地图 json（addr / w / h / tiles / behaviors / maps），失败返回 null。
+     *  internal 给单测直接喂 JSON（不用 Android Context）。 */
+    internal fun parseJson(text: String): Layer? {
         return try {
             val o = JSONObject(text)
             val addr = o.optString("addr", "").removePrefix("0x").removePrefix("0X")
@@ -134,7 +223,24 @@ object MapData {
                 for (x in 0 until row.length()) cells.add(row.optInt(x))
                 raw.add(cells)
             }
-            Layer(addr, w, h, normalize(raw), true)
+            // 行为网格（可选）：缺 behaviors 的旧图照旧只按碰撞位；
+            // 有 behaviors 但解析失败时留一条 WARN（地图页会失去地形着色、水格不挡）
+            val behaviorRows = o.optJSONArray("behaviors")?.let { a ->
+                val rows = ArrayList<String>(a.length())
+                for (y in 0 until a.length()) rows.add(a.optString(y, ""))
+                parseBehaviors(rows, w, h) ?: run {
+                    Nlog.warnThrottled("map.behaviors", "map.behaviors",
+                        "addr" to "0x%x".format(addr), "ok" to false, "rows" to a.length())
+                    null
+                }
+            }
+            // 地图 id 列表（查询遭遇表用）
+            val maps = o.optJSONArray("maps")?.let { a ->
+                val out = ArrayList<String>(a.length())
+                for (i in 0 until a.length()) a.optString(i, "").takeIf { it.isNotEmpty() }?.let { out.add(it) }
+                out
+            } ?: emptyList()
+            buildLayer(addr, w, h, normalize(raw), behaviorRows, maps)
         } catch (e: Throwable) {
             Nlog.warn("map.parse", "ok" to false, "code" to e.javaClass.simpleName)
             null
@@ -201,22 +307,58 @@ object MapData {
         val w = size.first
         val h = size.second
         val asset = parseAsset(addr)
-        val tiles = asset?.tiles ?: fromMemory(addr, w, h)?.also {
+        val layer = if (asset != null) {
+            // assets 命中：tiles 已按 behaviors 修正（水不可走），地形/地图 id 一并带给 UI
+            Layer(addr, w, h, asset.tiles, true, asset.terrain, asset.maps)
+        } else {
             // assets 没这张图才走内存：留痕，方便以后排查「这张图为什么没有」
-            Nlog.warnThrottled(
-                "map.fallback:ok", "map.fallback",
-                "source" to "memory", "addr" to "0x%x".format(addr), "ok" to true,
-            )
-        } ?: run {
-            Nlog.warnThrottled(
-                "map.fallback:fail", "map.fallback",
-                "source" to "memory", "addr" to "0x%x".format(addr), "ok" to false,
-            )
-            null
+            fromMemory(addr, w, h)?.also {
+                Nlog.warnThrottled(
+                    "map.fallback:ok", "map.fallback",
+                    "source" to "memory", "addr" to "0x%x".format(addr), "ok" to true,
+                )
+            }?.let { Layer(addr, w, h, it, false) } ?: run {
+                Nlog.warnThrottled(
+                    "map.fallback:fail", "map.fallback",
+                    "source" to "memory", "addr" to "0x%x".format(addr), "ok" to false,
+                )
+                null
+            }
         }
-        val layer = tiles?.let { Layer(addr, w, h, it, asset != null) }
         cached = layer
         return layer
     }
 
+}
+
+/**
+ * 地形分类：[MapData.buildLayer] 从 metatile 行为 id 归一化出的格子类别，给地图页着色与步行判定用。
+ * 行为 id → 名字见 `games/pokemon_firered/data/metatile_behaviors.json`。
+ */
+object Terrain {
+    const val BLOCKED = 0
+    const val WALK = 1
+    const val WATER = 2
+    const val GRASS = 3
+    const val STAIRS = 4
+
+    /** 步行不可走的水面 = 引擎 `sBehaviorSurfable` 表（实测 2026-11-16 对照 pokefirered
+     *  `src/metatile_behavior.c`）：MB_POND_WATER(16)/FAST(17)/DEEP(18)/WATERFALL(19)/
+     *  OCEAN(21)/UNUSED(26)/CYCLING_ROAD_WATER(27) + 水流 80–83。
+     *  注意 MB_SHALLOW_WATER(23) 是「浅水流/沙」可步行（`IsSandOrShallowFlowingWater`），不能挡。
+     *  冲浪以后再做。 */
+    private val WATER_IDS = setOf(16, 17, 18, 19, 21, 26, 27, 80, 81, 82, 83)
+    /** MB_TALL_GRASS=2：可走，地图页标绿。 */
+    private const val BEHAVIOR_TALL_GRASS = 2
+
+    /** MB_ROCK_STAIRS(42) 与 MB_CAVE_DOOR(96)…MB_UNION_ROOM_WARP(113)：楼梯/门/传送。 */
+    private fun isStairs(id: Int): Boolean = id == 42 || id in 96..113
+
+    /** 行为 id → 地形分类；null=普通格（可走/挡由碰撞位决定）。 */
+    fun fromBehavior(behavior: Int): Int? = when {
+        behavior in WATER_IDS -> WATER
+        behavior == BEHAVIOR_TALL_GRASS -> GRASS
+        isStairs(behavior) -> STAIRS
+        else -> null
+    }
 }

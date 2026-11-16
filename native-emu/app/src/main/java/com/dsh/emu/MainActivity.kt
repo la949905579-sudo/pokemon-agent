@@ -58,6 +58,8 @@ class MainActivity : ComponentActivity() {
         try { com.dsh.emu.game.MapData.loadAssets(this) } catch (_: Throwable) {}
         // 跨图连接表（assets/maps/map_links.json）：只加载数据，本批不接入 UI 入口
         try { com.dsh.emu.game.MapLinks.loadAssets(this) } catch (_: Throwable) {}
+        // 遭遇表（assets/maps/encounters_leafgreen.json）：懒解析，地图页展示当前图遭遇
+        try { com.dsh.emu.game.Encounters.loadAssets(this) } catch (_: Throwable) {}
         try {
             startForegroundService(android.content.Intent(this, EmuService::class.java))
         } catch (_: Throwable) {}
@@ -166,7 +168,8 @@ fun AppScreen(activity: MainActivity) {
         // 地图数据以本地（assets/内存）为准；本地完全没有时才用 Python 推送兜底
         if (local.mmTiles == null && (pushed.mmTiles != null || pushed.mmW > 0)) {
             local.copy(mmW = pushed.mmW, mmH = pushed.mmH, mmPx = pushed.mmPx,
-                mmPy = pushed.mmPy, mmTiles = pushed.mmTiles)
+                mmPy = pushed.mmPy, mmTiles = pushed.mmTiles,
+                mmTerrain = pushed.mmTerrain, encounters = pushed.encounters)
         } else local
     } else pushed
     val logs = UiState.logs.value

@@ -1,17 +1,20 @@
 # TASKS（任务队列）
 
 > 规则：每任务 3 行卡（目标 / 验收 / 范围）；同一时间只一个 `doing`；完成后标 `done` 并写一行结果。
-> 当前状态（2026-11-16 交接）：**模式已固化**；无进行中任务；HEAD=`89b328d`（Release `build-44e9b60` 已装机）；Kotlin 172/172、Python 33/33；下一步候选：地图 M2（① 水面/地形识别 ② 跨图寻路入口 ③ 门坐标 ④ 遭遇展示 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
+> 当前状态（2026-11-16 交接）：**模式已固化**；无进行中任务；HEAD=`89b328d`（Release `build-44e9b60` 已装机）；Kotlin 183/183、Python 33/33；下一步候选：地图 M2（① 水面/地形识别 ② 跨图寻路入口 ③ 门坐标 ④ 遭遇展示 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-（无）
+- **地图 M2-A：地形识别接入 + 遭遇展示（①+④ 合并，2026-11-16 开工）**：
+  - 目标：assets 每张图加 `behaviors`（2 hex/格，来自解包 tileset 属性）与 `maps`（布局对应的地图 id 列表），并把 `encounters_leafgreen.json` 放进 assets；App 步行时 `MB_*_WATER`/`MB_WATERFALL` 不可走（fail-closed），地图页/常驻图按 水/草/台阶 着色，地图页显示当前图遭遇（种 + Lv 范围）。
+  - 验收：Python/Kotlin 单测绿；CI 包真机装后地图页着色与遭遇文字正确、点水面只提示「走不到这里」、无新增 `map.fallback`；日志有 `map.terrain`/`map.encounters` 取证。
+  - 范围：`tools/gen_map_assets.py`、`app/src/main/assets/maps/*` 重生成、`game/MapData.kt`、`game/Encounters.kt`(新)、`ui/StatusParser.kt`、`ui/LocalStatus.kt`、`ui/MapPage.kt`、`MainActivity.kt` + 测试；不动内存地址/FFI/签名/OTA。
 
 ## todo（按优先级）
-1. **地图 M2**（M1 已接入全量资产/连接表；用户 2026-11-16 决定：以下合并进 M2，暂不开工）：
-   - ① **水面/地形识别接入**：assets 资产加 `behaviors`（2 hex/格，数据已在 `games/pokemon_firered/maps_decomp` 与 `data/metatile_behaviors.json`）；步行时 `MB_*_WATER`/瀑布/深水视为不可走（除非以后做冲浪），地图页可标水/草/台阶。
+1. **地图 M2（剩余）**（M1 已接入全量资产/连接表；①④ 合并为 M2-A 进行中）：
+   - ~~① 水面/地形识别接入~~（M2-A 进行中）。
    - ② 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）。
    - ③ 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）。
-   - ④ 地图页展示遭遇（`data/encounters_leafgreen.json` 已有）。
+   - ~~④ 地图页展示遭遇~~（M2-A 进行中）。
    - ⑤ 27 个 struct-multi 布局地址消歧（当前退回读内存，不影响功能）。
 2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
 3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。

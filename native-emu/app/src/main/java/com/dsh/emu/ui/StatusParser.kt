@@ -35,6 +35,10 @@ data class EmuStatus(
     val moves: List<String> = emptyList(),
     val mmW: Int = 0, val mmH: Int = 0, val mmPx: Int = 0, val mmPy: Int = 0,
     val mmTiles: List<List<Int>>? = null,
+    /** 地形分类网格（[com.dsh.emu.game.Terrain] 常量；null=没有行为数据）。 */
+    val mmTerrain: List<List<Int>>? = null,
+    /** 当前地图遭遇摘要（一行；空=没有数据）。 */
+    val encounters: String = "",
 )
 
 /**
@@ -85,6 +89,26 @@ internal fun parseStatus(json: String): EmuStatus {
             }
             if (rows.isNotEmpty()) mmTiles = rows
         }
+        // 地形分类：每行一个字符串，字符=分类（0 挡/1 可走/2 水/3 草/4 台阶）。
+        // 严格校验：出现非法字符就整张地形作废（fail-closed，UI 退回只按 tiles 画）。
+        var mmTerrain: List<List<Int>>? = null
+        mm?.optJSONArray("terrain")?.let { arr ->
+            val rows = mutableListOf<List<Int>>()
+            var ok = true
+            for (y in 0 until arr.length()) {
+                val s2 = arr.optString(y, "")
+                if (s2.isEmpty()) { ok = false; break }
+                val cells = ArrayList<Int>(s2.length)
+                for (ch in s2) {
+                    val v = ch - '0'
+                    if (v !in 0..4) { ok = false; break }
+                    cells.add(v)
+                }
+                if (!ok) break
+                rows.add(cells)
+            }
+            if (ok && rows.isNotEmpty()) mmTerrain = rows
+        }
         val d = o.optJSONObject("battle_detail")
         val foe = d?.optJSONObject("foe")
         val me = d?.optJSONObject("me")
@@ -98,7 +122,7 @@ internal fun parseStatus(json: String): EmuStatus {
             me?.optInt("lv") ?: 0, me?.optInt("hp") ?: 0, me?.optInt("mhp") ?: 0,
             moves,
             mm?.optInt("w") ?: 0, mm?.optInt("h") ?: 0, mm?.optInt("px") ?: 0, mm?.optInt("py") ?: 0,
-            mmTiles,
+            mmTiles, mmTerrain, o.optString("encounters", ""),
         )
     } catch (e: Exception) { EmuStatus() }
 }

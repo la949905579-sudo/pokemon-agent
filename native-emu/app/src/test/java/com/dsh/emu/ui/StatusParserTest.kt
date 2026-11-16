@@ -9,7 +9,7 @@ import org.junit.Test
  * 状态 JSON 解析器离线单测：纯函数，不读实机、不写文件。
  *
  * 覆盖：空串/非法 JSON 回退默认；基本字段；队伍详情（缺字段回退）；小地图 tiles（含损坏行）；
- * 战斗详情（foe/me/招式列表）；`{}` 缺字段默认值。
+ * 小地图地形分类 / 遭遇摘要；战斗详情（foe/me/招式列表）；`{}` 缺字段默认值。
  */
 class StatusParserTest {
 
@@ -112,5 +112,31 @@ class StatusParserTest {
     fun emptyObjectUsesAllDefaults() {
         val s = parseStatus("{}")
         assertEquals(EmuStatus(), s)
+    }
+
+    @Test
+    fun parsesMinimapTerrainAndEncounters() {
+        val s = parseStatus(
+            """
+            {"minimap":{"w":2,"h":2,"px":0,"py":0,"tiles":[[1,0],[0,1]],
+              "terrain":["12","43"]},
+             "encounters":"陆 波波2-5"}
+            """
+        )
+        assertEquals(listOf(listOf(1, 2), listOf(4, 3)), s.mmTerrain)
+        assertEquals("陆 波波2-5", s.encounters)
+    }
+
+    @Test
+    fun invalidTerrainCharsDropWholeGrid() {
+        val s = parseStatus("""{"minimap":{"w":2,"h":1,"tiles":[[1,0]],"terrain":["1x"]}}""")
+        assertNull(s.mmTerrain)
+    }
+
+    @Test
+    fun missingTerrainStaysNull() {
+        val s = parseStatus("""{"minimap":{"w":2,"h":2,"tiles":[[1,0],[0,1]]}}""")
+        assertNull(s.mmTerrain)
+        assertEquals("", s.encounters)
     }
 }

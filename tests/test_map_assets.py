@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/gen_map_assets.py 的离线测试：假 ROM（结构体 + blockdata 字节）验证
-地址定位、连接出口/落点规则、多目标合并、实测表校验与资产校验。
+地址定位、连接出口/落点规则、多目标合并、实测表校验、资产校验（含 behaviors/maps）。
 
 不读真 ROM、不联网、不依赖 /root/refs。
 """
@@ -81,7 +81,39 @@ def make_ref(tmp):
             "id": mid, "name": name, "layout": "LAYOUT_TEST",
             "connections": None, "warp_events": [],
         })
+    make_tilesets(tmp)
     return tmp
+
+
+def make_tilesets(tmp):
+    """最小 tileset：metatiles.h + 属性表 + 行为名常量（behavior_grid 用）。
+
+    primary 640 个 metatile（[5]=MB_POND_WATER）、secondary 384 个（[0]=MB_TALL_GRASS）。
+    """
+    def attrs(path, ids):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            for b in ids:
+                f.write(int(b).to_bytes(4, "little"))
+
+    ts = os.path.join(tmp, "src", "data", "tilesets")
+    os.makedirs(ts, exist_ok=True)
+    with open(os.path.join(ts, "metatiles.h"), "w", encoding="utf-8") as f:
+        f.write('static const u32 gMetatileAttributes_Primary[] = '
+                'INCBIN_U32("data/tilesets/primary/metatile_attributes.bin");\n')
+        f.write('static const u32 gMetatileAttributes_Secondary[] = '
+                'INCBIN_U32("data/tilesets/secondary/metatile_attributes.bin");\n')
+    primary = [0] * 640
+    primary[5] = 0x10  # MB_POND_WATER
+    attrs(os.path.join(tmp, "data", "tilesets", "primary", "metatile_attributes.bin"), primary)
+    secondary = [0] * 384
+    secondary[0] = 0x02  # MB_TALL_GRASS
+    attrs(os.path.join(tmp, "data", "tilesets", "secondary", "metatile_attributes.bin"), secondary)
+    inc = os.path.join(tmp, "include", "constants")
+    os.makedirs(inc, exist_ok=True)
+    with open(os.path.join(inc, "metatile_behaviors.h"), "w", encoding="utf-8") as f:
+        f.write("#define MB_NORMAL 0x0\n#define MB_TALL_GRASS 0x2\n#define MB_POND_WATER 0x10\n")
+
 
 
 def write_json(path, obj):
@@ -180,9 +212,83 @@ def test_help_exit0():
         assert flag in r.stdout, flag
 
 
+def test_emit_assets_behaviors_maps_encounters():
+    """emit_assets 每图写 behaviors/maps、拷遭遇表；同布局多地图时 maps 合并。"""
+    def run(tmp):
+        ref = make_ref(tmp)
+        # 改 blockdata：(1,1) 用 metatile 5（primary 表里 = MB_POND_WATER 0x10），碰撞位 0
+        with open(os.path.join(ref, "data", "layouts", "Test", "map.bin"), "wb") as f:
+            for i in range(12):
+                f.write((5 if i == 5 else 0).to_bytes(2, "little"))
+        rom = bytearray(make_rom())
+        off = 0x100 + 5 * 2
+        rom[off:off + 2] = (5).to_bytes(2, "little")
+        enc = {"version": "test", "maps": {"MAP_TEST": {"land": {"slots": []}}}}
+        enc_path = os.path.join(tmp, "encounters_src.json")
+        write_json(enc_path, enc)
+        old_src = MOD.ENCOUNTERS_SRC
+        MOD.ENCOUNTERS_SRC = enc_path
+        try:
+            out = os.path.join(tmp, "assets")
+            stats = MOD.emit_assets(bytes(rom), ref, out)
+            assert stats["assets"] == 1, stats
+            assert stats["behaviors_missing"] == 0 and stats["encounters_maps"] == 1, stats
+            doc = json.load(open(os.path.join(out, "map_8000100.json"), encoding="utf-8"))
+            assert list(doc.keys()) == ["addr", "w", "h", "tiles", "behaviors", "maps"], doc.keys()
+            assert doc["maps"] == ["MAP_OTHER", "MAP_TEST"], doc["maps"]
+            assert doc["behaviors"][1] == "00100000", doc["behaviors"]
+            assert doc["behaviors"][0] == "00000000", doc["behaviors"]
+            assert json.load(open(os.path.join(out, "encounters_leafgreen.json"), encoding="utf-8")) == enc
+        finally:
+            MOD.ENCOUNTERS_SRC = old_src
+    with_tmp(run)
+
+
+def write_assets_fixture(out, n=301):
+    """完整资产目录（n 张图 + 连接表 + 遭遇表），用于 check_assets 全绿/变体用例。"""
+    os.makedirs(out, exist_ok=True)
+    for i in range(n):
+        write_json(os.path.join(out, "map_%x.json" % (0x8200000 + i)),
+                   {"addr": "0x%x" % (0x8200000 + i), "w": 2, "h": 2,
+                    "tiles": [[0, 1], [1, 0]], "behaviors": ["0201", "0101"],
+                    "maps": ["MAP_TEST"]})
+    write_json(os.path.join(out, "map_links.json"),
+               [{"map": 0x8200000, "exit": [0, 0], "side": None,
+                 "to_map": 0x8200001, "to_pos": [1, 1]}])
+    write_json(os.path.join(out, "encounters_leafgreen.json"),
+               {"version": "test", "maps": {"MAP_DUMMY%d" % i: {} for i in range(101)}})
+
+
+def test_check_assets_accepts_behaviors_maps():
+    def run(tmp):
+        out = os.path.join(tmp, "assets")
+        write_assets_fixture(out)
+        assert MOD.check_assets(out) == [], MOD.check_assets(out)
+        # 有地图引用却缺 behaviors → 报错
+        path = os.path.join(out, "map_8200000.json")
+        doc = json.load(open(path, encoding="utf-8"))
+        doc.pop("behaviors")
+        write_json(path, doc)
+        problems = MOD.check_assets(out)
+        assert any("缺 behaviors" in p for p in problems), problems
+        # 没有任何地图引用时允许缺 behaviors（如 LAYOUT_UNUSED1）
+        doc["maps"] = []
+        write_json(path, doc)
+        problems = [p for p in MOD.check_assets(out) if "缺 behaviors" in p]
+        assert problems == [], problems
+        # behaviors 行长度与 w 不一致 → 报错
+        doc["maps"] = ["MAP_TEST"]
+        doc["behaviors"] = ["02", "01"]
+        write_json(path, doc)
+        problems = MOD.check_assets(out)
+        assert any("behaviors 行内容不对" in p for p in problems), problems
+    with_tmp(run)
+
+
 if __name__ == "__main__":
     for fn in (test_scan_and_locate_layout_addr, test_conn_edges_rules,
                test_build_links_merges_targets, test_validate_observed_side_diff,
-               test_check_assets_schema, test_help_exit0):
+               test_check_assets_schema, test_emit_assets_behaviors_maps_encounters,
+               test_check_assets_accepts_behaviors_maps, test_help_exit0):
         fn()
     print("全部通过")
