@@ -912,14 +912,6 @@
      14
     ],
     "to_name": "MAP_INDIGO_PLATEAU_POKEMON_CENTER_1F"
-   },
-   {
-    "to_map": 137602988,
-    "to_pos": [
-     1,
-     5
-    ],
-    "to_name": "MAP_ONE_ISLAND_POKEMON_CENTER_1F"
    }
   ]
  },
@@ -9882,7 +9874,7 @@
    28
   ],
   "side": null,
-  "to_map": 137471096,
+  "to_map": 137479312,
   "to_pos": [
    3,
    1
@@ -9924,7 +9916,7 @@
    29
   ],
   "side": null,
-  "to_map": 137471096,
+  "to_map": 137479312,
   "to_pos": [
    3,
    1
@@ -10008,7 +10000,7 @@
    31
   ],
   "side": null,
-  "to_map": 137471096,
+  "to_map": 137479312,
   "to_pos": [
    3,
    8
@@ -30980,7 +30972,7 @@
    25
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -30994,7 +30986,7 @@
    25
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31008,7 +31000,7 @@
    25
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31078,7 +31070,7 @@
    16
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31092,7 +31084,7 @@
    16
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31148,7 +31140,7 @@
    23
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31162,7 +31154,7 @@
    23
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137498228,
   "to_pos": [
    2,
    5
@@ -31190,7 +31182,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31274,7 +31266,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31372,7 +31364,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31512,7 +31504,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31610,7 +31602,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31708,7 +31700,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31778,7 +31770,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31862,7 +31854,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -31960,7 +31952,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -32030,7 +32022,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -32100,7 +32092,7 @@
    3
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137499336,
   "to_pos": [
    2,
    5
@@ -35021,25 +35013,7 @@
    10,
    8
   ],
-  "to_name": "MAP_CERULEAN_CITY",
-  "targets": [
-   {
-    "to_map": 137229068,
-    "to_pos": [
-     10,
-     8
-    ],
-    "to_name": "MAP_CERULEAN_CITY"
-   },
-   {
-    "to_map": 137242652,
-    "to_pos": [
-     39,
-     28
-    ],
-    "to_name": "MAP_FUCHSIA_CITY"
-   }
-  ]
+  "to_name": "MAP_CERULEAN_CITY"
  },
  {
   "map": 137471096,
@@ -35053,25 +35027,7 @@
    10,
    11
   ],
-  "to_name": "MAP_CERULEAN_CITY",
-  "targets": [
-   {
-    "to_map": 137229068,
-    "to_pos": [
-     10,
-     11
-    ],
-    "to_name": "MAP_CERULEAN_CITY"
-   },
-   {
-    "to_map": 137242652,
-    "to_pos": [
-     38,
-     31
-    ],
-    "to_name": "MAP_FUCHSIA_CITY"
-   }
-  ]
+  "to_name": "MAP_CERULEAN_CITY"
  },
  {
   "map": 137471096,
@@ -35085,25 +35041,7 @@
    10,
    11
   ],
-  "to_name": "MAP_CERULEAN_CITY",
-  "targets": [
-   {
-    "to_map": 137229068,
-    "to_pos": [
-     10,
-     11
-    ],
-    "to_name": "MAP_CERULEAN_CITY"
-   },
-   {
-    "to_map": 137242652,
-    "to_pos": [
-     38,
-     31
-    ],
-    "to_name": "MAP_FUCHSIA_CITY"
-   }
-  ]
+  "to_name": "MAP_CERULEAN_CITY"
  },
  {
   "map": 137471096,
@@ -35117,25 +35055,7 @@
    10,
    11
   ],
-  "to_name": "MAP_CERULEAN_CITY",
-  "targets": [
-   {
-    "to_map": 137229068,
-    "to_pos": [
-     10,
-     11
-    ],
-    "to_name": "MAP_CERULEAN_CITY"
-   },
-   {
-    "to_map": 137242652,
-    "to_pos": [
-     38,
-     31
-    ],
-    "to_name": "MAP_FUCHSIA_CITY"
-   }
-  ]
+  "to_name": "MAP_CERULEAN_CITY"
  },
  {
   "map": 137471332,
@@ -36103,6 +36023,62 @@
   "to_map": 137242652,
   "to_pos": [
    33,
+   31
+  ],
+  "to_name": "MAP_FUCHSIA_CITY"
+ },
+ {
+  "map": 137479312,
+  "exit": [
+   3,
+   1
+  ],
+  "side": null,
+  "to_map": 137242652,
+  "to_pos": [
+   39,
+   28
+  ],
+  "to_name": "MAP_FUCHSIA_CITY"
+ },
+ {
+  "map": 137479312,
+  "exit": [
+   3,
+   8
+  ],
+  "side": null,
+  "to_map": 137242652,
+  "to_pos": [
+   38,
+   31
+  ],
+  "to_name": "MAP_FUCHSIA_CITY"
+ },
+ {
+  "map": 137479312,
+  "exit": [
+   2,
+   9
+  ],
+  "side": null,
+  "to_map": 137242652,
+  "to_pos": [
+   38,
+   31
+  ],
+  "to_name": "MAP_FUCHSIA_CITY"
+ },
+ {
+  "map": 137479312,
+  "exit": [
+   4,
+   9
+  ],
+  "side": null,
+  "to_map": 137242652,
+  "to_pos": [
+   38,
    31
   ],
   "to_name": "MAP_FUCHSIA_CITY"
@@ -51672,7 +51648,7 @@
    5
   ],
   "side": null,
-  "to_map": 137189780,
+  "to_map": 137641916,
   "to_pos": [
    1,
    6
@@ -52498,7 +52474,7 @@
    8
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52554,7 +52530,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52596,7 +52572,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52638,7 +52614,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52680,7 +52656,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52722,7 +52698,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52764,7 +52740,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52806,7 +52782,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -52848,7 +52824,7 @@
    5
   ],
   "side": null,
-  "to_map": 137469704,
+  "to_map": 137638892,
   "to_pos": [
    2,
    5
@@ -53334,6 +53310,48 @@
     "to_name": "MAP_TWO_ISLAND"
    }
   ]
+ },
+ {
+  "map": 137641916,
+  "exit": [
+   5,
+   1
+  ],
+  "side": null,
+  "to_map": 137594684,
+  "to_pos": [
+   7,
+   11
+  ],
+  "to_name": "MAP_UNION_ROOM"
+ },
+ {
+  "map": 137641916,
+  "exit": [
+   9,
+   1
+  ],
+  "side": null,
+  "to_map": 137202156,
+  "to_pos": [
+   5,
+   8
+  ],
+  "to_name": "MAP_TRADE_CENTER"
+ },
+ {
+  "map": 137641916,
+  "exit": [
+   1,
+   6
+  ],
+  "side": null,
+  "to_map": 137602988,
+  "to_pos": [
+   1,
+   5
+  ],
+  "to_name": "MAP_ONE_ISLAND_POKEMON_CENTER_1F"
  },
  {
   "map": 137642256,
@@ -54238,7 +54256,7 @@
    18
   ],
   "side": null,
-  "to_map": 137663272,
+  "to_map": 137663544,
   "to_pos": [
    4,
    4
@@ -54252,7 +54270,7 @@
    20
   ],
   "side": null,
-  "to_map": 137663136,
+  "to_map": 137665040,
   "to_pos": [
    4,
    4
@@ -54271,28 +54289,402 @@
    2,
    2
   ],
-  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B10F",
-  "targets": [
-   {
-    "to_map": 137663272,
-    "to_pos": [
-     2,
-     2
-    ],
-    "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B10F"
-   },
-   {
-    "to_map": 137667092,
-    "to_pos": [
-     26,
-     1
-    ],
-    "to_name": "MAP_NAVEL_ROCK_FORK"
-   }
-  ]
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_3F"
  },
  {
   "map": 137663136,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137667092,
+  "to_pos": [
+   3,
+   1
+  ],
+  "to_name": "MAP_NAVEL_ROCK_FORK"
+ },
+ {
+  "map": 137663272,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137663136,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_2F"
+ },
+ {
+  "map": 137663272,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137663408,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_4F"
+ },
+ {
+  "map": 137663408,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137663544,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_5F"
+ },
+ {
+  "map": 137663408,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137663272,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_3F"
+ },
+ {
+  "map": 137663544,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137663408,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT_PATH_4F"
+ },
+ {
+  "map": 137663544,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137661144,
+  "to_pos": [
+   10,
+   18
+  ],
+  "to_name": "MAP_NAVEL_ROCK_SUMMIT"
+ },
+ {
+  "map": 137663680,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137667092,
+  "to_pos": [
+   26,
+   1
+  ],
+  "to_name": "MAP_NAVEL_ROCK_FORK"
+ },
+ {
+  "map": 137663680,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137663816,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B2F"
+ },
+ {
+  "map": 137663816,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137663952,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B3F"
+ },
+ {
+  "map": 137663816,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137663680,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B1F"
+ },
+ {
+  "map": 137663952,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137663816,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B2F"
+ },
+ {
+  "map": 137663952,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664088,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B4F"
+ },
+ {
+  "map": 137664088,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664224,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B5F"
+ },
+ {
+  "map": 137664088,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137663952,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B3F"
+ },
+ {
+  "map": 137664224,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664088,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B4F"
+ },
+ {
+  "map": 137664224,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664360,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B6F"
+ },
+ {
+  "map": 137664360,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664496,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B7F"
+ },
+ {
+  "map": 137664360,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664224,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B5F"
+ },
+ {
+  "map": 137664496,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664360,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B6F"
+ },
+ {
+  "map": 137664496,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664632,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B8F"
+ },
+ {
+  "map": 137664632,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664768,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B9F"
+ },
+ {
+  "map": 137664632,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664496,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B7F"
+ },
+ {
+  "map": 137664768,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664632,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B8F"
+ },
+ {
+  "map": 137664768,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664904,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B10F"
+ },
+ {
+  "map": 137664904,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137665040,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B11F"
+ },
+ {
+  "map": 137664904,
+  "exit": [
+   4,
+   4
+  ],
+  "side": null,
+  "to_map": 137664768,
+  "to_pos": [
+   4,
+   4
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B9F"
+ },
+ {
+  "map": 137665040,
+  "exit": [
+   2,
+   2
+  ],
+  "side": null,
+  "to_map": 137664904,
+  "to_pos": [
+   2,
+   2
+  ],
+  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B10F"
+ },
+ {
+  "map": 137665040,
   "exit": [
    4,
    4
@@ -54303,79 +54695,7 @@
    13,
    20
   ],
-  "to_name": "MAP_NAVEL_ROCK_BASE",
-  "targets": [
-   {
-    "to_map": 137662132,
-    "to_pos": [
-     13,
-     20
-    ],
-    "to_name": "MAP_NAVEL_ROCK_BASE"
-   },
-   {
-    "to_map": 137663272,
-    "to_pos": [
-     4,
-     4
-    ],
-    "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B2F"
-   },
-   {
-    "to_map": 137667092,
-    "to_pos": [
-     3,
-     1
-    ],
-    "to_name": "MAP_NAVEL_ROCK_FORK"
-   }
-  ]
- },
- {
-  "map": 137663272,
-  "exit": [
-   2,
-   2
-  ],
-  "side": null,
-  "to_map": 137663136,
-  "to_pos": [
-   2,
-   2
-  ],
-  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B11F"
- },
- {
-  "map": 137663272,
-  "exit": [
-   4,
-   4
-  ],
-  "side": null,
-  "to_map": 137663136,
-  "to_pos": [
-   4,
-   4
-  ],
-  "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B9F",
-  "targets": [
-   {
-    "to_map": 137663136,
-    "to_pos": [
-     4,
-     4
-    ],
-    "to_name": "MAP_NAVEL_ROCK_BASE_PATH_B9F"
-   },
-   {
-    "to_map": 137661144,
-    "to_pos": [
-     10,
-     18
-    ],
-    "to_name": "MAP_NAVEL_ROCK_SUMMIT"
-   }
-  ]
+  "to_name": "MAP_NAVEL_ROCK_BASE"
  },
  {
   "map": 137665176,
@@ -54454,7 +54774,7 @@
    1
   ],
   "side": null,
-  "to_map": 137663136,
+  "to_map": 137663680,
   "to_pos": [
    2,
    2

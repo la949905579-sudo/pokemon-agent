@@ -89,6 +89,106 @@ def scan_layout_structs(rom):
     return out
 
 
+def scan_layout_structs_full(rom):
+    """扫 ROM 里的布局结构体，返回带结构体地址的完整信息（表定位/消歧用）。
+
+    每项：{addr, w, h, border, map, primary, secondary, border_w, border_h}
+    （addr 是结构体在 ROM 的地址 0x08xxxxxx；+0x18/+0x19 是 border 宽高字节）
+    """
+    out = []
+    n = len(rom) - 0x1A
+    for s in range(0, n, 4):
+        w = _u32(rom, s)
+        h = _u32(rom, s + 4)
+        if not (1 <= w <= 200 and 1 <= h <= 200):
+            continue
+        for p in (s + 8, s + 12, s + 16, s + 20):
+            v = _u32(rom, p)
+            if not (0x08000000 <= v < 0x0A000000):
+                break
+        else:
+            out.append({
+                "addr": 0x08000000 + s, "w": w, "h": h,
+                "border": _u32(rom, s + 8), "map": _u32(rom, s + 12),
+                "primary": _u32(rom, s + 16), "secondary": _u32(rom, s + 20),
+                "border_w": rom[s + 0x18], "border_h": rom[s + 0x19],
+            })
+    return out
+
+
+def _table_valid(rom, raw, table_off):
+    """校验 ROM 偏移 table_off 处是否就是 gMapLayouts：383 项，空项=0，其余指针指向
+    宽高与解包 layouts.json 完全一致的布局结构体。"""
+    for i, entry in enumerate(raw):
+        o = table_off + 4 * i
+        if o < 0 or o + 4 > len(rom):
+            return False
+        v = _u32(rom, o)
+        if not entry or not entry.get("id"):
+            if v != 0:
+                return False
+            continue
+        if not (0x08000000 <= v < 0x0A000000):
+            return False
+        so = v - 0x08000000
+        if so < 0 or so + 8 > len(rom):
+            return False
+        if _u32(rom, so) != entry["width"] or _u32(rom, so + 4) != entry["height"]:
+            return False
+    return True
+
+
+def find_layout_table(rom, ref):
+    """在 ROM 里定位 gMapLayouts 表（解包 layouts.json 顺序）。
+
+    做法：用「内容+border 唯一匹配」的布局找到它的结构体地址，再在 ROM 里找指向它的
+    指针，按该布局在 layouts.json 的下标反推表起点，最后整表校验（383 项宽高全匹配）。
+    返回 ROM 偏移或 None（找不到就退回老的启发式）。
+    """
+    raw = gmd._read_json(os.path.join(ref, "data", "layouts", "layouts.json")).get("layouts") or []
+    layouts = gmd.load_layouts(ref)
+    structs = scan_layout_structs_full(rom)
+    by_size = {}
+    for st in structs:
+        by_size.setdefault((st["w"], st["h"]), []).append(st)
+    anchors = []
+    for lid in sorted(layouts):
+        lay = layouts[lid]
+        with open(os.path.join(ref, lay["blockdata_filepath"]), "rb") as f:
+            block = f.read()
+        border = b""
+        if lay.get("border_filepath"):
+            try:
+                with open(os.path.join(ref, lay["border_filepath"]), "rb") as f:
+                    border = f.read()
+            except OSError:
+                border = b""
+        hits = []
+        for st in by_size.get((lay["width"], lay["height"]), []):
+            mo = st["map"] - 0x08000000
+            if mo < 0 or mo + len(block) > len(rom) or rom[mo:mo + len(block)] != block:
+                continue
+            if border:
+                bo = st["border"] - 0x08000000
+                if bo < 0 or bo + len(border) > len(rom) or rom[bo:bo + len(border)] != border:
+                    continue
+            hits.append(st)
+        if len(hits) == 1:
+            anchors.append((lid, hits[0]["addr"]))
+    # 从锚点反推表起点并整表校验
+    for lid, saddr in anchors[:10]:
+        idx = next((i for i, e in enumerate(raw) if e and e.get("id") == lid), -1)
+        if idx < 0:
+            continue
+        pat = saddr.to_bytes(4, "little")
+        pos = rom.find(pat)
+        while pos >= 0 and pos - 4 * idx >= 0:
+            if _table_valid(rom, raw, pos - 4 * idx):
+                return pos - 4 * idx
+            pos = rom.find(pat, pos + 1)
+    return None
+
+
 def layout_rom_addr(rom, ref, layout, structs_by_size):
     """解包布局 → ROM 里 blockdata 地址。用结构体 (w,h) 桶 + 字节比对 + border 校验消歧。"""
     data_path = os.path.join(ref, layout["blockdata_filepath"])
@@ -133,12 +233,31 @@ def layout_rom_addr(rom, ref, layout, structs_by_size):
 
 
 def locate_all(rom, ref):
+    """解包布局 → ROM blockdata 地址。
+
+    优先用 ROM 里的 gMapLayouts 表（布局 id → 结构体 → +0xC map 指针）：365 个布局全表校验
+    宽高，地址唯一、无歧义（含同内容复制块）。表找不到时退回老的「结构体+内容+border」启发式。
+    """
     layouts = gmd.load_layouts(ref)
+    table = find_layout_table(rom, ref)
+    if table is not None:
+        raw = gmd._read_json(os.path.join(ref, "data", "layouts", "layouts.json")).get("layouts") or []
+        out = {}
+        for i, entry in enumerate(raw):
+            if not entry or not entry.get("id"):
+                continue
+            st = _u32(rom, table + 4 * i)
+            so = st - 0x08000000
+            out[entry["id"]] = _u32(rom, so + 0x0C)
+        stats = {"struct": len(out), "struct-multi": 0, "raw": 0, "missing": 0,
+                 "table": "gMapLayouts@0x%x" % (0x08000000 + table)}
+        return out, stats
+
     structs_by_size = {}
     for (w, h, map_ptr, border_ptr) in scan_layout_structs(rom):
         structs_by_size.setdefault((w, h), []).append((w, h, map_ptr, border_ptr))
     out = {}
-    stats = {"struct": 0, "struct-multi": 0, "raw": 0, "missing": 0}
+    stats = {"struct": 0, "struct-multi": 0, "raw": 0, "missing": 0, "table": None}
     for lid in sorted(layouts):
         addr, how, n = layout_rom_addr(rom, ref, layouts[lid], structs_by_size)
         stats[how] += 1

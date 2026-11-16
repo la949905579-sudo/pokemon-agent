@@ -285,6 +285,7 @@ def write_assets_fixture(out, n=301):
                {"version": "test", "maps": {"MAP_DUMMY%d" % i: {} for i in range(101)}})
 
 
+
 def test_check_assets_accepts_behaviors_maps():
     def run(tmp):
         out = os.path.join(tmp, "assets")
@@ -311,11 +312,79 @@ def test_check_assets_accepts_behaviors_maps():
     with_tmp(run)
 
 
+def test_layout_table_disambiguates_duplicate_content():
+    """同内容复制块（两个 blob 地址）：ROM 里的 gMapLayouts 表能精确分到各自地址。"""
+    def run(tmp):
+        base = 0x08000000
+        rom = bytearray(ROM_SIZE)
+        # 两个内容相同的 blockdata 副本 + 一份不同内容
+        def write_blocks(off, seed):
+            for i in range(12):
+                v = 0 if i == 1 else 0
+                rom[off + i * 2: off + i * 2 + 2] = int(v).to_bytes(2, "little")
+            # (1,1) 放碰撞位，让内容带 seed 区分（用 metatile 号）
+            rom[off + 5 * 2: off + 5 * 2 + 2] = int(seed).to_bytes(2, "little")
+        blocks = (0x100, 0x140, 0x180)
+        write_blocks(blocks[0], 0)
+        write_blocks(blocks[1], 0)   # 与 A 内容完全相同（复制块）
+        write_blocks(blocks[2], 3)   # 唯一内容（锚点）
+        border = b"\x01\x00\x02\x00\x03\x00\x04\x00"
+        bps = (0x300, 0x320, 0x340)
+        for bp in bps:
+            rom[bp:bp + 8] = border
+        ts = (0x500, 0x520)
+        # 三个布局结构体（同宽高，只有 map/border 指针不同）
+        structs = []
+        for s, mp, bp in ((0x400, blocks[0], bps[0]), (0x440, blocks[1], bps[1]), (0x480, blocks[2], bps[2])):
+            rom[s:s + 4] = u32b(4); rom[s + 4:s + 8] = u32b(3)
+            rom[s + 8:s + 12] = u32b(base + bp)
+            rom[s + 12:s + 16] = u32b(base + mp)
+            rom[s + 16:s + 20] = u32b(base + ts[0])
+            rom[s + 20:s + 24] = u32b(base + ts[1])
+            rom[s + 0x18] = 2; rom[s + 0x19] = 2
+            structs.append(base + s)
+        # gMapLayouts 表：与 layouts.json 顺序一致
+        table = 0x600
+        for i, st in enumerate(structs):
+            rom[table + 4 * i: table + 4 * i + 4] = u32b(st)
+
+        ref = tmp
+        def lay(lid, name, block_off):
+            return {
+                "id": lid, "name": name + "_Layout", "width": 4, "height": 3,
+                "border_width": 2, "border_height": 2,
+                "primary_tileset": "gTileset_Primary", "secondary_tileset": "gTileset_Secondary",
+                "border_filepath": "data/layouts/%s/border.bin" % lid,
+                "blockdata_filepath": "data/layouts/%s/map.bin" % lid,
+            }
+        entries = [lay("LAYOUT_A", "A", blocks[0]), lay("LAYOUT_B", "B", blocks[1]),
+                   lay("LAYOUT_C", "C", blocks[2])]
+        for e, mp in zip(entries, blocks):
+            d = os.path.join(ref, "data", "layouts", e["id"])
+            os.makedirs(d, exist_ok=True)
+            with open(os.path.join(d, "map.bin"), "wb") as f:
+                f.write(rom[mp:mp + 24])
+            with open(os.path.join(d, "border.bin"), "wb") as f:
+                f.write(border)
+        write_json(os.path.join(ref, "data", "layouts", "layouts.json"),
+                   {"layouts_table_label": "gMapLayouts", "layouts": entries})
+        make_tilesets(ref)
+
+        mapped, stats = MOD.locate_all(bytes(rom), ref)
+        assert stats.get("table"), stats
+        assert mapped["LAYOUT_A"] == base + blocks[0], mapped
+        assert mapped["LAYOUT_B"] == base + blocks[1], mapped
+        assert mapped["LAYOUT_C"] == base + blocks[2], mapped
+        assert len(set(mapped.values())) == 3, mapped   # 重复内容也分到不同地址
+    with_tmp(run)
+
+
 if __name__ == "__main__":
     for fn in (test_scan_and_locate_layout_addr, test_conn_edges_rules,
-               test_build_links_merges_targets,
+               test_build_links_merges_targets, test_validate_observed_tolerance,
                test_check_assets_schema, test_emit_assets_behaviors_maps_encounters,
-               test_check_assets_accepts_behaviors_maps, test_validate_observed_tolerance,
-               test_door_warps_generate_side_null_edges, test_help_exit0):
+               test_check_assets_accepts_behaviors_maps,
+               test_door_warps_generate_side_null_edges,
+               test_layout_table_disambiguates_duplicate_content, test_help_exit0):
         fn()
     print("全部通过")

@@ -4,7 +4,10 @@
 > 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A/M2-B/M2-C 已完成并装机（`build-b6ae868`，App 0.2 versionCode 185）；Kotlin 197/197、Python 33/33；下一步候选：⑤ struct-multi、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-（无）
+- **地图 M2-D：struct-multi 布局地址消歧（⑤，2026-11-16 开工）**：
+  - 目标：用 ROM 里的 `gMapLayouts` 表（解包 layouts.json 顺序，383 项）把每个布局精确映射到 ROM 结构体 → blockdata 地址，替代「同宽高+内容+border 取第一个候选」的启发式；消除 27 个歧义布局导致的地图资产缺失（运行期退回读内存）。
+  - 验收：单测绿（表发现整表校验、重复内容消歧、资产 365、`--check`）；重生成后 365 布局全部有资产、0 missing/歧义；`map_links` 同步重生成且实测校验不回归（12/13）；真机新包 `map.assets indexed=365`、相关地图不再 fallback。
+  - 范围：`tools/gen_map_assets.py`（表发现 + locate_all）、`assets/maps/*` 重生成、`tests/test_map_assets.py`；不改内存地址/FFI/签名/OTA。
 
 ## todo（按优先级）
 1. **地图 M2（剩余）**（①④随 M2-A、②随 M2-B、③随 M2-C 完成）：
