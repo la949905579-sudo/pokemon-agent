@@ -7,7 +7,7 @@
 - **构建/验证**：Kotlin 单测本机可跑（aapt2 走 qemu wrapper，命令见 `AGENTS.md`）；**APK/NDK 必须走 CI**（push 触发）；Python 旧层 `python3 run_tests.py`。
 - **规则/文档**：`AGENTS.md`（循环 / 验证 / 红线 / 交接）｜`docs/TASKS.md`（任务/验收）｜`docs/ARCH.md`（架构/语言）｜`docs/CHANGELOG.md`（每发布 3–5 行）；历史 `docs/archive/2026-11/`（只读）。
 - **已完成（本模式）**：工作流重设计、M4/M5 迁移、**名表 354**、**自动战斗**、**横屏纯画面 + WYSIWYG**（对话选项/战斗菜单/子菜单取消；复核 3 轮通过）、**横屏战斗背包/队伍子菜单点选**（翻口袋/道具行+取消行/滚动箭头/底部条按图标态区分/队伍大框+5 行/取消按钮；真机日志+截图通过）、**地图接入 M1**（解包数据→全量 assets + 连接表；真机 0 fallback）。
-- **未做**：地图 M2（跨图寻路 UI 入口、门/楼梯坐标口径、行为/遭遇展示、struct-multi 地址消歧）；横屏后续（非标准 3+ 选项框、镜头贴边锚点）；联机调研；结构债（WYSIWYG 3 条）；已记：有效队伍换人、双打布局未真机验。
+- **未做**：地图 M2（① 水面/地形识别接入 ② 跨图寻路 UI 入口 ③ 门/楼梯坐标口径 ④ 遭遇展示 ⑤ struct-multi 地址消歧；用户 2026-11-16 拍板合并进 M2、暂不开工）；横屏后续（非标准 3+ 选项框、镜头贴边锚点）；联机调研；结构债（WYSIWYG 3 条）；已记：有效队伍换人、双打布局未真机验。
 - **图片证据**：`/sdcard/Download/DSH-Go/wysiwyg-*.jpg`（8 张：横屏纯画面 / 面板 / 战斗菜单 / 背包 / 点地图走位 / 竖屏前后）+ `wysiwyg2-*.jpg`（bag-close / bag-item / party / landscape-moves / landscape-bag）。
 - **内存地址（实测）**：`sMenu`=0x0203ADE4、`gWindows`=0x020204B4、`BATTLE_MENU_FLAG(E83)`=0x02023E83（E83!=0 才是真战斗菜单，==0 是战斗内是/否选项框）；背包 `gBagMenuState`=0x0203ACFC（pocket=+6=0x0203AD02、各口袋光标=0x0203AD04+2*pocket）、队伍 slotId=0x0203B0A9（7=取消）。
 - **接手 5 分钟**：① `git status --short` 期望空、`git rev-list --count origin/master..HEAD` 期望 0；② 读 `docs/TASKS.md`（todo 列表）→ 用户点名任务后按 `AGENTS.md` 循环开工；③ 快速验证 `python3 run_tests.py`（33/33）+ Kotlin 单测（命令见 `AGENTS.md`）。

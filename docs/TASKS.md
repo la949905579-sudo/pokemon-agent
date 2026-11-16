@@ -7,7 +7,12 @@
 （无）
 
 ## todo（按优先级）
-1. **地图 M2**（M1 已接入全量资产/连接表）：① 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）② 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）③ 地图页展示行为/遭遇（`maps_decomp` 已有 behaviors、`encounters_leafgreen.json`）④ 27 个 struct-multi 布局地址消歧。
+1. **地图 M2**（M1 已接入全量资产/连接表；用户 2026-11-16 决定：以下合并进 M2，暂不开工）：
+   - ① **水面/地形识别接入**：assets 资产加 `behaviors`（2 hex/格，数据已在 `games/pokemon_firered/maps_decomp` 与 `data/metatile_behaviors.json`）；步行时 `MB_*_WATER`/瀑布/深水视为不可走（除非以后做冲浪），地图页可标水/草/台阶。
+   - ② 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）。
+   - ③ 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）。
+   - ④ 地图页展示遭遇（`data/encounters_leafgreen.json` 已有）。
+   - ⑤ 27 个 struct-multi 布局地址消歧（当前退回读内存，不影响功能）。
 2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
 3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
 4. **联机**：GBA link cable，方案调研。
