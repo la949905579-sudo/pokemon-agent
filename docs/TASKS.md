@@ -4,10 +4,12 @@
 > 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A/M2-B 已完成并装机（`build-27c0752`，App 0.2 versionCode 184）；Kotlin 194/194、Python 33/33；下一步候选：地图 M2 剩余（③ 门坐标 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-- **地图 M2-C：门/楼梯坐标口径校准（③，2026-11-16 开工）**：
+- **地图 M2-C：门/楼梯坐标口径校准（③）——数据/单测/CI 完成，真机门验证待续（2026-11-16）**：
   - 目标：解包 `warp_events` 默认生成进 `map_links`（exit=真实触发格、落点=目标图同一 warp 坐标，`side=null`），不再用 merge-old 补测门；`--validate` 按落点容差校验实测 13 条（exit 差 1 格属测量口径）；`CrossMapWalker` 换图等待支持门淡入（最多 3 个周期）。
   - 验收：单测绿（门边生成/容差校验/换图延迟/失败）；真机从 Viridian 跨进室内门成功（`crosswalk.result ok=true`、落点=解包 dest warp）；实测表 12/13 命中（4 条 exit 口径差记录在案）。
-  - 范围：`tools/gen_map_assets.py`、`assets/maps/map_links.json` 重生成、`game/CrossMapWalker.kt` + 测试；不改内存地址/FFI/签名/OTA。
+  - 范围：`tools/gen_map_assets.py`、`assets/maps/map_links.json` 重生成、`game/CrossMapWalker.kt`、`MapLinks`/`CrossMapRoute`（to_name）+ 测试；不改内存地址/FFI/签名/OTA。
+  - **进度**：已推送 `b6ae868`；连接 4033 边（门 1275）→ 3751 出口；Kotlin 197/197、Python 33/33；CI `build-b6ae868` 已装机（versionCode 185）；实测表 12/13（4 条 exit 口径差 + 1 条落点测量口径差已记录）。
+  - **阻塞**：真机从 Route1 跨到 Viridian 的路线必穿草地（无草路线不存在），3 次跨图均在草地遇敌 STUCK（fail-closed 正常）；先后台屏/主屏切换与战斗清理不稳定，门换图未取到真机证据。待续：用有城镇存档或减少遇敌的时机重跑「Viridian → 宝可梦中心门」验证。
 
 ## todo（按优先级）
 1. **地图 M2（剩余）**（①④ 随 M2-A、② 随 M2-B 完成）：
