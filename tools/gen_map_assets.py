@@ -195,7 +195,7 @@ def collect_edges(addr_of_layout, layouts, maps, with_doors=False):
             src = addr_of_layout[lid]
             dst = addr_of_layout[nlid]
             for exit_cell, side, to_pos in _conn_edges(layout, c, layouts[nlid]):
-                edges.append((src, exit_cell, side, dst, to_pos, "conn"))
+                edges.append((src, exit_cell, side, dst, to_pos, "conn", nid))
     if not with_doors:
         return edges
     # 门/楼梯：warp_events 互相指
@@ -218,24 +218,28 @@ def collect_edges(addr_of_layout, layouts, maps, with_doors=False):
             dst = addr_of_layout[dest["layout"]]
             to_pos = (int(warps[wid]["x"]), int(warps[wid]["y"]))
             # 门/楼梯：exit=warp 格、落点=目标地图同一 warp 格（App：踩上出口格即换图）
-            edges.append((src, (int(wp["x"]), int(wp["y"])), None, dst, to_pos, "warp"))
+            edges.append((src, (int(wp["x"]), int(wp["y"])), None, dst, to_pos, "warp",
+                          wp.get("dest_map")))
     return edges
 
 
 def build_links(edges):
     """按 (map, exit, side) 合并多目标 → App MapLinks 的 JSON 列表。"""
     grouped = {}
-    for src, exit_cell, side, dst, to_pos, kind in edges:
+    for src, exit_cell, side, dst, to_pos, kind, name in edges:
         key = (src, exit_cell[0], exit_cell[1], side)
-        grouped.setdefault(key, []).append((dst, to_pos, kind))
+        grouped.setdefault(key, []).append((dst, to_pos, kind, name))
     out = []
     for (src, ex, ey, side), targets in sorted(
             grouped.items(), key=lambda kv: (kv[0][0], kv[0][2], kv[0][1], kv[0][3] or "")):
         uniq = []
-        for dst, to_pos, kind in targets:
+        names = {}
+        for dst, to_pos, kind, name in targets:
             item = (dst, to_pos)
             if item not in uniq:
                 uniq.append(item)
+            if name:
+                names.setdefault(item, name)
         first = uniq[0]
         entry = {
             "map": src,
@@ -244,14 +248,24 @@ def build_links(edges):
             "to_map": first[0],
             "to_pos": [first[1][0], first[1][1]],
         }
+        if first in names:
+            entry["to_name"] = names[first]
         if len(uniq) > 1:
-            entry["targets"] = [{"to_map": d, "to_pos": [p[0], p[1]]} for d, p in uniq]
+            entry["targets"] = [
+                dict({"to_map": d, "to_pos": [p[0], p[1]]},
+                     **({"to_name": names[(d, p)]} if (d, p) in names else {}))
+                for d, p in uniq
+            ]
         out.append(entry)
     return out
 
 
-def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=False, merge_old=None):
-    """生成全量地图资产与连接表；返回统计。merge_old 给旧实测表时追加解包不出的门记录。
+def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=True, merge_old=None):
+    """生成全量地图资产与连接表；返回统计。merge_old 给旧实测表时追加解包不出的记录。
+
+    默认把解包 `warp_events`（门/楼梯，side=null）也生成进连接表：解包坐标=真实触发格，
+    落点=目标图同一 warp 的坐标；实测表里北向门的 exit 常是「门口下方一格」的测量口径，
+    所以别再 merge-old（会让同一扇门多出一条差 1 格的错边），用 --validate 校验即可。
 
     每张图带 behaviors（tileset 行为网格，2 hex/格）与 maps（该布局对应的地图 id），
     并把遭遇表拷进 assets；同一 blockdata 地址对应多个布局时行为取第一个布局并告警。
@@ -344,7 +358,9 @@ def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=False, m
             links.append(entry)
             merged += 1
     gmd._write_json(os.path.join(assets_dir, links_name), links)
+    door_edges = sum(1 for e in edges if e[5] == "warp")
     return {
+        "door_edges": door_edges,
         "assets": written,
         "layouts": len(layouts),
         "addr_stats": stats,
@@ -360,30 +376,39 @@ def emit_assets(rom, ref, assets_dir, links_name=LINKS_NAME, with_doors=False, m
 
 
 def validate_observed(links, old_links):
-    """生成表 vs 实测记录：按 (map, exit) 找目标命中；side 不一致单独统计（口径差异不算错）。"""
-    index = {}
+    """生成表 vs 实测记录：按 (map, 落点) 匹配，exit 容差 1 格单独统计为「测量口径差」。
+
+    实测表里北向门的 exit 常记录成门口下方一格（玩家按方向前的站位），
+    生成表用解包 warp 的触发格，所以 exit 差 1 格属口径差异，不算错；
+    落点（to_map + to_pos）必须一致才算命中。
+    """
+    by_map = {}
     for l in links:
         dsts = {(l["to_map"], tuple(l["to_pos"]))}
         for t in l.get("targets") or []:
             dsts.add((t["to_map"], tuple(t["to_pos"])))
-        index.setdefault((l["map"], tuple(l["exit"])), []).append((l.get("side"), dsts))
-    hit, side_diff, miss = 0, [], []
+        by_map.setdefault(l["map"], []).append((tuple(l["exit"]), l.get("side"), dsts))
+    hit, exit_diff, side_diff, miss = 0, [], [], []
     for o in old_links:
-        key = (o["map"], tuple(o["exit"]))
         target = (o["to_map"], tuple(o["to_pos"]))
-        found = None
-        for side, dsts in index.get(key, []):
-            if target in dsts:
-                found = (side, dsts)
-                break
-        if found is None:
+        best = None
+        for ex, side, dsts in by_map.get(o["map"], []):
+            if target not in dsts:
+                continue
+            d = abs(ex[0] - o["exit"][0]) + abs(ex[1] - o["exit"][1])
+            if best is None or d < best[0]:
+                best = (d, ex, side)
+        if best is None:
             miss.append({"map": o["map"], "exit": o["exit"], "side": o.get("side"),
                          "to_map": o["to_map"], "to_pos": o["to_pos"]})
-        else:
-            hit += 1
-            if found[0] != o.get("side"):
-                side_diff.append((o, found[0]))
-    return hit, side_diff, miss
+            continue
+        hit += 1
+        d, ex, side = best
+        if d != 0:
+            exit_diff.append((o, ex))
+        elif side != o.get("side"):
+            side_diff.append((o, side))
+    return hit, side_diff, miss, exit_diff
 
 
 def check_assets(assets_dir):
@@ -478,8 +503,8 @@ def build_parser():
                     help="用旧 map_links.json（实测记录）校验生成表命中率")
     ap.add_argument("--retain", action="store_true",
                     help="保留输出目录里旧的 map_*.json（默认先清掉再生成）")
-    ap.add_argument("--with-doors", action="store_true",
-                    help="额外生成解包门/楼梯边（坐标口径与实测差 1 格，默认不用）")
+    ap.add_argument("--no-doors", action="store_true",
+                    help="不生成解包门/楼梯边（默认生成；坐标用解包 warp=真实触发格）")
     ap.add_argument("--merge-old", default=None, metavar="OLD_LINKS",
                     help="把旧实测表里解包生成不了的门记录追加进新表（推荐）")
     return ap
@@ -512,19 +537,24 @@ def main(argv=None):
     if not args.retain:
         for old in glob.glob(os.path.join(args.out, "map_*.json")):
             os.remove(old)
-    stats = emit_assets(rom_data, args.ref, args.out, with_doors=args.with_doors,
+    stats = emit_assets(rom_data, args.ref, args.out, with_doors=not args.no_doors,
                         merge_old=args.merge_old)
-    print("地图资产 %d 个（布局 %d，地址定位 %s）；连接边 %d 条 → %d 个出口（多目标 %d，合并实测门 %d）" % (
+    print("地图资产 %d 个（布局 %d，地址定位 %s）；连接边 %d 条（门/楼梯 %d）→ %d 个出口（多目标 %d，合并实测 %d）" % (
         stats["assets"], stats["layouts"], stats["addr_stats"], stats["edges"],
-        stats["links"], stats["targets"], stats["merged_old"]))
+        stats["door_edges"], stats["links"], stats["targets"], stats["merged_old"]))
     print("地形/遭遇：行为网格缺失 %d 张（越界格 %d，同址行为冲突 %d）；遭遇表 %d 张图 → %s" % (
         stats["behaviors_missing"], stats["behavior_unknown"], stats["behavior_conflicts"],
         stats["encounters_maps"], ENCOUNTERS_NAME))
 
     if args.validate:
         old = gmd._read_json(args.validate)
-        hit, side_diff, miss = validate_observed(gmd._read_json(os.path.join(args.out, LINKS_NAME)), old)
-        print("实测连接校验：%d/%d 命中（side 口径不同 %d 条）" % (hit, len(old), len(side_diff)))
+        hit, side_diff, miss, exit_diff = validate_observed(
+            gmd._read_json(os.path.join(args.out, LINKS_NAME)), old)
+        print("实测连接校验：%d/%d 命中（落点一致；side 口径不同 %d，exit 差 1 格 %d）" % (
+            hit, len(old), len(side_diff), len(exit_diff)))
+        for o, ex in exit_diff[:10]:
+            print("  exit 口径差：map=%x 实测 exit=%s vs 生成 %s（落点一致）" % (
+                o["map"], o["exit"], list(ex)))
         for m in miss[:10]:
             print("  未命中：map=%x exit=%s side=%s -> %x %s" % (
                 m["map"], m["exit"], m["side"], m["to_map"], m["to_pos"]))

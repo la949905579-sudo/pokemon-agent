@@ -166,26 +166,52 @@ def test_conn_edges_rules():
 
 def test_build_links_merges_targets():
     edges = [
-        (0x100, (3, 4), None, 0x200, (5, 6), "warp"),
-        (0x100, (3, 4), None, 0x300, (7, 8), "warp"),
-        (0x100, (1, 0), "north", 0x200, (1, 9), "conn"),
+        (0x100, (3, 4), None, 0x200, (5, 6), "warp", "MAP_B"),
+        (0x100, (3, 4), None, 0x300, (7, 8), "warp", "MAP_C"),
+        (0x100, (1, 0), "north", 0x200, (1, 9), "conn", "MAP_B"),
     ]
     links = MOD.build_links(edges)
     assert len(links) == 2, links
     door = [l for l in links if l["exit"] == [3, 4]][0]
     assert door["to_map"] == 0x200 and door["to_pos"] == [5, 6]
+    assert door["to_name"] == "MAP_B", door
     assert len(door["targets"]) == 2, door
-    assert {"to_map": 0x300, "to_pos": [7, 8]} in door["targets"], door
+    assert {"to_map": 0x300, "to_pos": [7, 8], "to_name": "MAP_C"} in door["targets"], door
 
 
-def test_validate_observed_side_diff():
+def test_validate_observed_tolerance():
     links = [{"map": 0x100, "exit": [1, 0], "side": "north", "to_map": 0x200, "to_pos": [1, 9]}]
     old = [
         {"map": 0x100, "exit": [1, 0], "side": None, "to_map": 0x200, "to_pos": [1, 9]},  # side 口径不同
+        {"map": 0x100, "exit": [1, 1], "side": None, "to_map": 0x200, "to_pos": [1, 9]},  # exit 差 1 格（口径）
         {"map": 0x100, "exit": [2, 2], "side": None, "to_map": 0x200, "to_pos": [0, 0]},  # 未命中
     ]
-    hit, side_diff, miss = MOD.validate_observed(links, old)
-    assert hit == 1 and len(side_diff) == 1 and len(miss) == 1, (hit, side_diff, miss)
+    hit, side_diff, miss, exit_diff = MOD.validate_observed(links, old)
+    assert hit == 2, (hit, side_diff, miss, exit_diff)
+    assert len(side_diff) == 1 and len(miss) == 1 and len(exit_diff) == 1, (side_diff, miss, exit_diff)
+
+
+def test_door_warps_generate_side_null_edges():
+    """解包 warp_events → side=null 的门边（exit=解包触发格，落点=目标图 warp 坐标）。"""
+    layouts = {"LAYOUT_TEST": {"width": 4, "height": 3}}
+    maps = {
+        "MAP_TEST": {"layout": "LAYOUT_TEST", "connections": None,
+                     "warp_events": [{"x": 2, "y": 2, "dest_map": "MAP_OTHER", "dest_warp_id": 0}]},
+        "MAP_OTHER": {"layout": "LAYOUT_TEST", "connections": None,
+                      "warp_events": [{"x": 1, "y": 1, "dest_map": "MAP_TEST", "dest_warp_id": 0}]},
+    }
+    edges = MOD.collect_edges({"LAYOUT_TEST": 0x8200100}, layouts, maps, with_doors=True)
+    door = [e for e in edges if e[5] == "warp"]
+    assert (0x8200100, (2, 2), None, 0x8200100, (1, 1), "warp", "MAP_OTHER") in door, door
+    assert (0x8200100, (1, 1), None, 0x8200100, (2, 2), "warp", "MAP_TEST") in door, door
+    links = MOD.build_links(edges)
+    assert len(links) == 2, links
+    got = {(tuple(l["exit"]), l.get("side")): (l["to_map"], tuple(l["to_pos"])) for l in links}
+    assert got[((2, 2), None)] == (0x8200100, (1, 1)), got
+    assert [l for l in links if l["exit"] == [2, 2]][0]["to_name"] == "MAP_OTHER"
+    # 不带门时不应有 side=null 边
+    assert [e for e in MOD.collect_edges({"LAYOUT_TEST": 0x8200100}, layouts, maps, with_doors=False)
+            if e[5] == "warp"] == []
 
 
 def test_check_assets_schema():
@@ -208,7 +234,7 @@ def test_check_assets_schema():
 def test_help_exit0():
     r = subprocess.run([sys.executable, SCRIPT, "--help"], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr[-300:]
-    for flag in ("--rom", "--check", "--validate", "--merge-old"):
+    for flag in ("--rom", "--check", "--validate", "--merge-old", "--no-doors"):
         assert flag in r.stdout, flag
 
 
@@ -287,8 +313,9 @@ def test_check_assets_accepts_behaviors_maps():
 
 if __name__ == "__main__":
     for fn in (test_scan_and_locate_layout_addr, test_conn_edges_rules,
-               test_build_links_merges_targets, test_validate_observed_side_diff,
+               test_build_links_merges_targets,
                test_check_assets_schema, test_emit_assets_behaviors_maps_encounters,
-               test_check_assets_accepts_behaviors_maps, test_help_exit0):
+               test_check_assets_accepts_behaviors_maps, test_validate_observed_tolerance,
+               test_door_warps_generate_side_null_edges, test_help_exit0):
         fn()
     print("全部通过")

@@ -16,26 +16,43 @@ object CrossMapRoute {
         cur: Int,
         links: List<MapLink>,
         mapIds: (Int) -> List<String>,
-    ): List<Destination> = links.asSequence()
-        .filter { it.map == cur }
-        .flatMap { it.destinations().asSequence() }
-        .map { it.toMap }
-        .distinct()
-        .filter { it != cur && it != 0 }
-        .map { Destination(it, label(it, mapIds(it))) }
-        .sortedBy { it.label }
-        .toList()
+    ): List<Destination> {
+        // 连接记录里的解包地图 id 最准（同布局多张图共用资产，比如 17 个宝可梦中心）；
+        // 没有时退回资产 maps 首项，再退回 0x 地址。
+        val nameByAddr = HashMap<Int, String>()
+        for (l in links) {
+            if (l.map != cur) continue
+            for (d in l.destinations()) {
+                if (!d.name.isNullOrBlank()) nameByAddr.putIfAbsent(d.toMap, d.name)
+            }
+        }
+        return links.asSequence()
+            .filter { it.map == cur }
+            .flatMap { it.destinations().asSequence() }
+            .map { it.toMap }
+            .distinct()
+            .filter { it != cur && it != 0 }
+            .map { Destination(it, label(it, nameByAddr[it], mapIds(it))) }
+            .sortedBy { it.label }
+            .toList()
+    }
 
-    /** 地图地址 → 展示名：优先资产里的地图 id（MAP_ROUTE1 → Route1），没有就 0x 地址。 */
-    fun label(addr: Int, ids: List<String>): String =
-        ids.firstOrNull()?.let { prettyMapId(it) } ?: "0x%x".format(addr)
+    /** 地图地址 → 展示名：连接记录的解包 id > 资产里的地图 id > 0x 地址。 */
+    fun label(addr: Int, ids: List<String>): String = label(addr, null, ids)
 
-    /** MAP_PALLET_TOWN → PalletTown；MAP_ROUTE22 → Route22；无前缀原样返回。 */
+    fun label(addr: Int, name: String?, ids: List<String>): String =
+        (name ?: ids.firstOrNull())?.let { prettyMapId(it) } ?: "0x%x".format(addr)
+
+    /** MAP_PALLET_TOWN → PalletTown；MAP_ROUTE22 → Route22；…_1F → 1F（楼层大写）。 */
     fun prettyMapId(id: String): String {
         val name = id.removePrefix("MAP_").trim()
         if (name.isEmpty()) return id
         return name.split('_').joinToString("") { token ->
-            if (token.isEmpty()) "" else token.lowercase().replaceFirstChar { it.uppercase() }
+            when {
+                token.isEmpty() -> ""
+                token.first().isDigit() -> token.uppercase()      // 1F / 2F / B1F
+                else -> token.lowercase().replaceFirstChar { it.uppercase() }
+            }
         }.ifEmpty { id }
     }
 }

@@ -13,6 +13,9 @@ object CrossMapWalker {
     /** 换图后等待地图与坐标生效的时间。 */
     const val WARP_WAIT_MS = 800L
 
+    /** 换图后最多再等几个周期（门/楼梯有淡入淡出，800ms 内可能读不到新图）。 */
+    const val WARP_WAIT_RETRIES = 3
+
     /** 连续多少步「按键后坐标没变」算卡住。 */
     const val STUCK_LIMIT = 3
 
@@ -95,7 +98,13 @@ object CrossMapWalker {
                 if (!io.press(warp.sideDir)) return Result.Cancelled(steps)
                 steps++
             }
-            io.sleep(WARP_WAIT_MS)
+            // 换图等待：门有淡入淡出，可能 800ms 内还读不到新图；最多再等 3 个周期
+            var waited = 0
+            while (io.readMapAddr() != warp.toMap && waited < WARP_WAIT_RETRIES) {
+                if (io.cancelled()) return Result.Cancelled(steps)
+                io.sleep(WARP_WAIT_MS)
+                waited++
+            }
             if (io.cancelled()) return Result.Cancelled(steps)
             if (io.readMapAddr() != warp.toMap) {
                 return Result.Failed(Reason.WARP_MISMATCH, steps, "map")

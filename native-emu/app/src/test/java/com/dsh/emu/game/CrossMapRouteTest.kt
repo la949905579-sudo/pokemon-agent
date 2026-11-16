@@ -46,4 +46,20 @@ class CrossMapRouteTest {
         assertEquals("Untitled", CrossMapRoute.prettyMapId("UNTITLED"))
         assertEquals("", CrossMapRoute.prettyMapId(""))
     }
+
+    @Test
+    fun destinationsPreferLinkMapNameOverSharedAsset() {
+        // 17 个宝可梦中心共用同一布局资产；链接里的 to_name 才能给出正确城市名
+        val ids = mapOf(0x500 to listOf("MAP_CELADON_CITY_POKEMON_CENTER_1F"))
+        val links = listOf(
+            MapLink(0x100, 4, 2, null, 0x500, 7, 8, emptyList(), false,
+                "MAP_VIRIDIAN_CITY_POKEMON_CENTER_1F")
+        )
+        val got = CrossMapRoute.destinations(0x100, links) { ids[it] ?: emptyList() }
+        assertEquals("ViridianCityPokemonCenter1F", got[0].label)
+        // 没有 to_name 时退回资产 maps 首项
+        val plain = listOf(MapLink(0x100, 4, 2, null, 0x500, 7, 8))
+        assertEquals("CeladonCityPokemonCenter1F",
+            CrossMapRoute.destinations(0x100, plain) { ids[it] ?: emptyList() }[0].label)
+    }
 }

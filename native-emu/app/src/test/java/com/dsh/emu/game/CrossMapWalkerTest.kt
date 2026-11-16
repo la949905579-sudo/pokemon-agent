@@ -50,8 +50,21 @@ class CrossMapWalkerTest {
         var warpTargetOverride: MapLinkTarget? = null
         /** >0：换图后停在目标图边行（离记录落点差 N 格），模拟真机「按键时长不够」。 */
         var warpShortBy = 0
+        /** >0：换图后前 N 次 readMapAddr 仍返回旧图（模拟门淡入淡出延迟）。 */
+        var warpVisibleDelay = 0
+        private var hiddenMap: Int? = null
 
-        override fun readMapAddr(): Int = map
+        override fun readMapAddr(): Int {
+            val h = hiddenMap
+            if (h != null) {
+                if (warpVisibleDelay > 0) {
+                    warpVisibleDelay--
+                    return h
+                }
+                hiddenMap = null
+            }
+            return map
+        }
         override fun readPos(): Pair<Int, Int>? = pos
 
         override fun press(dir: String): Boolean {
@@ -89,6 +102,7 @@ class CrossMapWalkerTest {
 
         private fun applyWarp(link: MapLink) {
             val target = warpTargetOverride ?: link.destinations().first()
+            if (warpVisibleDelay > 0) hiddenMap = map
             map = target.toMap
             pos = target.toX to target.toY
             if (warpShortBy > 0 && warpTargetOverride == null) {
@@ -172,5 +186,29 @@ class CrossMapWalkerTest {
         assertEquals(p.totalSteps + CrossMapWalker.WARP_CATCHUP_LIMIT + 1,
             (r as CrossMapWalker.Result.Ok).steps)
         assertTrue("结束时必须清键", w.clearCount >= 1)
+    }
+
+    // 5) 换图延迟：门淡入淡出期间读不到新图 → 最多重试 3 个周期后成功
+    @Test
+    fun warpMapReadDelayIsRetried() {
+        val w = world()
+        w.warpVisibleDelay = 2
+        val p = plan(mapOf(a to open(), b to open()), listOf(link(a, 4 to 2, "east", b, 0 to 2)))
+        val r = CrossMapWalker.walk(p, w)
+        assertTrue("延迟 2 次读图后应成功：$r", r is CrossMapWalker.Result.Ok)
+        assertEquals(b, w.map)
+        assertTrue("结束时必须清键", w.clearCount >= 1)
+    }
+
+    @Test
+    fun warpMapNeverAppearsFailsClosed() {
+        val w = world()
+        w.warpVisibleDelay = 10   // 超过 WARP_WAIT_RETRIES
+        val p = plan(mapOf(a to open(), b to open()), listOf(link(a, 4 to 2, "east", b, 0 to 2)))
+        val r = CrossMapWalker.walk(p, w)
+        assertTrue("读不到新图应失败：$r", r is CrossMapWalker.Result.Failed)
+        assertEquals(CrossMapWalker.Reason.WARP_MISMATCH,
+            (r as CrossMapWalker.Result.Failed).reason)
+        assertEquals("map", r.detail)
     }
 }

@@ -12,10 +12,12 @@ class MapLinksTest {
     fun parseKeepsSideTargetsAndSkipsBadEntries() {
         val json = """
             [
-             {"map": 256, "exit": [4, 2], "side": "east", "to_map": 512, "to_pos": [0, 2]},
+             {"map": 256, "exit": [4, 2], "side": "east", "to_map": 512, "to_pos": [0, 2],
+              "to_name": "MAP_ROUTE2"},
              {"map": 256, "exit": [2, 2], "side": null, "to_map": 512, "to_pos": [0, 0],
-              "reused": true,
-              "targets": [{"to_map": 768, "to_pos": [1, 1]}, {"to_map": 512, "to_pos": [0, 0]}]},
+              "reused": true, "to_name": "MAP_VIRIDIAN_CITY",
+              "targets": [{"to_map": 768, "to_pos": [1, 1], "to_name": "MAP_PALLET_TOWN"},
+                          {"to_map": 512, "to_pos": [0, 0], "to_name": "MAP_VIRIDIAN_CITY"}]},
              {"map": 0, "exit": [1, 1], "to_map": 512, "to_pos": [0, 0]},
              {"map": 256, "exit": [1, 1], "to_map": 0, "to_pos": [0, 0]}
             ]
@@ -28,13 +30,14 @@ class MapLinksTest {
         assertEquals(4, l0.exitX)
         assertEquals(2, l0.exitY)
         assertEquals("east", l0.side)
-        assertEquals(listOf(MapLinkTarget(512, 0, 2)), l0.destinations())
+        assertEquals("MAP_ROUTE2", l0.toName)
+        assertEquals(listOf(MapLinkTarget(512, 0, 2, "MAP_ROUTE2")), l0.destinations())
 
         val l1 = links[1]
         assertNull("显式 null side 读成 null", l1.side)
         assertTrue(l1.reused)
         assertEquals(
-            listOf(MapLinkTarget(768, 1, 1), MapLinkTarget(512, 0, 0)),
+            listOf(MapLinkTarget(768, 1, 1, "MAP_PALLET_TOWN"), MapLinkTarget(512, 0, 0, "MAP_VIRIDIAN_CITY")),
             l1.destinations(),
         )
     }

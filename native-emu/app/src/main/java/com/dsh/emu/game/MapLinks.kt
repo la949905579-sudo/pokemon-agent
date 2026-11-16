@@ -4,8 +4,11 @@ import android.content.Context
 import com.dsh.emu.Nlog
 import org.json.JSONArray
 
-/** 一条「换图出口」的目标。复用房间的同一出口可能有多个去向（`targets`）。 */
-data class MapLinkTarget(val toMap: Int, val toX: Int, val toY: Int)
+/**
+ * 一条「换图出口」的目标。复用房间的同一出口可能有多个去向（`targets`）。
+ * [name] = 解包地图 id（如 MAP_VIRIDIAN_CITY_POKEMON_CENTER_1F），用于显示正确地图名。
+ */
+data class MapLinkTarget(val toMap: Int, val toX: Int, val toY: Int, val name: String? = null)
 
 /**
  * 一条地图连接（实测走位记录，与 Python `map_links.py` 同源）：在 [map] 的 ([exitX],[exitY]) 格换到 [toMap] 的 ([toX],[toY])。
@@ -24,10 +27,12 @@ data class MapLink(
     val toY: Int,
     val targets: List<MapLinkTarget> = emptyList(),
     val reused: Boolean = false,
+    /** 解包目标地图 id（同布局多张图共用资产时用来显示正确名字）。 */
+    val toName: String? = null,
 ) {
     /** 该出口的全部可能去向（有 targets 用 targets，兼容只有 to_map 的老记录）。 */
     fun destinations(): List<MapLinkTarget> =
-        if (targets.isNotEmpty()) targets else listOf(MapLinkTarget(toMap, toX, toY))
+        if (targets.isNotEmpty()) targets else listOf(MapLinkTarget(toMap, toX, toY, toName))
 }
 
 /**
@@ -103,7 +108,8 @@ object MapLinks {
                     val tm = t.optInt("to_map", 0)
                     val tp = t.optJSONArray("to_pos") ?: continue
                     if (tm == 0 || tp.length() < 2) continue
-                    targets.add(MapLinkTarget(tm, tp.optInt(0), tp.optInt(1)))
+                    val tn = t.optString("to_name", "").ifBlank { null }
+                    targets.add(MapLinkTarget(tm, tp.optInt(0), tp.optInt(1), tn))
                 }
             }
             out.add(
@@ -117,6 +123,7 @@ object MapLinks {
                     toY = toPos.optInt(1),
                     targets = targets,
                     reused = o.optBoolean("reused", false),
+                    toName = o.optString("to_name", "").ifBlank { null },
                 )
             )
         }
