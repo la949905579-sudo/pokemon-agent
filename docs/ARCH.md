@@ -3,7 +3,7 @@
 ## 组成
 - **Android App `native-emu/`**：Kotlin + Jetpack Compose；mGBA 核心（C/C++，`app/src/main/cpp` + `third_party/mgba`）经 JNI 调用。
 - **应用内逻辑 `app/src/main/java/com/dsh/emu/`**：`EmuCore`（FFI / 帧循环 / 按键注入）、`BridgeServer`（TCP 桥，供旧 Python 层）、`UiState` / `Updater`（OTA）、`ui/`（下屏各页、`EmuView` 渲染、按键/地图/战斗页；横屏 `TouchMap` 坐标映射+热区表、`Wysiwyg` 点击分派、`Landscape` 覆盖层）、`game/`（Kotlin 决策层：`Addresses` / `GameState` / `BattleDecider` / `SwitchDecider` / `MapWalker` / `MapLinks` / `CrossMapPathfinder` / `MoveCaster` 等）。
-- **资源**：`assets/maps/`（**345 个 `map_<ROM地址>.json`** + `map_links.json` 2769 出口，由 `tools/gen_map_assets.py` 从解包数据生成；另有 2 个 `override_*.json` 实测校正）、招式/宝可梦名表；离线数据 `games/pokemon_firered/{maps,maps_decomp,data/*}`（`maps_decomp`=425 张解包可走格+行为网格，`data/`=moves/metatile_behaviors/encounters_leafgreen；`tools/gen_maps_data.py` 生成/校验）；旧 Python 侧地图抓取在根 `maps/`（冻结）。
+- **资源**：`assets/maps/`（**345 个 `map_<ROM地址>.json`**（addr/w/h/tiles + `behaviors` 行为网格 + `maps` 地图 id）+ `map_links.json` 2769 出口 + `encounters_leafgreen.json` 124 张遭遇图，由 `tools/gen_map_assets.py` 从解包数据生成；另有 2 个旧 `override_*.json`）、招式/宝可梦名表；离线数据 `games/pokemon_firered/{maps,maps_decomp,data/*}`（`maps_decomp`=425 张解包可走格+行为网格，`data/`=moves/metatile_behaviors/encounters_leafgreen；`tools/gen_maps_data.py` 生成/校验）；旧 Python 侧地图抓取在根 `maps/`（冻结）。
 - **Python 旧层（冻结）**：`pyplatform/`（`info/bridge/decision_*/action/nav/pathfind/...`，45 模块；命名避开 stdlib `platform`）+ `tests/` 离线测试 + 根 `run_tests.py` + `tools/emu_probe.py`。数据目录在 `games/pokemon_firered/{maps,battles,dialogs}`。**不新增功能**；新逻辑一律进 Kotlin。
 - **CI / 发布**：`.github/workflows/build-native-emu.yml`（push `native-emu/**` → 单测 + assembleDebug → master 上发 `build-<sha>` Release → App OTA）。
 

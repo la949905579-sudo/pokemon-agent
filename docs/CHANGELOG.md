@@ -2,6 +2,12 @@
 
 > 版本规则：功能批一个条目；只记行为/接口变化。旧历史见 `docs/archive/2026-11/history/CHANGELOG.md`。
 
+## 2026-11-16 地形行为接入 + 地图页遭遇（功能）
+- `assets/maps` 每张图新增 `behaviors`（2 hex/格，来自布局 tileset 的 metatile 属性表）与 `maps`（地图 id 列表），`encounters_leafgreen.json` 随地图资产进 APK；`tools/gen_map_assets.py --check` 扩展校验。
+- 步行判定改为 fail-closed：按引擎 `sBehaviorSurfable` 表把水面/瀑布/水流（16-19/21/26/27/80-83）判为不可走，`MB_SHALLOW_WATER(23)` 保持可走；跨图寻路同步生效。
+- 地图页/常驻图按 水/草/台阶/挡 着色；地图页底部显示当前图遭遇（陆/水/碎岩/钓，种 + Lv 区间，横向滚动）；状态 JSON 带 terrain/encounters，日志 `map.terrain`/`map.encounters` 每图一次。
+- 单测 Kotlin 186/186、Python 33/33；真机 `build-5931f4a`：`indexed=345`、0 fallback、terrain/encounters 日志与截图证据。
+
 ## 2026-11-16 全量地图资产 + 解包连接表（功能）
 - 地图页/跨图寻路数据升级：`assets/maps` 从 11 张真机抓图扩到 **345 个 ROM 地址**（解包 365 布局按 `map.bin` 字节在 ROM 反查地址，结构体+border 消歧）；新增 `tools/gen_map_assets.py` 重新生成资产与 `map_links.json`（2769 个出口，来自解包 `connections`，规则与实测一致）。
 - `MapData` 资产改为懒加载（启动只列目录，用到才解析），避免 345 个文件主线程解析卡顿。

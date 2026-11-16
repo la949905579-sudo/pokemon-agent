@@ -1,20 +1,15 @@
 # TASKS（任务队列）
 
 > 规则：每任务 3 行卡（目标 / 验收 / 范围）；同一时间只一个 `doing`；完成后标 `done` 并写一行结果。
-> 当前状态（2026-11-16 交接）：**模式已固化**；无进行中任务；HEAD=`89b328d`（Release `build-44e9b60` 已装机）；Kotlin 183/183、Python 33/33；下一步候选：地图 M2（① 水面/地形识别 ② 跨图寻路入口 ③ 门坐标 ④ 遭遇展示 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
+> 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A 已完成并装机（`build-5931f4a`，App 0.2 versionCode 182）；Kotlin 186/186、Python 33/33；下一步候选：地图 M2 剩余（② 跨图寻路入口 ③ 门坐标 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-- **地图 M2-A：地形识别接入 + 遭遇展示（①+④ 合并，2026-11-16 开工）**：
-  - 目标：assets 每张图加 `behaviors`（2 hex/格，来自解包 tileset 属性）与 `maps`（布局对应的地图 id 列表），并把 `encounters_leafgreen.json` 放进 assets；App 步行时 `MB_*_WATER`/`MB_WATERFALL` 不可走（fail-closed），地图页/常驻图按 水/草/台阶 着色，地图页显示当前图遭遇（种 + Lv 范围）。
-  - 验收：Python/Kotlin 单测绿；CI 包真机装后地图页着色与遭遇文字正确、点水面只提示「走不到这里」、无新增 `map.fallback`；日志有 `map.terrain`/`map.encounters` 取证。
-  - 范围：`tools/gen_map_assets.py`、`app/src/main/assets/maps/*` 重生成、`game/MapData.kt`、`game/Encounters.kt`(新)、`ui/StatusParser.kt`、`ui/LocalStatus.kt`、`ui/MapPage.kt`、`MainActivity.kt` + 测试；不动内存地址/FFI/签名/OTA。
+（无）
 
 ## todo（按优先级）
-1. **地图 M2（剩余）**（M1 已接入全量资产/连接表；①④ 合并为 M2-A 进行中）：
-   - ~~① 水面/地形识别接入~~（M2-A 进行中）。
+1. **地图 M2（剩余）**（①地形识别 + ④遭遇展示已随 M2-A 完成）：
    - ② 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）。
    - ③ 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）。
-   - ~~④ 地图页展示遭遇~~（M2-A 进行中）。
    - ⑤ 27 个 struct-multi 布局地址消歧（当前退回读内存，不影响功能）。
 2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
 3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
@@ -25,6 +20,10 @@
 - （无）地图功能已于 2026-11-16 由用户批准解冻（先做数据接入，M1 完成；M2 见 todo 1）。
 
 ## done
+- 2026-11-16 **地图 M2-A：地形行为接入 + 地图页遭遇展示（①+④ 合并）**：`tools/gen_map_assets.py` 每图输出 `behaviors`（2 hex/格，布局 tileset 的 metatile 属性表）与 `maps`（地图 id 列表），并把 `encounters_leafgreen.json` 拷进 assets（345 图 / 124 张遭遇图；同址多布局行为取首布局，0 冲突）。App 侧 `MapData` 把行为归一成地形分类（0 挡/1 走/2 水/3 草/4 台阶），tiles 改为「步行可走」——按引擎 `sBehaviorSurfable` 表（16-19/21/26/27 + 水流 80-83）把水面判挡；`MB_SHALLOW_WATER(23)` 是可走浅水流、不挡（fresh 复核必修项，已对照 `metatile_behavior.c` 修正）；地图页/常驻图按地形着色，地图页底部一行遭遇（陆/水/碎岩/钓，种 + Lv 区间，横向滚动）。
+  - 单测 **Kotlin 186/186**（+14：行为→地形/水挡/hex 解析/parseJson 端到端/遭遇摘要/状态解析）、Python 33/33；`--check` 扩展 behaviors/maps/遭遇表校验；345 资产 tiles 与旧版逐格一致、`map_links.json` 字节一致、Route1 行为网格与解包 `maps_decomp` 一致。
+  - 真机（`build-5931f4a`，App 0.2 versionCode 182）：`map.assets indexed=345`、`map.terrain addr=0x82e4e2c w=24 h=40 water=0 grass=178 stairs=0`、`map.encounters ... text=陆 波波2-5/小拉达2-4`、新会话 0 fallback；截图 `/sdcard/Download/DSH-Go/map-m2a-20261116.jpg`（像素抽查命中 可走/草/挡 三色）；日志摘录 `map-m2a-log-20261116.txt`。
+  - 未真机验：水面格点按提示（当前只读档在地图 Route1 无水域；水面判定有单测 + 引擎源码对照）；地图页「点格子预览」仍靠用户点画布（tap_xy 受限）。
 - 2026-11-16 **地图功能接入 M1：全量资产 + 跨图连接表**：新增 `tools/gen_map_assets.py`——把解包 `map.bin` 字节在 ROM 里按内容反查地址（用布局结构体 + border 校验消歧：337 struct / 27 struct-multi / 1 raw / 0 missing），生成 **345 个** `assets/maps/map_<addr>.json`（365 布局，同内容共址）；用解包 `connections` 按实测规则算出口/落点（南北 exit 在边行、落点 y=2 / nh-3，东西同理，坐标平移 -offset）→ **2769 个出口（65 张有连接的图，3 处多目标）**；门坐标口径与实测差 1 格，默认合并实测 11 条（`--merge-old`）。
   - 交叉校验：现有 13 条真机走位记录 **13/13 命中**（3 条 side 口径不同）；旧 11 张资产 tiles 与重生成逐格一致。
   - `MapData` 改懒加载（启动只列目录，用到才解析；`map.assets indexed=345`），避免 345 文件主线程解析。
