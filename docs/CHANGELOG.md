@@ -2,6 +2,11 @@
 
 > 版本规则：功能批一个条目；只记行为/接口变化。旧历史见 `docs/archive/2026-11/history/CHANGELOG.md`。
 
+## 2026-11-16 跨图寻路 UI 入口（功能）
+- 地图页底部新增「跨图 →」：列出当前图相邻地图（`map_links` 按目标去重，地图 id 显示成 Route1/PalletTown），点选后台 A*（`planToMap`：目标=目标图任意格，落点由搜索决定）→ 预览「去 X · N 段 M 步」→「开始走」由 `CrossMapWalker` 真按键跨图。
+- 换图落点补齐：真机实测换图瞬间玩家停在目标图边行（与链接表差 2 格），walker 沿换图方向补按最多 2 步到记录落点；地图/落点校验不过即停（fail-closed），取消/切页共用代际立刻停并按 0。
+- 单测 Kotlin 194/194、Python 33/33；真机 `build-27c0752`：Route1→ViridianCity `crosswalk.result ok=true steps=22 reason=ok`，落点 (25,37) 与链接一致，取消原地不动。
+
 ## 2026-11-16 地形行为接入 + 地图页遭遇（功能）
 - `assets/maps` 每张图新增 `behaviors`（2 hex/格，来自布局 tileset 的 metatile 属性表）与 `maps`（地图 id 列表），`encounters_leafgreen.json` 随地图资产进 APK；`tools/gen_map_assets.py --check` 扩展校验。
 - 步行判定改为 fail-closed：按引擎 `sBehaviorSurfable` 表把水面/瀑布/水流（16-19/21/26/27/80-83）判为不可走，`MB_SHALLOW_WATER(23)` 保持可走；跨图寻路同步生效。

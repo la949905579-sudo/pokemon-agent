@@ -1,18 +1,14 @@
 # TASKS（任务队列）
 
 > 规则：每任务 3 行卡（目标 / 验收 / 范围）；同一时间只一个 `doing`；完成后标 `done` 并写一行结果。
-> 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A 已完成并装机（`build-5931f4a`，App 0.2 versionCode 182）；Kotlin 186/186、Python 33/33；下一步候选：地图 M2 剩余（② 跨图寻路入口 ③ 门坐标 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
+> 当前状态（2026-11-16）：**模式已固化**；无进行中任务；M2-A/M2-B 已完成并装机（`build-27c0752`，App 0.2 versionCode 184）；Kotlin 194/194、Python 33/33；下一步候选：地图 M2 剩余（③ 门坐标 ⑤ struct-multi）、非标准选项框、镜头贴边、联机、结构债。
 
 ## doing
-- **地图 M2-B：跨图寻路 UI 入口（②，2026-11-16 开工）**：
-  - 目标：地图页列出当前图相邻可达地图（`map_links` 去重，含友好名），点选后后台 A* 规划到该图（落点由搜索决定），预览「去 X · N 段 M 步」；「开始走」由 `CrossMapWalker` 真按键走完（含换图地图/落点校验），失败/取消 fail-closed。
-  - 验收：单测绿（`planToMap`、邻接去重/命名、规划→执行离线链路）；真机点「去 X」出预览、开始走后成功换图（日志 `crosswalk.result`、地图地址变化）；取消/卡住只提示、不补按。
-  - 范围：`game/CrossMapPathfinder.kt`（planToMap）、`game/CrossMapRoute.kt`(新)、`ui/MapPage.kt`、`ui/CrossWalkAction.kt`(新)、`MainActivity.kt` + 测试；不改内存地址/FFI/签名/OTA。
+（无）
 
 ## todo（按优先级）
-1. **地图 M2（剩余）**（①地形识别 + ④遭遇展示已随 M2-A 完成）：
-   - ② 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）。
-   - ③ 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）。
+1. **地图 M2（剩余）**（①④ 随 M2-A、② 随 M2-B 完成）：
+   - ③ 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门；跨图换图落点边行→记录落点的补齐已在 M2-B 处理）。
    - ⑤ 27 个 struct-multi 布局地址消歧（当前退回读内存，不影响功能）。
 2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
 3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
@@ -23,6 +19,12 @@
 - （无）地图功能已于 2026-11-16 由用户批准解冻（先做数据接入，M1 完成；M2 见 todo 1）。
 
 ## done
+- 2026-11-16 **地图 M2-B：跨图寻路 UI 入口（②）**：地图页底部「跨图 →」列出 `map_links` 相邻地图（按目标图去重、地图 id 友好名 MAP_ROUTE1→Route1），点选后后台 A*（新 `planToMap`：目标=目标图任意格、落点由搜索决定）→ 预览「去 X · N 段 M 步」→「开始走」由 `CrossMapWalker` 真按键走完（换图地图/落点校验，失败/取消 fail-closed 只提示）。
+  - 新增 `game/CrossMapRoute.kt`、`ui/CrossWalkAction.kt`（Io 接线：读地图/坐标、按键、可中断 sleep、清键）；与同图行走共用取消代际；点格子预览/换 Tab/收面板都会作废跨图预览。
+  - 真机实测发现并修复：换图瞬间玩家停在目标图边行（实测 Viridian y=39），链接表落点 y=37（持续按住走进去的落点）→ walker 先 WARP_MISMATCH 误失败；改为换图地图校验通过后沿换图方向补按最多 2 步到记录落点（`WARP_CATCHUP_LIMIT`），到不了才失败。
+  - 单测 Kotlin **194/194**（+8：planToMap 3、邻图去重/命名 4、落点补齐 1）、Python 33/33。
+  - 真机（`build-27c0752`，App 0.2 versionCode 184）：地图页出「跨图 → Route1/Route2/Route22」→ 点 ViridianCity 出「去 ViridianCity · 2 段 19 步」→ 开始走 → `crosswalk.result ok=true steps=22 reason=ok`，落点 (25,37) 与链接一致、地图 water=30/遭遇切到 Viridian；取消只清预览不移动（(25,37) 原地）。截图 `/sdcard/Download/DSH-Go/map-m2b-20261116.jpg`（Viridian 水面蓝色+遭遇+跨图按钮）、日志 `map-m2b-log-20261116.txt`。
+  - 未真机验：多跳（>2 图）路线、side=null 的门换图、NPC 挡路/野生战中断（walker 会 STUCK 停，属预期 fail-closed）。
 - 2026-11-16 **地图 M2-A：地形行为接入 + 地图页遭遇展示（①+④ 合并）**：`tools/gen_map_assets.py` 每图输出 `behaviors`（2 hex/格，布局 tileset 的 metatile 属性表）与 `maps`（地图 id 列表），并把 `encounters_leafgreen.json` 拷进 assets（345 图 / 124 张遭遇图；同址多布局行为取首布局，0 冲突）。App 侧 `MapData` 把行为归一成地形分类（0 挡/1 走/2 水/3 草/4 台阶），tiles 改为「步行可走」——按引擎 `sBehaviorSurfable` 表（16-19/21/26/27 + 水流 80-83）把水面判挡；`MB_SHALLOW_WATER(23)` 是可走浅水流、不挡（fresh 复核必修项，已对照 `metatile_behavior.c` 修正）；地图页/常驻图按地形着色，地图页底部一行遭遇（陆/水/碎岩/钓，种 + Lv 区间，横向滚动）。
   - 单测 **Kotlin 186/186**（+14：行为→地形/水挡/hex 解析/parseJson 端到端/遭遇摘要/状态解析）、Python 33/33；`--check` 扩展 behaviors/maps/遭遇表校验；345 资产 tiles 与旧版逐格一致、`map_links.json` 字节一致、Route1 行为网格与解包 `maps_decomp` 一致。
   - 真机（`build-5931f4a`，App 0.2 versionCode 182）：`map.assets indexed=345`、`map.terrain addr=0x82e4e2c w=24 h=40 water=0 grass=178 stairs=0`、`map.encounters ... text=陆 波波2-5/小拉达2-4`、新会话 0 fallback；截图 `/sdcard/Download/DSH-Go/map-m2a-20261116.jpg`（像素抽查命中 可走/草/挡 三色）；日志摘录 `map-m2a-log-20261116.txt`。
