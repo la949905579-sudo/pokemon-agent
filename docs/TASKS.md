@@ -7,13 +7,14 @@
 （无）
 
 ## todo（按优先级）
-1. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
-2. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
-3. **联机**：GBA link cable，方案调研。
-4. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
+1. **地图 M2**（M1 已接入全量资产/连接表）：① 跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）② 门/楼梯坐标口径校准（解包 warp 与实测差 1 格，先用真机对照 2–3 个门）③ 地图页展示行为/遭遇（`maps_decomp` 已有 behaviors、`encounters_leafgreen.json`）④ 27 个 struct-multi 布局地址消歧。
+2. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
+3. **镜头贴地图边时的锚点偏移标定**：纯真机标定，改 `TouchMap` 常量 + 单测，低风险。
+4. **联机**：GBA link cable，方案调研。
+5. **结构债**（随触碰模块顺手做，不单开）：`EmuView`/`WalkControl` 零散逻辑继续迁出；WYSIWYG 小清理（`Wysiwyg` KDoc 的 `[cancel]`→`[cancelAll]`、`MenuState.insideWindow` 去留、`Landscape` 重置里与 `cancelAll` 重复的 `WalkControl.generation++`）。
 
 ## 暂缓
-- **地图相关功能全部暂缓**（用户 2026-11-14 拍板）：A\* 跨图补采 / UI 入口 / 实机对照、地图新交互控件、地图数据与可视化改进；已实现地图功能保持现状。
+- （无）地图功能已于 2026-11-16 由用户批准解冻（先做数据接入，M1 完成；M2 见 todo 1）。
 
 ## done
 - 2026-11-16 **地图功能接入 M1：全量资产 + 跨图连接表**：新增 `tools/gen_map_assets.py`——把解包 `map.bin` 字节在 ROM 里按内容反查地址（用布局结构体 + border 校验消歧：337 struct / 27 struct-multi / 1 raw / 0 missing），生成 **345 个** `assets/maps/map_<addr>.json`（365 布局，同内容共址）；用解包 `connections` 按实测规则算出口/落点（南北 exit 在边行、落点 y=2 / nh-3，东西同理，坐标平移 -offset）→ **2769 个出口（65 张有连接的图，3 处多目标）**；门坐标口径与实测差 1 格，默认合并实测 11 条（`--merge-old`）。
