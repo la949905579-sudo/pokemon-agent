@@ -4,10 +4,7 @@
 > 当前状态：**模式已固化（2026-11-14）**；无进行中任务；最新 Release `build-d67eab1`（已装机）；下一步候选：背包/队伍子菜单点选 / 非标准选项框 / 镜头贴边 / 联机 / 结构债；地图相关全部暂缓。
 
 ## doing
-### 2026-11-16 地图功能接入（M1：全量资产 + 跨图连接表）
-- **目标**：用解包数据替换/补全 App 的 `assets/maps`——用 ROM 里 blockdata 字节反查地址，给全部 365 个解包布局生成 `map_<addr>.json`；用解包 `connections`/`warp_events` 生成全量 `map_links.json`（出口格/落点按实测规则计算：南北 exit 在边行、落点 y=2 / nh-3，东西同理），App 地图页与跨图寻路直接用上全量数据。
-- **验收**：`tools/gen_map_assets.py` 生成 365 个资产 + 连接表，并与现有 13 条实测连接交叉校验（每条都能在生成表中命中，忽略门 side 差异）；`--check` 通过；现有 11 张资产 tiles 与重新生成逐字节一致；Kotlin 单测绿（MapData 改懒加载后仍过）；真机（新 APK）地图页显示当前图且无 `map.fallback` 警告、跨图规划可用。
-- **范围**：`tools/gen_map_assets.py`（新）、`native-emu/app/src/main/assets/maps/`（重新生成）、`game/MapData.kt`（懒加载，避免 365 文件主线程解析）、相关单测；不改竖屏/横屏交互与战斗逻辑；行为/遭遇 UI、海拔、动态 NPC 不在本步。
+（无）
 
 ## todo（按优先级）
 1. **非标准选项框（3+ 选项）支持**：现在只认标准「是/否」框（21,9,6,4），其它选项框只提示、不按键。
@@ -19,6 +16,12 @@
 - **地图相关功能全部暂缓**（用户 2026-11-14 拍板）：A\* 跨图补采 / UI 入口 / 实机对照、地图新交互控件、地图数据与可视化改进；已实现地图功能保持现状。
 
 ## done
+- 2026-11-16 **地图功能接入 M1：全量资产 + 跨图连接表**：新增 `tools/gen_map_assets.py`——把解包 `map.bin` 字节在 ROM 里按内容反查地址（用布局结构体 + border 校验消歧：337 struct / 27 struct-multi / 1 raw / 0 missing），生成 **345 个** `assets/maps/map_<addr>.json`（365 布局，同内容共址）；用解包 `connections` 按实测规则算出口/落点（南北 exit 在边行、落点 y=2 / nh-3，东西同理，坐标平移 -offset）→ **2769 个出口（65 张有连接的图，3 处多目标）**；门坐标口径与实测差 1 格，默认合并实测 11 条（`--merge-old`）。
+  - 交叉校验：现有 13 条真机走位记录 **13/13 命中**（3 条 side 口径不同）；旧 11 张资产 tiles 与重生成逐格一致。
+  - `MapData` 改懒加载（启动只列目录，用到才解析；`map.assets indexed=345`），避免 345 文件主线程解析。
+  - 单测：Kotlin 172/172、Python 33/33（新增 `tests/test_map_assets.py`：ROM 地址定位/连接规则/多目标合并/实测校验/资产 schema）。
+  - 真机（`build-44e9b60`，版本 0.2 (44e9b60)）：日志 `map.assets indexed=345`、`map.links count=2769`、新会话 **0 条 `map.fallback`**（同一张 24×40 图在旧包曾回退读内存）；地图页正常渲染当前图 + 玩家点，截图 `/sdcard/Download/DSH-Go/map-assets-newsession-20261116.jpg`。
+  - 未做（M2+）：跨图寻路 UI 入口（`CrossMapWalker` 仍未接线）、门/楼梯坐标口径校准（解包与实测差 1 格）、行为/遭遇在地图页展示、27 个 struct-multi 布局的地址消歧。
 - 2026-11-16 **离线地图数据提取（小步：3 张图校验）**：新增 `tools/gen_maps_data.py`——读 pokefirered 解包 `layouts.json`/`map.bin` 的碰撞位（bits 10-11）生成可走格 JSON（`w/h/tiles` + `connections`/`warps` + `ram_crosscheck`），支持 `--match`（真机 RAM 地图 × 解包布局逐格比对）/ `--emit` / `--check`（离线自检）。
   - 真机交叉校验 **11/11 张现有 RAM 地图 diff=0**（含 48×40 三城/路、24×40、72×20、小室内图）→ 汉化版这些图与香草解包碰撞位完全一致；`DIGLETTS_CAVE` 南北入口布局同形（同尺寸另有 1 个 diff=0，标记歧义）。
   - **全量已出**：`--emit-all` 生成解包 maps 表全部 **425 张** → `games/pokemon_firered/maps_decomp/`（2.7MB，文件名=地图名；`--check` 425 个文件 PASS，含尺寸/layout/0-1/连接/传送字段校验）。室内图的 `connections` 在解包里是 null，统一归一成 `[]`。
