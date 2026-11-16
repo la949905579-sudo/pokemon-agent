@@ -123,6 +123,17 @@
    1
   ]
  ],
+ "behaviors": [
+  "0000000000000000000000",
+  "8181000000009494008181",
+  "0000000000000000000000",
+  "0000000000000000000000",
+  "0000000000000000000000",
+  "0000000000000000000000",
+  "0000000000000000000000",
+  "0000000065000000000000",
+  "0000000000000000000000"
+ ],
  "connections": [],
  "warps": [
   {
@@ -141,5 +152,5 @@
   }
  ],
  "ram_crosscheck": null,
- "source": "pokefirered: collision bits only (behavior/elevation not included)"
+ "source": "pokefirered: collision bits + metatile behavior"
 }

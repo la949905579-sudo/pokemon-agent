@@ -12,6 +12,9 @@
     data/layouts/layouts.json           布局表：宽高 + blockdata_filepath（map.bin）+ 边框
     data/layouts/<Layout>/map.bin       每格 u16：metatile id(bits0-9) | 碰撞(bits10-11) | 海拔(bits12-15)
     data/maps/<Map>/map.json            地图 id / 名称 / layout / connections / warp_events
+    src/data/tilesets/metatiles.h       tileset → data/tilesets/.../metatile_attributes.bin 路径
+    include/constants/metatile_behaviors.h  MB_* 行为常量（写成 data/metatile_behaviors.json）
+    src/data/wild_encounters.json       野生遭遇表（挑 _LeafGreen 版本 → data/encounters_leafgreen.json）
 
 可走判定（本小步）：碰撞位（bits 10-11）非 0 → 不可走（1），否则可走（0）。
 草丛/水面/台阶/门等「行为」、海拔差、野生遭遇表是后续步骤，不在本步。
@@ -27,15 +30,25 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REF_DEFAULT = os.environ.get("POKEFIRERED_REF", "/root/refs/pokefirered")
 EXISTING_MAPS = os.path.join(ROOT, "games", "pokemon_firered", "maps")
 OUT_DIR = os.path.join(ROOT, "games", "pokemon_firered", "maps_decomp")
+DATA_DIR = os.path.join(ROOT, "games", "pokemon_firered", "data")
+LEGEND_PATH = os.path.join(DATA_DIR, "metatile_behaviors.json")
+ENCOUNTERS_PATH = os.path.join(DATA_DIR, "encounters_leafgreen.json")
 
 # gen3 地图 block（u16）：低 10 位 metatile id、bits 10-11 碰撞、bits 12-15 海拔。
 COLLISION_MASK = 0x0C00
+METATILE_ID_MASK = 0x03FF
+# FRLG：primary 640 个 metatile、合计 1024；属性是 u32/个，behavior 在 bits 0-8。
+NUM_METATILES_IN_PRIMARY = 640
+NUM_METATILES_TOTAL = 1024
+BEHAVIOR_MASK = 0x01FF
+UNKNOWN_BEHAVIOR = 0xFF  # 超出 tileset 表/未定义（输出里计到 behavior_unknown）
 
 # 本小步产出/校验的目标地图（layout 由 map.json 反查）。
 EXPECTED = {
@@ -88,6 +101,215 @@ def load_map_jsons(ref):
         if m.get("id"):
             out[m["id"]] = m
     return out
+
+
+def load_tileset_attr_paths(ref):
+    """src/data/tilesets/metatiles.h 的 INCBIN_U32 行 → {gMetatileAttributes_X: 相对路径}。"""
+    path = os.path.join(ref, "src", "data", "tilesets", "metatiles.h")
+    out = {}
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    for m in re.finditer(r'const\s+u32\s+(gMetatileAttributes_\w+)\s*\[\]\s*=\s*INCBIN_U32\("([^"]+)"\)', text):
+        out[m.group(1)] = m.group(2)
+    return out
+
+
+def load_metatile_attrs(ref, rel_path):
+    """metatile_attributes.bin → [u32]（每个 metatile 一条，behavior 在 bits 0-8）。"""
+    path = os.path.join(ref, rel_path)
+    with open(path, "rb") as f:
+        raw = f.read()
+    if len(raw) % 4:
+        raise ValueError("%s: 字节数不是 4 的倍数" % path)
+    return [int.from_bytes(raw[i:i + 4], "little") for i in range(0, len(raw), 4)]
+
+
+def _tileset_symbol(tileset):
+    """layout 的 gTileset_X → 属性表符号 gMetatileAttributes_X。"""
+    if not tileset:
+        return None
+    name = tileset[len("gTileset_"):] if tileset.startswith("gTileset_") else tileset
+    return "gMetatileAttributes_" + name
+
+
+def behavior_grid(ref, layout, attr_paths, attr_cache):
+    """layout → 行为 id 网格（0..0xFF；超出表范围记 UNKNOWN_BEHAVIOR 并计数）。"""
+    w, h = layout["width"], layout["height"]
+    path = os.path.join(ref, layout["blockdata_filepath"])
+    with open(path, "rb") as f:
+        raw = f.read()
+    if len(raw) != w * h * 2:
+        raise ValueError("%s: map.bin %d 字节，期望 %d（%dx%d）" % (path, len(raw), w * h * 2, w, h))
+
+    def attrs_for(symbol):
+        if symbol is None:
+            return None
+        if symbol not in attr_paths:
+            raise ValueError("tileset 属性路径缺失：%s" % symbol)
+        if symbol not in attr_cache:
+            attr_cache[symbol] = load_metatile_attrs(ref, attr_paths[symbol])
+        return attr_cache[symbol]
+
+    primary = attrs_for(_tileset_symbol(layout.get("primary_tileset")))
+    secondary = attrs_for(_tileset_symbol(layout.get("secondary_tileset")))
+    grid = []
+    unknown = 0
+    for y in range(h):
+        row = []
+        for x in range(w):
+            i = (y * w + x) * 2
+            block = raw[i] | (raw[i + 1] << 8)
+            meta = block & METATILE_ID_MASK
+            if meta < NUM_METATILES_IN_PRIMARY:
+                table, idx = primary, meta
+            elif meta < NUM_METATILES_TOTAL:
+                table, idx = secondary, meta - NUM_METATILES_IN_PRIMARY
+            else:
+                table, idx = None, 0
+            if table is None or idx >= len(table):
+                row.append(UNKNOWN_BEHAVIOR)
+                unknown += 1
+            else:
+                row.append(table[idx] & BEHAVIOR_MASK)
+        grid.append(row)
+    return grid, unknown
+
+
+def load_behavior_names(ref):
+    """include/constants/metatile_behaviors.h → {id: MB_NAME}。"""
+    path = os.path.join(ref, "include", "constants", "metatile_behaviors.h")
+    out = {}
+    with open(path, encoding="utf-8") as f:
+        for m in re.finditer(r"#define\s+(MB_\w+)\s+(0x[0-9A-Fa-f]+)", f.read()):
+            out[int(m.group(2), 16)] = m.group(1)
+    return out
+
+
+def load_species_ids(ref):
+    """include/constants/species.h → {SPECIES_X: id}；支持 (NUM_SPECIES + n) 一类表达式。"""
+    path = os.path.join(ref, "include", "constants", "species.h")
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    exprs = dict(re.findall(r"#define\s+(SPECIES_\w+)\s+([^\n]+)", text))
+    exprs.update(dict(re.findall(r"#define\s+(NUM_SPECIES)\s+([^\n]+)", text)))
+    values = {}
+    changed = True
+    while changed:
+        changed = False
+        for name, expr in exprs.items():
+            if name in values:
+                continue
+            e = expr
+            for k, v in list(values.items()) + [("NUM_SPECIES", values.get("SPECIES_EGG"))]:
+                if v is not None:
+                    e = e.replace(k, str(v))
+            if re.fullmatch(r"[\d\s+\-()]+", e or ""):
+                try:
+                    values[name] = int(eval(e))  # noqa: S307  （只含数字/括号/加减）
+                    changed = True
+                except Exception:
+                    pass
+    values.pop("NUM_SPECIES", None)
+    return {k: v for k, v in values.items() if k != "SPECIES_EGG" or True}
+
+
+def _species_id(species, species_ids):
+    """'SPECIES_X' → id；解析不到就原样返回字符串（数据可追溯）。"""
+    if not isinstance(species, str):
+        return species
+    return species_ids.get(species, species)
+
+
+def build_encounters(ref, version="leafgreen"):
+    """解包野生遭遇表 → LeafGreen 版（base_label 以 _LeafGreen 结尾）。"""
+    d = _read_json(os.path.join(ref, "src", "data", "wild_encounters.json"))
+    groups = d["wild_encounter_groups"]
+    if not groups:
+        raise SystemExit("wild_encounters.json 没有分组")
+    group = groups[0]
+    rates = {f["type"]: f for f in group["fields"]}
+    suffix = "_LeafGreen" if version.lower() in ("leafgreen", "lg") else "_FireRed"
+    species_ids = load_species_ids(ref)
+    maps = {}
+    for e in group["encounters"]:
+        if not (e.get("base_label") or "").endswith(suffix):
+            continue
+        mid = e["map"]
+        out = {}
+        for sec in ("land_mons", "water_mons", "rock_smash_mons"):
+            s = e.get(sec)
+            if not s:
+                continue
+            chances = rates.get(sec, {}).get("encounter_rates", [])
+            slots = []
+            for i, mo in enumerate(s.get("mons") or []):
+                slot = {
+                    "species": _species_id(mo.get("species"), species_ids),
+                    "min": mo.get("min_level"),
+                    "max": mo.get("max_level"),
+                }
+                if i < len(chances):
+                    slot["chance"] = chances[i]
+                slots.append(slot)
+            obj = {"slots": slots}
+            if "encounter_rate" in s:
+                obj["rate"] = s["encounter_rate"]
+            out[sec[: -len("_mons")]] = obj
+        fm = e.get("fishing_mons")
+        if fm:
+            chances = rates.get("fishing_mons", {}).get("encounter_rates", [])
+            rods = rates.get("fishing_mons", {}).get("groups", {})
+            mons = fm.get("mons") or []
+            fish = {}
+            if rods:
+                for rod, idxs in rods.items():
+                    fish[rod] = []
+                    for i in idxs:
+                        if i >= len(mons):
+                            continue
+                        mo = mons[i]
+                        slot = {
+                            "species": _species_id(mo.get("species"), species_ids),
+                            "min": mo.get("min_level"),
+                            "max": mo.get("max_level"),
+                        }
+                        if i < len(chances):
+                            slot["chance"] = chances[i]
+                        fish[rod].append(slot)
+            else:
+                fish["any_rod"] = [
+                    {"species": _species_id(mo.get("species"), species_ids),
+                     "min": mo.get("min_level"), "max": mo.get("max_level")}
+                    for mo in mons
+                ]
+            obj = {"rods": fish}
+            if "encounter_rate" in fm:
+                obj["rate"] = fm["encounter_rate"]
+            out["fishing"] = obj
+        maps[mid] = out
+    return {
+        "version": version.lower(),
+        "source": "pokefirered: src/data/wild_encounters.json（base_label 后缀 %s）" % suffix,
+        "maps": maps,
+    }
+
+
+def emit_behavior_legend(ref, path):
+    names = load_behavior_names(ref)
+    doc = {
+        "source": "pokefirered: include/constants/metatile_behaviors.h",
+        "names": {str(k): v for k, v in sorted(names.items())},
+    }
+    _write_json(path, doc)
+    return path
+
+
+def _write_json(path, doc):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(doc, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    return path
 
 
 def load_existing_maps(repo_root=ROOT):
@@ -152,7 +374,8 @@ def _ram_crosscheck(existing, w, h, grid):
     return best
 
 
-def build_doc(ref, mid, layouts, maps, grid_cache, existing=None):
+def build_doc(ref, mid, layouts, maps, grid_cache, existing=None,
+              attr_paths=None, attr_cache=None, behavior_cache=None):
     """按地图 id 造可走格文档（含 connections / warps / 与真机 RAM 数据的交叉校验）。"""
     m = maps.get(mid)
     if m is None:
@@ -164,19 +387,34 @@ def build_doc(ref, mid, layouts, maps, grid_cache, existing=None):
     grid = grid_cache.get(lid)
     if grid is None:
         grid = grid_cache[lid] = build_grid(ref, lay)
-    return {
+    if attr_paths is None:
+        attr_paths = load_tileset_attr_paths(ref)
+    if attr_cache is None:
+        attr_cache = {}
+    if behavior_cache is None:
+        behavior_cache = {}
+    if lid not in behavior_cache:
+        behav, unknown = behavior_grid(ref, lay, attr_paths, attr_cache)
+        behavior_cache[lid] = (["".join("%02x" % v for v in row) for row in behav], unknown)
+    behav_rows, unknown = behavior_cache[lid]
+    doc = {
         "id": mid,
         "name": m.get("name"),
         "layout": lid,
         "w": lay["width"],
         "h": lay["height"],
         "tiles": grid,
+        # 行为 id 网格（每格 2 位十六进制；0x00=MB_NORMAL），名字见 data/metatile_behaviors.json
+        "behaviors": list(behav_rows),
         # 室内图的 map.json 里 connections 是 null，统一成 []（check 也据此校验）
         "connections": m.get("connections") or [],
         "warps": m.get("warp_events") or [],
         "ram_crosscheck": _ram_crosscheck(existing, lay["width"], lay["height"], grid),
-        "source": "pokefirered: collision bits only (behavior/elevation not included)",
+        "source": "pokefirered: collision bits + metatile behavior",
     }
+    if unknown:
+        doc["behavior_unknown"] = unknown
+    return doc
 
 
 def _write_doc(out_dir, fname, doc):
@@ -194,33 +432,45 @@ def emit(ref, map_ids, out_dir=OUT_DIR, repo_root=ROOT, grid_cache=None, layouts
     maps = load_map_jsons(ref) if maps is None else maps
     grid_cache = {} if grid_cache is None else grid_cache
     existing = load_existing_maps(repo_root) if repo_root else []
+    attr_paths = load_tileset_attr_paths(ref)
+    attr_cache = {}
+    behavior_cache = {}
     written = []
     for mid in map_ids:
-        doc = build_doc(ref, mid, layouts, maps, grid_cache, existing)
+        doc = build_doc(ref, mid, layouts, maps, grid_cache, existing,
+                        attr_paths, attr_cache, behavior_cache)
         written.append(_write_doc(out_dir, doc["name"] or mid, doc))
     return written
 
 
-def emit_all(ref, out_dir=OUT_DIR, repo_root=ROOT):
+def emit_all(ref, out_dir=OUT_DIR, repo_root=ROOT, data_dir=None):
     """全量生成（解包 maps 表里所有地图）；文件名默认地图名，重名回退地图 id。"""
     layouts = load_layouts(ref)
     maps = load_map_jsons(ref)
     grid_cache = {}
     existing = load_existing_maps(repo_root) if repo_root else []
+    attr_paths = load_tileset_attr_paths(ref)
+    attr_cache = {}
+    behavior_cache = {}
     used = set()
     written = []
     for mid in sorted(maps, key=lambda k: (maps[k].get("name") or "", k)):
-        doc = build_doc(ref, mid, layouts, maps, grid_cache, existing)
+        doc = build_doc(ref, mid, layouts, maps, grid_cache, existing,
+                        attr_paths, attr_cache, behavior_cache)
         fname = doc["name"] or mid
         if fname in used:  # 防御：同名回退 id（当前 425 张名字唯一，走不到）
             fname = mid
         used.add(fname)
         written.append(_write_doc(out_dir, fname, doc))
+    base = data_dir or DATA_DIR
+    written.append(emit_behavior_legend(ref, os.path.join(base, "metatile_behaviors.json")))
+    written.append(_write_json(os.path.join(base, "encounters_leafgreen.json"), build_encounters(ref)))
     return written
 
 
-def check(out_dir=OUT_DIR, expected=None, ref=None):
-    """校验已生成的地图 JSON。expected 指定子集；ref 给出时按解包 maps/layouts 校验尺寸与 layout。"""
+def check(out_dir=OUT_DIR, expected=None, ref=None, data_dir=None, with_extras=False):
+    """校验已生成的地图 JSON。expected 指定子集；ref 给出时按解包 maps/layouts 校验尺寸与 layout；
+    with_extras 时额外校验行为名表与遭遇表（emit-all 会一起生成）。"""
     problems = []
     found = {}
     for path in sorted(glob.glob(os.path.join(out_dir, "*.json"))):
@@ -271,6 +521,14 @@ def check(out_dir=OUT_DIR, expected=None, ref=None):
             if any(v not in (0, 1) for v in row):
                 problems.append("%s: 第 %d 行有非 0/1 值" % (mid, y))
                 break
+        behav = doc.get("behaviors")
+        if not isinstance(behav, list) or len(behav) != h:
+            problems.append("%s: behaviors 行数不对" % mid)
+        else:
+            for y, row in enumerate(behav):
+                if not isinstance(row, str) or len(row) != w * 2 or not re.fullmatch(r"[0-9a-f]+", row):
+                    problems.append("%s: behaviors 第 %d 行应是 %d 位十六进制" % (mid, y, w * 2))
+                    break
         if not isinstance(doc.get("connections"), list):
             problems.append("%s: 缺 connections" % mid)
         if not isinstance(doc.get("warps"), list):
@@ -278,6 +536,56 @@ def check(out_dir=OUT_DIR, expected=None, ref=None):
         cc = doc.get("ram_crosscheck")
         if cc is not None and cc.get("diff") != 0:
             problems.append("%s: 与真机 RAM 数据 diff=%s（预期 0）" % (mid, cc.get("diff")))
+    if with_extras:
+        base = data_dir or DATA_DIR
+        problems += _check_legend(os.path.join(base, "metatile_behaviors.json"))
+        problems += _check_encounters(os.path.join(base, "encounters_leafgreen.json"))
+    return problems
+
+
+def _check_legend(path):
+    if not os.path.isfile(path):
+        return ["缺 %s（行为名表，--emit-all 会生成）" % os.path.basename(path)]
+    doc = _read_json(path)
+    names = doc.get("names")
+    if not isinstance(names, dict) or not names:
+        return ["%s: names 为空" % os.path.basename(path)]
+    bad = [k for k in names if not re.fullmatch(r"\d+", k)]
+    return ["%s: 行为 id 不是十进制：%s" % (os.path.basename(path), bad[:3])] if bad else []
+
+
+def _check_encounters(path):
+    if not os.path.isfile(path):
+        return ["缺 %s（遭遇表，--emit-all 会生成）" % os.path.basename(path)]
+    doc = _read_json(path)
+    maps = doc.get("maps")
+    if not isinstance(maps, dict) or not maps:
+        return ["%s: maps 为空" % os.path.basename(path)]
+    problems = []
+    for mid, data in maps.items():
+        if not isinstance(data, dict):
+            problems.append("%s: 不是对象" % mid)
+            continue
+        for sec in ("land", "water", "rock_smash"):
+            s = data.get(sec)
+            if s is None:
+                continue
+            for slot in s.get("slots") or []:
+                if not isinstance(slot.get("species"), (int, str)):
+                    problems.append("%s.%s: species 类型不对" % (mid, sec))
+                if not (isinstance(slot.get("min"), int) and isinstance(slot.get("max"), int)
+                        and 1 <= slot["min"] <= slot["max"] <= 100):
+                    problems.append("%s.%s: 等级区间不对" % (mid, sec))
+        fish = data.get("fishing")
+        if fish:
+            for rod, slots in (fish.get("rods") or {}).items():
+                for slot in slots:
+                    if not (isinstance(slot.get("min"), int) and isinstance(slot.get("max"), int)
+                            and 1 <= slot["min"] <= slot["max"] <= 100):
+                        problems.append("%s.fishing.%s: 等级区间不对" % (mid, rod))
+        if len(problems) > 20:
+            problems.append("……（遭遇表问题过多，截断）")
+            break
     return problems
 
 
@@ -289,7 +597,8 @@ def build_parser():
     ap.add_argument("--ref", default=REF_DEFAULT, help="pokefirered 仓库路径（默认 %(default)s）")
     ap.add_argument("--match", action="store_true", help="现有 RAM 地图 × 解包布局逐格比对，打印报告")
     ap.add_argument("--emit", nargs="+", metavar="MAP_ID", help="按地图 id 生成可走格 JSON")
-    ap.add_argument("--emit-all", action="store_true", help="全量生成解包 maps 表里的所有地图")
+    ap.add_argument("--emit-all", action="store_true",
+                    help="全量生成地图 + 行为名表(data/metatile_behaviors.json) + 叶绿遭遇表(data/encounters_leafgreen.json)")
     ap.add_argument("--check", action="store_true", help="只校验已生成的 maps_decomp JSON（离线）")
     ap.add_argument("--out", default=OUT_DIR, help="输出目录（默认 %(default)s）")
     return ap
@@ -328,12 +637,12 @@ def main(argv=None):
             print("找不到解包仓库：%s（用 --ref 指定）" % args.ref)
             return 1
         paths = emit_all(args.ref, args.out, ROOT)
-        print("全量写入 %d 张 → %s" % (len(paths), os.path.relpath(args.out, ROOT)))
+        print("全量写入 %d 个文件（地图 + 行为名表 + 叶绿遭遇表）" % len(paths))
         did = True
 
     if args.check:
         ref = args.ref if os.path.isdir(args.ref) else None
-        problems = check(args.out, ref=ref)
+        problems = check(args.out, ref=ref, with_extras=True)
         if problems:
             print("FAIL 地图数据校验：")
             for p in problems:

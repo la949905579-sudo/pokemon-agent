@@ -127,6 +127,19 @@
    1
   ]
  ],
+ "behaviors": [
+  "000000000000000000",
+  "9c0000006000009c00",
+  "000080000000800000",
+  "000080000000800000",
+  "000080000000800000",
+  "000080000000800000",
+  "000080000000800000",
+  "000080000000800000",
+  "000080000000800000",
+  "000080006500800000",
+  "000000000000000000"
+ ],
  "connections": [],
  "warps": [
   {
@@ -162,5 +175,5 @@
   "file": "map_831e8d8.json",
   "diff": 0
  },
- "source": "pokefirered: collision bits only (behavior/elevation not included)"
+ "source": "pokefirered: collision bits + metatile behavior"
 }

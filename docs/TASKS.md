@@ -21,8 +21,12 @@
   - **全量已出**：`--emit-all` 生成解包 maps 表全部 **425 张** → `games/pokemon_firered/maps_decomp/`（2.7MB，文件名=地图名；`--check` 425 个文件 PASS，含尺寸/layout/0-1/连接/传送字段校验）。室内图的 `connections` 在解包里是 null，统一归一成 `[]`。
   - 真机交叉校验 34 张布局与 RAM 数据 diff=0（11 张真机地图对应到的解包布局及共用同一布局的城/中心）；`--match` 11/11 diff=0。
   - 抽样：PalletTown 24×20 可走 59%、Route1 24×40 62%、Route5 48×40 26%、CeruleanCity 48×40 54%（连接 4 / 传送点 14）。
-  - `--check` 可带 `--ref` 按解包 maps/layouts 校验尺寸与 layout；不带则只做自洽校验。Python 单测 32/32（`tests/test_maps_data.py` 用临时解包树，不依赖 /root/refs）。
-  - 未做：行为语义（草丛/水面/台阶/门）、海拔、遭遇表、地图 UI/寻路接入（地图功能仍暂缓）。
+  - **行为语义 + 遭遇表已补**（第二轮）：
+    - 每图新增 `behaviors`（每格 2 位十六进制行为 id，名字见 `games/pokemon_firered/data/metatile_behaviors.json`，111 个 `MB_*`）：走 `src/data/tilesets/metatiles.h` → 各 tileset `metatile_attributes.bin`（u32/个，behavior=bits0-8；primary 640、secondary 640..1023）。425 张里 **84 种行为被用到、0 个越界未知**；抽样符合预期（Route1 高草 0x02、台阶 0x3b、海路 Route19 0x15 海洋水、MtMoon 0x08 洞穴）。
+    - `games/pokemon_firered/data/encounters_leafgreen.json`（208KB，132 张有遭遇的图）：从 `src/data/wild_encounters.json` 只取 `_LeafGreen` 版本（叶绿），含 land/water/rock_smash/fishing（old/good/super rod 分组）的物种 id、等级区间、槽位概率（来自 fields.encounter_rates）与可选 per-map `rate`；物种常量解析支持 `(NUM_SPECIES + n)` 表达式。
+    - `--emit-all` 现在一次写地图 + 行为名表 + 遭遇表；`--check` 校验全部（含 behaviors 网格格式、图例、遭遇表结构）。`maps_decomp` 共 **3.2MB**（425 张 + behaviors）。
+  - `--check` 可带 `--ref` 按解包 maps/layouts 校验尺寸与 layout；不带则只做自洽校验。Python 单测 32/32（`tests/test_maps_data.py` 用临时解包树，不依赖 /root/refs，含行为/遭遇/叶绿分支用例）。
+  - 未做：海拔、地形/遭遇类型位（attribute 里 bits9+）、门/传送与行为联动、动态 NPC/剧情、地图 UI/寻路接入（地图功能仍暂缓）。
 - 2026-11-15 **横屏战斗背包/队伍子菜单点选（翻口袋 + 道具行 + 队伍格子）**：新增 `game/SubmenuState.kt`——用 `gWindows[0]` 几何识别背包 `(11,1)18×12` / 队伍 `(1,3)10×7`（`E83==0` 走标准是/否）；真机标定 `gBagMenuState`：pocket=0x0203AD02、各口袋光标=0x0203AD04+2*pocket、队伍光标=0x0203B0A9(7=取消)。
   - 背包：◀▶ 箭头 (8,72)/(72,72) 点按=按 LEFT/RIGHT 翻口袋（回读 pocket）；列表行（win0 内区、行高 16）点按=回第一行逐行挪光标→二次确认→按 A（取消行=合上背包）；滚动箭头 (160,8)/(160,104) 排除行热区、点按=挪一格不按 A；底部条按图标态区分——光标在道具行（道具说明态）只提示，在「取消」行/空口袋（「合上背包」态）按 B 合上。
   - 队伍：大框 (1,3) / 右侧 5 行（行高 24）点按=挪光标→按 A；空位（slot≥队伍数）只提示；底部「取消」按钮 (24,17)6×2 按 B 返回。
